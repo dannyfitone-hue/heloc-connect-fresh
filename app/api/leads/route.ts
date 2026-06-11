@@ -9,6 +9,21 @@ function num(v: any) {
   return Number(String(v || "").replace(/[^0-9.]/g, "")) || 0;
 }
 
+
+function envHasBadChar(name: string) {
+  const value = process.env[name] || "";
+  return value.includes("•") || value.includes("●") || value.includes("…");
+}
+
+function missingOrBadEnv() {
+  const names = [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY"
+  ];
+  return names.filter((name) => !process.env[name] || envHasBadChar(name));
+}
+
 function clean(v: any, max = 240) {
   return String(v || "").replace(/\s+/g, " ").trim().slice(0, max);
 }
@@ -23,6 +38,14 @@ export async function POST(req: Request) {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
+  }
+
+  const badEnv = missingOrBadEnv();
+  if (badEnv.length) {
+    return NextResponse.json({
+      error: `Bad or missing Supabase environment variable: ${badEnv.join(", ")}`,
+      fix: "Re-enter these variables in Vercel manually. Do not paste masked values with bullet dots."
+    }, { status: 500 });
   }
 
   if (!supabaseAdmin) {
