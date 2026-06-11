@@ -6,16 +6,31 @@ function pickValue(data: any) {
   return (
     p?.avm?.amount?.value ||
     p?.avm?.amount?.scr ||
+    p?.avm?.amount?.high ||
+    p?.avm?.amount?.low ||
     p?.avm?.value ||
     p?.assessment?.market?.mktttlvalue ||
     p?.assessment?.assessed?.assdttlvalue ||
-    p?.assessment?.assessed?.assdimprvalue ||
     p?.sale?.amount?.saleamt ||
     null
   );
 }
 
-async function callAttom(url: string, key: string) {
+function splitFullAddress(full: string) {
+  const parts = String(full || "").split(",").map((x) => x.trim()).filter(Boolean);
+  const address1 = parts[0] || "";
+  const city = parts[1] || "";
+  const stateZip = parts[2] || "";
+  const address2 = [city, stateZip].filter(Boolean).join(", ");
+  return { address1, address2 };
+}
+
+async function callAttom(endpoint: string, address1: string, address2: string, key: string) {
+  const url =
+    `https://api.gateway.attomdata.com/propertyapi/v1.0.0/${endpoint}` +
+    `?address1=${encodeURIComponent(address1)}` +
+    `&address2=${encodeURIComponent(address2)}`;
+
   const res = await fetch(url, {
     headers: {
       apikey: key,
@@ -29,12 +44,8 @@ async function callAttom(url: string, key: string) {
 }
 
 export async function POST(req: Request) {
-  const { address } = await req.json();
+  const body = await req.json();
   const key = process.env.ATTOM_API_KEY;
-
-  if (!address) {
-    return NextResponse.json({ value: null, message: "Address is required." });
-  }
 
   if (!key) {
     return NextResponse.json({
@@ -43,58 +54,64 @@ export async function POST(req: Request) {
     });
   }
 
-  const cleanAddress = String(address).trim();
+  let address1 = String(body.address1 || body.street || "").trim();
+  let address2 = String(body.address2 || "").trim();
+
+  if (!address2) {
+    const city = String(body.city || "").trim();
+    const state = String(body.state || "").trim();
+    const zip = String(body.zip || "").trim();
+    address2 = [city, [state, zip].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  }
+
+  if ((!address1 || !address2) && body.address) {
+    const parsed = splitFullAddress(body.address);
+    address1 = address1 || parsed.address1;
+    address2 = address2 || parsed.address2;
+  }
+
+  if (!address1 || !address2) {
+    return NextResponse.json({
+      value: null,
+      message: "Full property address is required for ATTOM lookup."
+    });
+  }
 
   const endpoints = [
-    {
-      name: "AVM Detail",
-      url: `https://api.gateway.attomdata.com/propertyapi/v1.0.0/avm/detail?address1=${encodeURIComponent(cleanAddress)}&address2=`
-    },
-    {
-      name: "AVM Snapshot",
-      url: `https://api.gateway.attomdata.com/propertyapi/v1.0.0/avm/snapshot?address1=${encodeURIComponent(cleanAddress)}&address2=`
-    },
-    {
-      name: "Basic Profile",
-      url: `https://api.gateway.attomdata.com/propertyapi/v1.0.0/property/basicprofile?address1=${encodeURIComponent(cleanAddress)}&address2=`
-    },
-    {
-      name: "Assessment Snapshot",
-      url: `https://api.gateway.attomdata.com/propertyapi/v1.0.0/assessment/snapshot?address1=${encodeURIComponent(cleanAddress)}&address2=`
-    },
-    {
-      name: "Assessment Detail",
-      url: `https://api.gateway.attomdata.com/propertyapi/v1.0.0/assessment/detail?address1=${encodeURIComponent(cleanAddress)}&address2=`
-    },
-    {
-      name: "Sale Snapshot",
-      url: `https://api.gateway.attomdata.com/propertyapi/v1.0.0/sale/snapshot?address1=${encodeURIComponent(cleanAddress)}&address2=`
-    }
+    { name: "AVM Detail", endpoint: "avm/detail" },
+    { name: "AVM Snapshot", endpoint: "avm/snapshot" },
+    { name: "Basic Profile", endpoint: "property/basicprofile" },
+    { name: "Assessment Snapshot", endpoint: "assessment/snapshot" },
+    { name: "Assessment Detail", endpoint: "assessment/detail" },
+    { name: "Sale Snapshot", endpoint: "sale/snapshot" }
   ];
 
   const attempts: any[] = [];
 
-  for (const endpoint of endpoints) {
+  for (const item of endpoints) {
     try {
-      const result = await callAttom(endpoint.url, key);
+      const result = await callAttom(item.endpoint, address1, address2, key);
       const value = pickValue(result.data);
 
       attempts.push({
-        endpoint: endpoint.name,
+        endpoint: item.name,
         status: result.status,
-        foundValue: Boolean(value)
+        foundValue: Boolean(value),
+        propertyCount: result.data?.property?.length || 0
       });
 
       if (value) {
         return NextResponse.json({
           value,
-          source: endpoint.name,
-          message: `Estimated value found through ${endpoint.name}.`
+          source: item.name,
+          address1,
+          address2,
+          message: `Estimated value found through ${item.name}.`
         });
       }
     } catch (error: any) {
       attempts.push({
-        endpoint: endpoint.name,
+        endpoint: item.name,
         error: error?.message || "Request failed"
       });
     }
@@ -102,6 +119,8 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     value: null,
+    address1,
+    address2,
     message: "ATTOM responded, but no AVM/assessment/sale value was returned for this address. Enter estimated value manually.",
     attempts
   });

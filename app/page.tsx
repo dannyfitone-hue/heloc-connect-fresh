@@ -101,7 +101,15 @@ export default function LandingPage() {
       const res = await fetch("/api/property-value", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: fullAddress })
+        body: JSON.stringify({
+          address: fullAddress,
+          address1: street,
+          street,
+          city,
+          state: stateName,
+          zip,
+          address2: [city, [stateName, zip].filter(Boolean).join(" ")].filter(Boolean).join(", ")
+        })
       });
       const data = await res.json();
 
