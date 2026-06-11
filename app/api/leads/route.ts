@@ -32,10 +32,6 @@ function cleanKey(v: any) {
   return String(v || "").replace(/[\r\n\s]/g, "").trim();
 }
 
-function isValidSupabaseServerKey(key: string) {
-  return key.startsWith("sb_secret_") || key.startsWith("eyJ");
-}
-
 export async function POST(req: Request) {
   let body: any = {};
   try {
@@ -59,15 +55,12 @@ export async function POST(req: Request) {
     }, { status: 500 });
   }
 
-  if (!isValidSupabaseServerKey(serverKey)) {
-    return NextResponse.json({
-      error: "SUPABASE_SERVICE_ROLE_KEY must start with sb_secret_ or legacy eyJ service_role key.",
-      currentStartsWith: serverKey.slice(0, 12)
-    }, { status: 500 });
-  }
-
   const clientToken = makeToken();
 
+  // Matches the REAL live Supabase columns shown in your table:
+  // requested_cash, not requested_amount.
+  // assigned_lender, not assigned_lender_id.
+  // Avoids inserting columns that may not exist.
   const lead = {
     tracking_id: trackingId(),
     client_token: clientToken,
@@ -76,20 +69,14 @@ export async function POST(req: Request) {
     phone: clean(body.phone, 40),
     email: clean(body.email, 160),
     property_address: cleanLong(body.property_address || body.street_address || ""),
-    city: clean(body.city, 120),
-    state: clean(body.state, 40),
-    zip: clean(body.zip, 20),
     home_value: num(body.home_value),
-    mortgage_balance: num(body.mortgage_balance),
-    requested_amount: num(body.requested_cash),
-    equity_room: num(body.possible_equity_room),
-    estimated_payment: num(body.estimated_monthly_payment),
-    loans_on_property: clean(body.loans_on_property, 120),
     credit_score: clean(body.credit_score, 120),
     monthly_income: num(body.monthly_income),
-    mortgage_standing: clean(body.mortgage_good_standing, 120),
+    requested_cash: num(body.requested_cash || body.requested_amount),
+    loan_purpose: clean(body.loan_purpose || body.purpose || "HELOC / Refinance Options", 240),
+    lead_source: "website",
     status: "Application Received",
-    notes: "Submitted from HELOC CONNECT smart calculator"
+    funded_amount: 0
   };
 
   try {
@@ -97,11 +84,6 @@ export async function POST(req: Request) {
       auth: {
         persistSession: false,
         autoRefreshToken: false
-      },
-      global: {
-        headers: {
-          "X-Client-Info": "heloc-connect-lead-submit"
-        }
       }
     });
 
@@ -130,11 +112,11 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     return NextResponse.json({
-      error: "Supabase server insert failed before returning a database response.",
+      error: "Lead insert crashed.",
       message: error?.message || String(error),
       supabaseUrl,
       serverKeyStartsWith: serverKey.slice(0, 12),
-      nextStep: "Use the Legacy service_role key from Supabase API Keys if sb_secret_ still fails."
+      sentColumns: Object.keys(lead)
     }, { status: 500 });
   }
 }

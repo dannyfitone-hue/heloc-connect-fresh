@@ -24,7 +24,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("leads")
-      .select("id, client_token, first_name, property_address")
+      .select("id, tracking_id, client_token, first_name, property_address, requested_cash, status")
       .limit(1);
 
     if (error) {
@@ -49,8 +49,7 @@ export async function GET() {
       ok: false,
       crashed: true,
       message: error?.message || String(error),
-      serverKeyStartsWith: serverKey.slice(0, 12),
-      note: "If this says fetch failed, replace SUPABASE_SERVICE_ROLE_KEY with Legacy service_role JWT key."
+      serverKeyStartsWith: serverKey.slice(0, 12)
     }, { status: 500 });
   }
 }
