@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 const FALLBACK_SUPABASE_URL = "https://cpljanwlpclyhshrsfzv.supabase.co";
 
@@ -31,26 +32,6 @@ function cleanKey(v: any) {
   return String(v || "").replace(/[\r\n\s]/g, "").trim();
 }
 
-async function insertLead(endpoint: string, serviceKey: string, lead: any) {
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "apikey": serviceKey,
-      "Authorization": `Bearer ${serviceKey}`,
-      "Content-Type": "application/json",
-      "Prefer": "return=representation"
-    },
-    body: JSON.stringify(lead),
-    cache: "no-store"
-  });
-
-  const text = await res.text();
-  let data: any = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
-
-  return { res, data };
-}
-
 export async function POST(req: Request) {
   let body: any = {};
   try {
@@ -62,25 +43,31 @@ export async function POST(req: Request) {
   const supabaseUrl = cleanUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
   const serviceKey = cleanKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-  if (!serviceKey || !serviceKey.startsWith("sb_secret_")) {
+  if (!supabaseUrl || !serviceKey) {
     return NextResponse.json({
-      error: "SUPABASE_SERVICE_ROLE_KEY is missing or wrong.",
-      currentStartsWith: serviceKey ? serviceKey.slice(0, 12) : "missing"
+      error: "Missing Supabase URL or service key.",
+      supabaseUrlPresent: Boolean(supabaseUrl),
+      serviceKeyPresent: Boolean(serviceKey)
+    }, { status: 500 });
+  }
+
+  if (!serviceKey.startsWith("sb_secret_")) {
+    return NextResponse.json({
+      error: "SUPABASE_SERVICE_ROLE_KEY must start with sb_secret_.",
+      currentStartsWith: serviceKey.slice(0, 12)
     }, { status: 500 });
   }
 
   const clientToken = makeToken();
-  const address = cleanLong(body.property_address || body.street_address || "");
 
-  // This object matches the EXISTING live Supabase table shown in your screenshot.
-  const liveLead = {
+  const lead = {
     tracking_id: trackingId(),
     client_token: clientToken,
     first_name: clean(body.first_name, 80),
     last_name: clean(body.last_name, 80),
     phone: clean(body.phone, 40),
     email: clean(body.email, 160),
-    property_address: address,
+    property_address: cleanLong(body.property_address || body.street_address || ""),
     city: clean(body.city, 120),
     state: clean(body.state, 40),
     zip: clean(body.zip, 20),
@@ -97,36 +84,42 @@ export async function POST(req: Request) {
     notes: "Submitted from HELOC CONNECT smart calculator"
   };
 
-  const endpoint = `${supabaseUrl}/rest/v1/leads`;
-
   try {
-    const first = await insertLead(endpoint, serviceKey, liveLead);
+    const supabase = createClient(supabaseUrl, serviceKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    });
 
-    if (first.res.ok) {
-      const row = Array.isArray(first.data) ? first.data[0] : first.data;
+    const { data, error } = await supabase
+      .from("leads")
+      .insert(lead)
+      .select("id, client_token, tracking_id")
+      .single();
+
+    if (error) {
       return NextResponse.json({
-        token: row?.client_token || clientToken,
-        client_token: row?.client_token || clientToken,
-        id: row?.id || null,
-        saved: true
-      });
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        sentColumns: Object.keys(lead)
+      }, { status: 500 });
     }
 
     return NextResponse.json({
-      error: "Supabase insert failed.",
-      status: first.res.status,
-      response: first.data,
-      endpoint,
-      sentColumns: Object.keys(liveLead)
-    }, { status: 500 });
-
+      saved: true,
+      id: data?.id || null,
+      token: data?.client_token || clientToken,
+      client_token: data?.client_token || clientToken,
+      tracking_id: data?.tracking_id || lead.tracking_id
+    });
   } catch (error: any) {
     return NextResponse.json({
-      error: "Server could not reach Supabase REST endpoint.",
-      message: error?.message || "fetch failed",
-      endpoint,
-      urlUsed: supabaseUrl,
-      serviceKeyStartsWith: serviceKey.slice(0, 12)
+      error: "Supabase JS insert crashed before returning a database response.",
+      message: error?.message || String(error),
+      supabaseUrl
     }, { status: 500 });
   }
 }
