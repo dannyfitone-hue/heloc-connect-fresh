@@ -163,9 +163,17 @@ export default function LandingPage() {
       });
 
       const data = await res.json();
+
+      if (!res.ok || data?.error) {
+        alert(`Lead was NOT saved. Supabase error: ${data?.error || data?.message || "Unknown error"}`);
+        setLoading(false);
+        return;
+      }
+
       router.push(data?.token ? `/status/${data.token}` : "/thank-you/demo");
-    } catch {
-      router.push("/thank-you/demo");
+    } catch (error: any) {
+      alert(`Lead was NOT saved. Error: ${error?.message || "Unknown error"}`);
+      setLoading(false);
     }
   }
 
@@ -188,8 +196,6 @@ export default function LandingPage() {
             <a href="#protection" className="hover:text-[#f6c15a]">Protection Shield</a>
             <a href="#trust" className="hover:text-[#f6c15a]">Trust & Security</a>
             <a href="#solutions" className="hover:text-[#f6c15a]">Solutions</a>
-            <a href="/owner-login" className="hover:text-[#f6c15a]">Owner</a>
-            <a href="/lender-login" className="hover:text-[#f6c15a]">Lender</a>
           </div>
 
           <a href="#apply" className="rounded-2xl bg-gradient-to-b from-[#ffd36d] to-[#d89425] px-5 py-3 text-sm font-black text-[#07101c] shadow-lg shadow-[#d89425]/25">

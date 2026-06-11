@@ -1,6 +1,6 @@
 create extension if not exists "uuid-ossp";
 
-create table if not exists leads (
+create table if not exists public.leads (
  id uuid primary key default uuid_generate_v4(),
  token text unique not null,
  created_at timestamptz default now(),
@@ -23,5 +23,18 @@ create table if not exists leads (
  income numeric default 0,
  mortgage_standing text,
  status text default 'Application Received',
- notes text
+ notes text,
+ funded_amount numeric default 0,
+ assigned_company text,
+ assigned_agent text,
+ document_request text
 );
+
+alter table public.leads add column if not exists updated_at timestamptz default now();
+alter table public.leads add column if not exists funded_amount numeric default 0;
+alter table public.leads add column if not exists assigned_company text;
+alter table public.leads add column if not exists assigned_agent text;
+alter table public.leads add column if not exists document_request text;
+
+create index if not exists leads_token_idx on public.leads(token);
+create index if not exists leads_created_at_idx on public.leads(created_at desc);

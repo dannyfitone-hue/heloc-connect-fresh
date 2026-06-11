@@ -25,7 +25,7 @@ export default async function LenderPage() {
               <div className="text-xs font-black uppercase tracking-[.35em] text-[#f6c15a]">Mortgage Company Portal</div>
             </div>
           </a>
-          <a href="/" className="rounded-2xl bg-[#f6c15a] px-5 py-3 text-sm font-black text-[#06111f]">Back To Site</a>
+          <a href="/api/auth/logout" className="rounded-2xl bg-[#f6c15a] px-5 py-3 text-sm font-black text-[#06111f]">Logout</a>
         </div>
       </header>
 

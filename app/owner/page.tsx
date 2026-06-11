@@ -33,7 +33,7 @@ export default async function OwnerPage() {
           </a>
           <div className="flex flex-wrap gap-3 text-sm font-black">
             <a href="/lender" className="rounded-2xl border border-white/10 bg-white/[.04] px-4 py-3">Lender View</a>
-            <a href="/" className="rounded-2xl bg-[#f6c15a] px-5 py-3 text-[#06111f]">Homepage</a>
+            <a href="/api/auth/logout" className="rounded-2xl bg-[#f6c15a] px-5 py-3 text-[#06111f]">Logout</a>
           </div>
         </div>
       </header>
