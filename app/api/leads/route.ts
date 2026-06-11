@@ -9,6 +9,14 @@ function num(v: any) {
   return Number(String(v || "").replace(/[^0-9.]/g, "")) || 0;
 }
 
+function clean(v: any, max = 240) {
+  return String(v || "").replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+function cleanLong(v: any) {
+  return String(v || "").replace(/\s+/g, " ").trim().slice(0, 2000);
+}
+
 export async function POST(req: Request) {
   let body: any = {};
   try {
@@ -27,25 +35,25 @@ export async function POST(req: Request) {
 
   const lead = {
     token: t,
-    first_name: String(body.first_name || ""),
-    last_name: String(body.last_name || ""),
-    phone: String(body.phone || ""),
-    email: String(body.email || ""),
-    address: String(body.property_address || body.street_address || ""),
-    city: String(body.city || ""),
-    state: String(body.state || ""),
-    zip: String(body.zip || ""),
+    first_name: clean(body.first_name, 80),
+    last_name: clean(body.last_name, 80),
+    phone: clean(body.phone, 40),
+    email: clean(body.email, 160),
+    address: cleanLong(body.property_address || body.street_address || ""),
+    city: clean(body.city, 120),
+    state: clean(body.state, 40),
+    zip: clean(body.zip, 20),
     home_value: num(body.home_value),
     mortgage_balance: num(body.mortgage_balance),
     requested_amount: num(body.requested_cash),
     equity_room: num(body.possible_equity_room),
     estimated_payment: num(body.estimated_monthly_payment),
-    loans_on_property: String(body.loans_on_property || ""),
-    credit_score: String(body.credit_score || ""),
+    loans_on_property: clean(body.loans_on_property, 120),
+    credit_score: clean(body.credit_score, 120),
     income: num(body.monthly_income),
-    mortgage_standing: String(body.mortgage_good_standing || ""),
+    mortgage_standing: clean(body.mortgage_good_standing, 120),
     status: "Application Received",
-    notes: "Submitted from HELOC CONNECT smart calculator"
+    notes: cleanLong("Submitted from HELOC CONNECT smart calculator")
   };
 
   const { data, error } = await supabaseAdmin.from("leads").insert(lead).select("id, token").single();
@@ -54,7 +62,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       error: error.message,
       details: error,
-      fix: "Make sure the Supabase leads table exists. Run supabase/schema.sql in Supabase SQL Editor."
+      fix: "Run supabase/schema.sql in Supabase SQL Editor. It changes limited varchar fields to text."
     }, { status: 500 });
   }
 

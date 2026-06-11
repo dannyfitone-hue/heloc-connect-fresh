@@ -30,6 +30,21 @@ create table if not exists public.leads (
  document_request text
 );
 
+alter table public.leads alter column token type text;
+alter table public.leads alter column first_name type text;
+alter table public.leads alter column last_name type text;
+alter table public.leads alter column phone type text;
+alter table public.leads alter column email type text;
+alter table public.leads alter column address type text;
+alter table public.leads alter column city type text;
+alter table public.leads alter column state type text;
+alter table public.leads alter column zip type text;
+alter table public.leads alter column loans_on_property type text;
+alter table public.leads alter column credit_score type text;
+alter table public.leads alter column mortgage_standing type text;
+alter table public.leads alter column status type text;
+alter table public.leads alter column notes type text;
+
 alter table public.leads add column if not exists updated_at timestamptz default now();
 alter table public.leads add column if not exists funded_amount numeric default 0;
 alter table public.leads add column if not exists assigned_company text;

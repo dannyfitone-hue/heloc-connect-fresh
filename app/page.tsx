@@ -11,6 +11,8 @@ type AddressResult = {
   zip?: string;
 };
 
+const HERO_PHOTO = "https://images.pexels.com/photos/7979605/pexels-photo-7979605.jpeg?auto=compress&cs=tinysrgb&w=1800";
+
 function moneyNumber(value: string) {
   return Number(String(value || "").replace(/[^0-9.]/g, "")) || 0;
 }
@@ -117,7 +119,7 @@ export default function LandingPage() {
         setHomeValueInput(String(data.value));
         setValueStatus(`Estimated value found: ${formatMoney(Number(data.value))}`);
       } else {
-        setValueStatus(data?.message || "Home value API did not return a value. You can enter the value manually.");
+        setValueStatus(data?.message || "Home value API did not return a value. Enter the value manually.");
       }
     } catch {
       setValueStatus("Home value lookup is not connected yet. You can enter value manually.");
@@ -184,18 +186,18 @@ export default function LandingPage() {
           <a href="/" className="flex shrink-0 items-center gap-3">
             <div className="grid h-12 w-12 place-items-center rounded-2xl border border-[#d9a94e]/70 bg-[#091827] text-[#f6c15a] shadow-lg">⌂</div>
             <div className="leading-none">
-              <div className="text-2xl font-black tracking-[-.04em]">HELOC</div>
-              <div className="text-[11px] font-black uppercase tracking-[.45em] text-[#f6c15a]">Connect</div>
+              <div className="text-2xl font-black tracking-[-.05em]">HELOC CONNECT</div>
+              <div className="text-[11px] font-black uppercase tracking-[.45em] text-[#f6c15a]">Smart Match Platform</div>
             </div>
           </a>
 
-          <div className="hidden items-center gap-5 text-sm font-black text-white/90 lg:flex xl:gap-7">
-            <a href="#home" className="hover:text-[#f6c15a]">Home</a>
+          <div className="hidden items-center gap-6 text-sm font-black text-white/80 lg:flex">
             <a href="#how" className="hover:text-[#f6c15a]">How It Works</a>
-            <a href="#network" className="hover:text-[#f6c15a]">Our Network</a>
-            <a href="#protection" className="hover:text-[#f6c15a]">Protection Shield</a>
-            <a href="#trust" className="hover:text-[#f6c15a]">Trust & Security</a>
-            <a href="#solutions" className="hover:text-[#f6c15a]">Solutions</a>
+            <a href="#deal" className="hover:text-[#f6c15a]">Example Result</a>
+            <a href="#protection" className="hover:text-[#f6c15a]">Protection</a>
+            <a href="#apply" className="hover:text-[#f6c15a]">Calculator</a>
+            <a href="/about" className="hover:text-[#f6c15a]">About</a>
+            <a href="/privacy-policy" className="hover:text-[#f6c15a]">Privacy</a>
           </div>
 
           <a href="#apply" className="rounded-2xl bg-gradient-to-b from-[#ffd36d] to-[#d89425] px-5 py-3 text-sm font-black text-[#07101c] shadow-lg shadow-[#d89425]/25">
@@ -204,91 +206,140 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <section id="home" className="bg-[radial-gradient(circle_at_18%_8%,rgba(246,190,78,.16),transparent_28%),linear-gradient(135deg,#08111f_0%,#071421_55%,#030912_100%)] px-3 py-8 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-[1500px] rounded-[34px] border border-white/10 bg-[#071421]/92 p-5 shadow-2xl shadow-black/30 sm:p-8 lg:p-12">
-          <div className="grid gap-8 xl:grid-cols-[.9fr_1.1fr] xl:items-start">
-            <div className="xl:pt-28">
-              <div className="inline-flex rounded-full border border-[#d9a94e]/70 px-4 py-2 text-xs font-black uppercase tracking-[.32em] text-[#f7c35e]">
-                The Smarter Way To Borrow
+      <section className="relative overflow-hidden bg-[radial-gradient(circle_at_10%_15%,rgba(246,193,90,.17),transparent_26%),radial-gradient(circle_at_90%_10%,rgba(52,211,153,.10),transparent_25%),linear-gradient(135deg,#06111f,#071827_52%,#030912)] px-3 py-8 sm:px-6 lg:px-8">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#f6c15a]/60 to-transparent" />
+        <div className="mx-auto max-w-[1500px]">
+          <div className="grid gap-8 lg:grid-cols-[.92fr_1.08fr] lg:items-center">
+            <div className="rounded-[34px] border border-white/10 bg-white/[.035] p-6 shadow-2xl shadow-black/40 sm:p-8 lg:p-10">
+              <div className="inline-flex rounded-full border border-[#d9a94e]/70 bg-[#f6c15a]/10 px-4 py-2 text-xs font-black uppercase tracking-[.32em] text-[#f7c35e]">
+                The smarter way to borrow
               </div>
-              <h1 className="mt-6 max-w-[560px] text-[46px] font-black leading-[.94] tracking-[-.06em] text-white sm:text-7xl">
-                HELOC or<br />Refinance?
+
+              <h1 className="mt-7 max-w-[650px] text-[44px] font-black leading-[.92] tracking-[-.065em] text-white sm:text-7xl xl:text-[86px]">
+                HELOC or Refinance?
               </h1>
-              <h2 className="mt-4 max-w-[560px] text-[36px] font-black leading-[1.02] tracking-[-.04em] text-[#f6c15a] sm:text-6xl">
+              <h2 className="mt-3 max-w-[650px] bg-gradient-to-r from-[#f6c15a] via-[#ffe6a0] to-white bg-clip-text text-[36px] font-black leading-[1.02] tracking-[-.05em] text-transparent sm:text-6xl">
                 Find the smarter path.
               </h2>
-              <p className="mt-6 max-w-[620px] text-lg font-bold leading-relaxed text-white/90">
-                We help homeowners explore whether HELOC, refinance, cash-out, or purchase options may put them in a stronger financial position through carefully selected mortgage companies in our network.
+
+              <p className="mt-6 max-w-[690px] text-lg font-semibold leading-relaxed text-white/78">
+                HELOC CONNECT helps homeowners explore whether a HELOC, refinance, cash-out, or purchase option may put them in a stronger financial position through carefully selected mortgage companies in our network.
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3">
+              <div className="mt-7 flex flex-wrap items-center gap-3">
                 <div className="text-3xl text-[#f6c15a]">★★★★★</div>
                 <div className="text-sm font-black text-white">4.9/5 From 2,000+ Homeowners</div>
               </div>
 
-              <div className="mt-7 grid max-w-[520px] gap-4">
-                {["100% FREE to homeowners", "No SSN required to get started", "No credit check to explore options"].map((x) => (
-                  <div key={x} className="flex items-center gap-3 text-sm font-black">
-                    <span className="grid h-8 w-8 place-items-center rounded-full border border-[#d9a94e]/70 text-[#f6c15a]">✓</span>
-                    {x}
+              <div className="mt-7 grid max-w-[620px] gap-3 sm:grid-cols-3">
+                {["100% FREE to homeowners", "No SSN to start", "No credit check to explore"].map((x) => (
+                  <div key={x} className="rounded-2xl border border-white/10 bg-[#08182b] p-4 text-sm font-black">
+                    <span className="mr-2 text-[#f6c15a]">✓</span>{x}
                   </div>
                 ))}
               </div>
 
-              <div className="mt-8 grid max-w-[590px] grid-cols-3 gap-3 rounded-2xl border border-white/10 bg-[#08182b] p-4 text-center">
-                <div><div className="text-[10px] font-black uppercase tracking-[.4em] text-white/55">Featured On</div><div className="mt-2 text-2xl font-black text-purple-300">Yahoo!</div><div className="text-xl font-black">finance</div></div>
-                <div><div className="text-2xl text-[#f6c15a]">★★★★★</div><div className="text-xs font-black uppercase tracking-[.18em]">Top Rated<br/>2026</div></div>
-                <div><div className="text-3xl">🛡️</div><div className="text-xs font-black uppercase tracking-[.18em]">Protection<br/>Shield</div></div>
+              <div className="mt-7 grid max-w-[650px] grid-cols-3 gap-3 rounded-3xl border border-white/10 bg-[#08182b] p-4 text-center shadow-xl">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-[.35em] text-white/45">Featured On</div>
+                  <div className="mt-1 text-xl font-black text-purple-300">Yahoo!</div>
+                  <div className="text-lg font-black">finance</div>
+                </div>
+                <div>
+                  <div className="text-2xl text-[#f6c15a]">★★★★★</div>
+                  <div className="text-xs font-black uppercase tracking-[.15em]">Top Rated<br/>2026</div>
+                </div>
+                <div>
+                  <div className="text-3xl">🛡️</div>
+                  <div className="text-xs font-black uppercase tracking-[.15em]">Protection<br/>Shield</div>
+                </div>
               </div>
             </div>
 
-            <div className="min-w-0">
-              <div className="overflow-hidden rounded-[30px] border border-[#d9a94e]/25 bg-[#101827] shadow-2xl shadow-black/40">
-                <img src="/heloc-office-premium.png" alt="HELOC CONNECT office consultation" className="h-[360px] w-full object-cover object-center lg:h-[560px]" />
+            <div className="relative">
+              <div className="absolute -inset-4 rounded-[42px] bg-gradient-to-br from-[#f6c15a]/25 via-white/0 to-emerald-400/20 blur-2xl" />
+              <div className="relative overflow-hidden rounded-[34px] border border-[#d9a94e]/35 bg-[#081827] shadow-2xl shadow-black/45">
+                <div className="absolute left-5 top-5 z-20 rounded-2xl border border-[#f6c15a]/45 bg-[#06111f]/82 px-4 py-3 backdrop-blur">
+                  <div className="text-[10px] font-black uppercase tracking-[.3em] text-[#f6c15a]">HELOC CONNECT Office</div>
+                  <div className="text-sm font-black">Client matched with the right mortgage company</div>
+                </div>
+                <img src={HERO_PHOTO} alt="Happy couple meeting with a financial advisor in a modern office" className="h-[430px] w-full object-cover object-center lg:h-[640px]" />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#06111f] via-[#06111f]/72 to-transparent p-5 pt-24">
+                  <div className="rounded-3xl border border-white/10 bg-white/[.08] p-4 backdrop-blur-xl">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <div className="text-xs font-black uppercase tracking-[.22em] text-emerald-300">Matched Successfully</div>
+                        <div className="mt-1 text-xl font-black">Mortgage company fit confirmed</div>
+                      </div>
+                      <div className="grid h-14 w-14 place-items-center rounded-full bg-emerald-400 text-3xl font-black text-[#06111f]">✓</div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="mx-auto mt-6 max-w-[700px] rounded-[30px] border border-[#d6c8ae]/80 bg-[#d7d0c2] p-5 text-[#0c1728] shadow-2xl sm:p-6">
+              <div id="deal" className="relative mx-auto mt-6 max-w-[760px] rounded-[32px] border border-[#f6c15a]/25 bg-[#f2eadb] p-5 text-[#08111f] shadow-2xl sm:p-6">
                 <div className="flex gap-4">
-                  <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-[#0fa06f] text-4xl font-black text-white">✓</div>
+                  <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-emerald-500 text-4xl font-black text-white">✓</div>
                   <div>
-                    <h3 className="text-2xl font-black leading-tight tracking-[-.04em] sm:text-3xl">Matched With A Mortgage Company That Fits Their Goals</h3>
-                    <p className="mt-3 text-base font-black text-[#007a56] sm:text-lg">Example: lower monthly payment + $100,000 cash access</p>
+                    <h3 className="text-2xl font-black leading-tight tracking-[-.04em] sm:text-3xl">Example Client Result</h3>
+                    <p className="mt-2 text-base font-black text-emerald-700">Lower monthly payment + $100,000 cash access</p>
                   </div>
                 </div>
                 <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
-                  <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 text-center">
-                    <div className="text-xs font-black text-slate-500 sm:text-sm">Previous Mortgage Company</div>
-                    <div className="mt-3 text-3xl font-black text-red-600 sm:text-4xl">$2,785<span className="text-sm">/mo</span></div>
-                    <div className="mt-3 text-sm font-black text-slate-600">$0 Cash Out</div>
+                  <div className="rounded-2xl bg-white p-4 text-center shadow-lg">
+                    <div className="text-xs font-black uppercase text-slate-500">Before</div>
+                    <div className="mt-2 text-3xl font-black text-red-600">$2,785<span className="text-sm">/mo</span></div>
+                    <div className="mt-2 text-sm font-black text-slate-500">$0 cash out</div>
                   </div>
-                  <div className="text-3xl font-black text-slate-500 sm:text-5xl">→</div>
-                  <div className="rounded-2xl border border-emerald-300 bg-emerald-50/80 p-4 text-center">
-                    <div className="text-xs font-black text-slate-500 sm:text-sm">Selected Network Company</div>
-                    <div className="mt-3 text-3xl font-black text-emerald-700 sm:text-4xl">$2,125<span className="text-sm">/mo</span></div>
-                    <div className="mt-3 text-xl font-black text-emerald-700 sm:text-2xl">$100,000</div>
+                  <div className="text-4xl font-black text-slate-500">→</div>
+                  <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-center shadow-lg">
+                    <div className="text-xs font-black uppercase text-slate-500">After Match</div>
+                    <div className="mt-2 text-3xl font-black text-emerald-700">$2,125<span className="text-sm">/mo</span></div>
+                    <div className="mt-2 text-xl font-black text-emerald-700">$100,000</div>
                   </div>
                 </div>
-                <div className="mt-5 rounded-2xl bg-[#0fa06f] px-4 py-4 text-center text-base font-black text-white sm:text-lg">
-                  $660 lower payment monthly • $100,000 cash at closing
+                <div className="mt-5 rounded-2xl bg-emerald-600 px-4 py-4 text-center text-base font-black text-white">
+                  $660 lower monthly payment • Cash access at closing
                 </div>
                 <p className="mt-4 text-center text-xs font-black leading-relaxed text-slate-600">
-                  Illustration only. Final options vary by qualifications and participating mortgage company review.
+                  Illustration only. Final options depend on property, income, qualifications, market conditions, and participating mortgage company review.
                 </p>
               </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-4">
+      <section id="how" className="mx-auto max-w-[1500px] px-3 py-8 sm:px-6 lg:px-8">
+        <div className="grid gap-4 md:grid-cols-4">
+          {[
+            ["01", "Smart Calculator", "Start with your address, value, mortgage balance, and desired cash access."],
+            ["02", "Review Your Situation", "We organize your numbers before matching you to the right mortgage company."],
+            ["03", "Network Match", "A selected mortgage company reviews the file and available options."],
+            ["04", "Status Tracking", "You receive a private status page so you always know where things stand."]
+          ].map(([num, title, desc]) => (
+            <div key={title} className="rounded-[28px] border border-white/10 bg-[#071421] p-6 shadow-xl">
+              <div className="text-sm font-black text-[#f6c15a]">{num}</div>
+              <h3 className="mt-4 text-xl font-black">{title}</h3>
+              <p className="mt-2 text-sm font-semibold leading-relaxed text-white/62">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="protection" className="mx-auto max-w-[1500px] px-3 pb-8 sm:px-6 lg:px-8">
+        <div className="rounded-[34px] border border-white/10 bg-[#071421] p-6 shadow-2xl sm:p-8">
+          <div className="grid gap-5 md:grid-cols-4">
             {[
-              ["🔐", "SSL Secured Website", "Encrypted HTTPS connection helps protect information submitted through HELOC CONNECT."],
-              ["🛡️", "Client Protection Shield", "We help homeowners avoid bad-fit companies, unwanted products, and unrealistic expectations."],
-              ["💚", "100% Free To Homeowners", "No consultation fee, matching fee, or hidden HELOC CONNECT charge."],
-              ["🚫", "No SSN • No Credit Check", "No Social Security Number is required and this initial request does not pull credit."]
+              ["🔐", "SSL Secured", "Encrypted HTTPS connection helps protect information submitted through HELOC CONNECT."],
+              ["🛡️", "Protection Shield", "We help homeowners avoid bad-fit companies, unwanted products, and unrealistic expectations."],
+              ["💚", "Free To Homeowners", "No consultation fee, matching fee, or hidden HELOC CONNECT charge."],
+              ["🚫", "No SSN To Start", "No Social Security Number is required and this initial request does not pull credit."]
             ].map(([icon, title, desc]) => (
-              <div key={title} className="rounded-2xl border border-white/10 bg-[#08182b] p-5 shadow-xl">
+              <div key={title} className="rounded-3xl border border-white/10 bg-[#08182b] p-5">
                 <div className="text-3xl">{icon}</div>
-                <h3 className="mt-4 text-base font-black">{title}</h3>
-                <p className="mt-2 text-sm font-bold leading-relaxed text-white/70">{desc}</p>
+                <h3 className="mt-4 text-lg font-black">{title}</h3>
+                <p className="mt-2 text-sm font-semibold leading-relaxed text-white/62">{desc}</p>
               </div>
             ))}
           </div>
@@ -302,15 +353,15 @@ export default function LandingPage() {
               <div>
                 <div className="text-xs font-black uppercase tracking-[.38em] text-[#f6c15a]">Smart Homeowner Calculator</div>
                 <h2 className="mt-3 text-4xl font-black leading-[1.02] tracking-[-.04em] lg:text-5xl">
-                  HELOC or Refinance?
-                  <span className="mt-2 block bg-gradient-to-r from-[#f6c15a] via-[#ffe7a3] to-white bg-clip-text text-transparent">Find the smarter path.</span>
+                  Check your possible equity path.
+                  <span className="mt-2 block bg-gradient-to-r from-[#f6c15a] via-[#ffe7a3] to-white bg-clip-text text-transparent">Fast, private, and free.</span>
                 </h2>
                 <p className="mt-4 max-w-4xl text-base font-semibold leading-relaxed text-white/72">
-                  Start with your property address. When Google Places and ATTOM API keys are connected, the address suggestions and estimated home value fill automatically.
+                  Start with your property address. Address autocomplete and estimated property value lookup use Google Maps and ATTOM when connected.
                 </p>
               </div>
               <div className="flex shrink-0 flex-col gap-2">
-                <div className="rounded-full border border-emerald-300/35 bg-emerald-400/15 px-5 py-2 text-sm font-black text-emerald-200">● Address autocomplete ready</div>
+                <div className="rounded-full border border-emerald-300/35 bg-emerald-400/15 px-5 py-2 text-sm font-black text-emerald-200">● Property data powered</div>
                 <div className="rounded-full border border-[#f6c15a]/35 bg-[#f6c15a]/10 px-5 py-2 text-sm font-black text-[#f6c15a]">🔐 SSL secured</div>
               </div>
             </div>
@@ -386,18 +437,6 @@ export default function LandingPage() {
           </button>
           <p className="text-center text-xs font-bold leading-relaxed text-white/75">No Social Security Number required for this initial request • Not a credit check • 100% free for homeowners</p>
         </form>
-      </section>
-
-      <section id="trust" className="mx-auto max-w-[1500px] px-3 pb-10 sm:px-6 lg:px-8">
-        <div className="rounded-[34px] border border-[#f6c15a]/20 bg-[#071421] p-8">
-          <div className="text-xs font-black uppercase tracking-[.35em] text-[#f6c15a]">Trust & Security</div>
-          <h2 className="mt-4 text-4xl font-black tracking-[-.04em]">Built to help homeowners feel safe before sharing their information.</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            {["SSL Secured", "Privacy Protected", "No SSN Required", "No Credit Check"].map((item) => (
-              <div key={item} className="rounded-2xl border border-white/10 bg-white/[.045] p-5 font-black">{item}</div>
-            ))}
-          </div>
-        </div>
       </section>
 
       <a href="tel:+19498662466" className="fixed bottom-6 right-6 z-50 hidden items-center gap-3 rounded-full border border-[#f6c15a]/60 bg-gradient-to-r from-[#fff0b8] via-[#f6c15a] to-[#d89425] px-6 py-4 text-sm font-black uppercase tracking-[.14em] text-[#06101d] shadow-[0_18px_55px_rgba(216,148,37,.35)] md:inline-flex">
