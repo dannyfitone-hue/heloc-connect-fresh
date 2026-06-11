@@ -19,7 +19,9 @@ export function middleware(req: NextRequest) {
     const lenderPass = process.env.LENDER_DASHBOARD_PASSWORD || "";
     const ownerCookie = req.cookies.get("hc_owner_auth")?.value || "";
     const lenderCookie = req.cookies.get("hc_lender_auth")?.value || "";
-    if (!(ownerPass && ownerCookie === ownerPass) && !(lenderPass && lenderCookie === lenderPass)) {
+    const lenderUserId = req.cookies.get("hc_lender_user_id")?.value || "";
+
+    if (!(ownerPass && ownerCookie === ownerPass) && !(lenderPass && lenderCookie === lenderPass) && !lenderUserId) {
       const url = req.nextUrl.clone();
       url.pathname = "/lender-login";
       url.searchParams.set("next", pathname);

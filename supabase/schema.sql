@@ -1,5 +1,17 @@
 create extension if not exists "uuid-ossp";
 
+create table if not exists public.lender_users (
+ id uuid primary key default uuid_generate_v4(),
+ created_at timestamptz default now(),
+ updated_at timestamptz default now(),
+ lender_name text not null,
+ company_name text,
+ email text unique not null,
+ phone text,
+ password text not null,
+ is_active boolean default true
+);
+
 create table if not exists public.leads (
  id uuid primary key default uuid_generate_v4(),
  token text unique not null,
@@ -27,6 +39,7 @@ create table if not exists public.leads (
  funded_amount numeric default 0,
  assigned_company text,
  assigned_agent text,
+ assigned_lender_id uuid references public.lender_users(id) on delete set null,
  document_request text
 );
 
@@ -49,7 +62,15 @@ alter table public.leads add column if not exists updated_at timestamptz default
 alter table public.leads add column if not exists funded_amount numeric default 0;
 alter table public.leads add column if not exists assigned_company text;
 alter table public.leads add column if not exists assigned_agent text;
+alter table public.leads add column if not exists assigned_lender_id uuid references public.lender_users(id) on delete set null;
 alter table public.leads add column if not exists document_request text;
+
+alter table public.lender_users add column if not exists updated_at timestamptz default now();
+alter table public.lender_users add column if not exists company_name text;
+alter table public.lender_users add column if not exists phone text;
+alter table public.lender_users add column if not exists is_active boolean default true;
 
 create index if not exists leads_token_idx on public.leads(token);
 create index if not exists leads_created_at_idx on public.leads(created_at desc);
+create index if not exists leads_assigned_lender_idx on public.leads(assigned_lender_id);
+create index if not exists lender_users_email_idx on public.lender_users(email);
