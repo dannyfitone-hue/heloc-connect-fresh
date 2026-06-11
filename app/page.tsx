@@ -27,6 +27,87 @@ function moneyDisplay(value: string) {
   return n ? formatMoney(n) : "";
 }
 
+
+function makeClientToken() {
+  return Math.random().toString(36).slice(2, 18) + Date.now().toString(36);
+}
+
+function makeTrackingId() {
+  return "EQ-" + Math.floor(1000 + Math.random() * 9000);
+}
+
+function cleanValue(v: any, max = 240) {
+  return String(v || "").replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+function cleanLongValue(v: any) {
+  return String(v || "").replace(/\s+/g, " ").trim().slice(0, 2000);
+}
+
+function numericValue(v: any) {
+  return Number(String(v || "").replace(/[^0-9.]/g, "")) || 0;
+}
+
+async function saveLeadDirectToSupabase(payload: Record<string, any>) {
+  const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cpljanwlpclyhshrsfzv.supabase.co").replace(/\/rest\/v1\/?$/i, "");
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+  if (!supabaseUrl || !anonKey) {
+    throw new Error("Supabase public URL or publishable key is missing.");
+  }
+
+  const clientToken = makeClientToken();
+
+  const lead = {
+    tracking_id: makeTrackingId(),
+    client_token: clientToken,
+    first_name: cleanValue(payload.first_name, 80),
+    last_name: cleanValue(payload.last_name, 80),
+    phone: cleanValue(payload.phone, 40),
+    email: cleanValue(payload.email, 160),
+    property_address: cleanLongValue(payload.property_address || payload.street_address || ""),
+    home_value: numericValue(payload.home_value),
+    credit_score: cleanValue(payload.credit_score, 120),
+    monthly_income: numericValue(payload.monthly_income),
+    requested_cash: numericValue(payload.requested_cash || payload.requested_amount),
+    loan_purpose: cleanValue(payload.loan_purpose || payload.purpose || "HELOC / Refinance Options", 240),
+    lead_source: "website",
+    status: "Application Received",
+    funded_amount: 0
+  };
+
+  const res = await fetch(`${supabaseUrl}/rest/v1/leads`, {
+    method: "POST",
+    headers: {
+      apikey: anonKey,
+      Authorization: `Bearer ${anonKey}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify(lead)
+  });
+
+  const text = await res.text();
+  let data: any = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text;
+  }
+
+  if (!res.ok) {
+    throw new Error(typeof data === "string" ? data : data?.message || data?.error || `Supabase insert failed with status ${res.status}`);
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  return {
+    saved: true,
+    token: row?.client_token || clientToken,
+    id: row?.id || null,
+    tracking_id: row?.tracking_id || lead.tracking_id
+  };
+}
+
 function parseAddress(label: string) {
   const parts = label.split(",").map((p) => p.trim());
   const street = parts[0] || "";
@@ -158,23 +239,10 @@ export default function LandingPage() {
     const payload = Object.fromEntries(new FormData(e.currentTarget).entries());
 
     try {
-      const res = await fetch("/api/leads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || data?.error) {
-        alert(`Lead was NOT saved. Supabase error: ${data?.error || data?.message || "Unknown error"}`);
-        setLoading(false);
-        return;
-      }
-
+      const data = await saveLeadDirectToSupabase(payload);
       router.push(data?.token ? `/status/${data.token}` : "/thank-you/demo");
     } catch (error: any) {
-      alert(`Lead was NOT saved. Error: ${error?.message || "Unknown error"}`);
+      alert(`Lead was NOT saved. Supabase error: ${error?.message || "Unknown error"}`);
       setLoading(false);
     }
   }
