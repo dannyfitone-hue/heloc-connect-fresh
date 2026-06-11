@@ -32,6 +32,10 @@ function cleanKey(v: any) {
   return String(v || "").replace(/[\r\n\s]/g, "").trim();
 }
 
+function isValidSupabaseServerKey(key: string) {
+  return key.startsWith("sb_secret_") || key.startsWith("eyJ");
+}
+
 export async function POST(req: Request) {
   let body: any = {};
   try {
@@ -41,20 +45,24 @@ export async function POST(req: Request) {
   }
 
   const supabaseUrl = cleanUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
-  const serviceKey = cleanKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const serverKey = cleanKey(
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SECRET_KEY ||
+    process.env.SUPABASE_SERVICE_KEY
+  );
 
-  if (!supabaseUrl || !serviceKey) {
+  if (!supabaseUrl || !serverKey) {
     return NextResponse.json({
-      error: "Missing Supabase URL or service key.",
+      error: "Missing Supabase URL or server key.",
       supabaseUrlPresent: Boolean(supabaseUrl),
-      serviceKeyPresent: Boolean(serviceKey)
+      serverKeyPresent: Boolean(serverKey)
     }, { status: 500 });
   }
 
-  if (!serviceKey.startsWith("sb_secret_")) {
+  if (!isValidSupabaseServerKey(serverKey)) {
     return NextResponse.json({
-      error: "SUPABASE_SERVICE_ROLE_KEY must start with sb_secret_.",
-      currentStartsWith: serviceKey.slice(0, 12)
+      error: "SUPABASE_SERVICE_ROLE_KEY must start with sb_secret_ or legacy eyJ service_role key.",
+      currentStartsWith: serverKey.slice(0, 12)
     }, { status: 500 });
   }
 
@@ -85,10 +93,15 @@ export async function POST(req: Request) {
   };
 
   try {
-    const supabase = createClient(supabaseUrl, serviceKey, {
+    const supabase = createClient(supabaseUrl, serverKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false
+      },
+      global: {
+        headers: {
+          "X-Client-Info": "heloc-connect-lead-submit"
+        }
       }
     });
 
@@ -117,9 +130,11 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     return NextResponse.json({
-      error: "Supabase JS insert crashed before returning a database response.",
+      error: "Supabase server insert failed before returning a database response.",
       message: error?.message || String(error),
-      supabaseUrl
+      supabaseUrl,
+      serverKeyStartsWith: serverKey.slice(0, 12),
+      nextStep: "Use the Legacy service_role key from Supabase API Keys if sb_secret_ still fails."
     }, { status: 500 });
   }
 }
