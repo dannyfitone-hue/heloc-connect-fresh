@@ -3,14 +3,29 @@ import { CLIENT_STATUSES, money } from "@/lib/statuses";
 
 async function getLead(token: string) {
   if (!supabaseAdmin) return null;
-  const { data } = await supabaseAdmin.from("leads").select("*").eq("token", token).single();
-  return data;
+
+  const { data: byClientToken } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .eq("client_token", token)
+    .maybeSingle();
+
+  if (byClientToken) return byClientToken;
+
+  const { data: byToken } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .eq("token", token)
+    .maybeSingle();
+
+  return byToken;
 }
 
 export default async function StatusPage({ params }: { params: { token: string } }) {
   const lead: any = await getLead(params.token);
   const current = lead?.status || "Application Received";
   const currentIndex = Math.max(0, CLIENT_STATUSES.indexOf(current));
+  const address = lead?.property_address || lead?.address || "—";
 
   return (
     <main className="min-h-screen bg-[#06111f] text-white">
@@ -70,11 +85,7 @@ export default async function StatusPage({ params }: { params: { token: string }
               <div className="rounded-2xl bg-black/20 p-4"><div className="text-sm text-white/45">Requested Amount</div><b className="text-2xl">{money(lead?.requested_amount)}</b></div>
               <div className="rounded-2xl bg-black/20 p-4"><div className="text-sm text-white/45">Home Value</div><b className="text-2xl">{money(lead?.home_value)}</b></div>
               <div className="rounded-2xl bg-black/20 p-4"><div className="text-sm text-white/45">Estimated Equity Room</div><b className="text-2xl">{money(lead?.equity_room)}</b></div>
-              <div className="rounded-2xl bg-black/20 p-4"><div className="text-sm text-white/45">Property</div><b>{lead?.address || "—"}</b></div>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-[#f6c15a]/35 bg-[#f6c15a]/10 p-4 text-sm font-bold text-[#f6c15a]">
-              No Social Security Number was required for this initial request. This status page is private to your application link.
+              <div className="rounded-2xl bg-black/20 p-4"><div className="text-sm text-white/45">Property</div><b>{address}</b></div>
             </div>
           </div>
         </div>
