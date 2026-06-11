@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import https from "https";
+import { createClient } from "@supabase/supabase-js";
 
 const FALLBACK_SUPABASE_URL = "https://cpljanwlpclyhshrsfzv.supabase.co";
 
@@ -32,48 +32,6 @@ function cleanKey(v: any) {
   return String(v || "").replace(/[\r\n\s]/g, "").trim();
 }
 
-function postJsonWithHttps(urlString: string, headers: Record<string, string>, body: any): Promise<{ statusCode: number; data: any; raw: string }> {
-  return new Promise((resolve, reject) => {
-    const parsed = new URL(urlString);
-    const payload = JSON.stringify(body);
-
-    const req = https.request(
-      {
-        hostname: parsed.hostname,
-        path: parsed.pathname + parsed.search,
-        method: "POST",
-        headers: {
-          ...headers,
-          "Content-Length": Buffer.byteLength(payload).toString()
-        },
-        timeout: 20000
-      },
-      (res) => {
-        let raw = "";
-        res.setEncoding("utf8");
-        res.on("data", (chunk) => {
-          raw += chunk;
-        });
-        res.on("end", () => {
-          let data: any = raw;
-          try {
-            data = raw ? JSON.parse(raw) : null;
-          } catch {}
-          resolve({ statusCode: res.statusCode || 0, data, raw });
-        });
-      }
-    );
-
-    req.on("timeout", () => {
-      req.destroy(new Error("Supabase HTTPS request timed out"));
-    });
-
-    req.on("error", reject);
-    req.write(payload);
-    req.end();
-  });
-}
-
 export async function POST(req: Request) {
   let body: any = {};
   try {
@@ -83,17 +41,20 @@ export async function POST(req: Request) {
   }
 
   const supabaseUrl = cleanUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
-  const serverKey = cleanKey(
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SECRET_KEY ||
-    process.env.SUPABASE_SERVICE_KEY
-  );
+  const serviceKey = cleanKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-  if (!supabaseUrl || !serverKey) {
+  if (!supabaseUrl || !serviceKey) {
     return NextResponse.json({
-      error: "Missing Supabase URL or server key.",
+      error: "Missing Supabase URL or service key.",
       supabaseUrlPresent: Boolean(supabaseUrl),
-      serverKeyPresent: Boolean(serverKey)
+      serviceKeyPresent: Boolean(serviceKey)
+    }, { status: 500 });
+  }
+
+  if (!serviceKey.startsWith("sb_secret_")) {
+    return NextResponse.json({
+      error: "SUPABASE_SERVICE_ROLE_KEY must start with sb_secret_.",
+      currentStartsWith: serviceKey.slice(0, 12)
     }, { status: 500 });
   }
 
@@ -107,53 +68,58 @@ export async function POST(req: Request) {
     phone: clean(body.phone, 40),
     email: clean(body.email, 160),
     property_address: cleanLong(body.property_address || body.street_address || ""),
+    city: clean(body.city, 120),
+    state: clean(body.state, 40),
+    zip: clean(body.zip, 20),
     home_value: num(body.home_value),
+    mortgage_balance: num(body.mortgage_balance),
+    requested_amount: num(body.requested_cash),
+    equity_room: num(body.possible_equity_room),
+    estimated_payment: num(body.estimated_monthly_payment),
+    loans_on_property: clean(body.loans_on_property, 120),
     credit_score: clean(body.credit_score, 120),
     monthly_income: num(body.monthly_income),
-    requested_cash: num(body.requested_cash || body.requested_amount),
-    loan_purpose: clean(body.loan_purpose || body.purpose || "HELOC / Refinance Options", 240),
-    lead_source: "website",
+    mortgage_standing: clean(body.mortgage_good_standing, 120),
     status: "Application Received",
-    funded_amount: 0
+    notes: "Submitted from HELOC CONNECT smart calculator"
   };
 
-  const endpoint = `${supabaseUrl}/rest/v1/leads`;
-
   try {
-    const result = await postJsonWithHttps(endpoint, {
-      "apikey": serverKey,
-      "Authorization": `Bearer ${serverKey}`,
-      "Content-Type": "application/json",
-      "Prefer": "return=representation"
-    }, lead);
+    const supabase = createClient(supabaseUrl, serviceKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    });
 
-    if (result.statusCode < 200 || result.statusCode >= 300) {
+    const { data, error } = await supabase
+      .from("leads")
+      .insert(lead)
+      .select("id, client_token, tracking_id")
+      .single();
+
+    if (error) {
       return NextResponse.json({
-        error: "Supabase insert failed.",
-        status: result.statusCode,
-        response: result.data,
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
         sentColumns: Object.keys(lead)
       }, { status: 500 });
     }
 
-    const row = Array.isArray(result.data) ? result.data[0] : result.data;
-
     return NextResponse.json({
       saved: true,
-      id: row?.id || null,
-      token: row?.client_token || clientToken,
-      client_token: row?.client_token || clientToken,
-      tracking_id: row?.tracking_id || lead.tracking_id
+      id: data?.id || null,
+      token: data?.client_token || clientToken,
+      client_token: data?.client_token || clientToken,
+      tracking_id: data?.tracking_id || lead.tracking_id
     });
   } catch (error: any) {
     return NextResponse.json({
-      error: "Node HTTPS request to Supabase failed.",
+      error: "Supabase JS insert crashed before returning a database response.",
       message: error?.message || String(error),
-      code: error?.code || "",
-      hostname: "cpljanwlpclyhshrsfzv.supabase.co",
-      endpoint,
-      serverKeyStartsWith: serverKey.slice(0, 12),
-      sentColumns: Object.keys(lead)
+      supabaseUrl
     }, { status: 500 });
   }
 }
