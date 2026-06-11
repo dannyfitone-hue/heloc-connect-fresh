@@ -1,8 +1,7 @@
 {
-  "name": "heloc-connect-approved-layout-restore",
-  "version": "6.0.0",
+  "name": "heloc-connect-premium-working-final",
+  "version": "8.0.0",
   "private": true,
-  "packageManager": "pnpm@9.12.3",
   "engines": { "node": "20.x" },
   "scripts": {
     "dev": "next dev",

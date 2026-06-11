@@ -2,7 +2,7 @@ import "./globals.css";
 
 export const metadata = {
   title: "HELOC CONNECT | Home Equity Connection Platform",
-  description: "HELOC CONNECT helps homeowners connect with participating mortgage companies.",
+  description: "HELOC CONNECT helps homeowners connect with carefully selected mortgage companies.",
   icons: { icon: "/favicon.png" }
 };
 
