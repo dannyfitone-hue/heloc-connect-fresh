@@ -239,10 +239,23 @@ export default function LandingPage() {
     const payload = Object.fromEntries(new FormData(e.currentTarget).entries());
 
     try {
-      const data = await saveLeadDirectToSupabase(payload);
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data?.error) {
+        alert(`Lead was NOT saved. Supabase error: ${data?.error || data?.message || "Unknown error"}`);
+        setLoading(false);
+        return;
+      }
+
       router.push(data?.token ? `/status/${data.token}` : "/thank-you/demo");
     } catch (error: any) {
-      alert(`Lead was NOT saved. Supabase error: ${error?.message || "Unknown error"}`);
+      alert(`Lead was NOT saved. Error: ${error?.message || "Unknown error"}`);
       setLoading(false);
     }
   }
