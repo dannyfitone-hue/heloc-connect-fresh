@@ -1,18 +1,26 @@
+import { cookies } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase";
 import { CLIENT_STATUSES, money } from "@/lib/statuses";
 
-async function getLeads() {
+async function getLenderUser(id: string) {
+  if (!supabaseAdmin || !id) return null;
+  const { data } = await supabaseAdmin.from("lender_users").select("*").eq("id", id).single();
+  return data;
+}
+
+async function getLeads(lenderId: string) {
   if (!supabaseAdmin) return [];
-  const { data } = await supabaseAdmin
-    .from("leads")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(200);
+  let q = supabaseAdmin.from("leads").select("*").order("created_at", { ascending: false }).limit(200);
+  if (lenderId) q = q.eq("assigned_lender_id", lenderId);
+  const { data } = await q;
   return data || [];
 }
 
 export default async function LenderPage() {
-  const leads: any[] = await getLeads();
+  const cookieStore = cookies();
+  const lenderId = cookieStore.get("hc_lender_user_id")?.value || "";
+  const lenderUser: any = await getLenderUser(lenderId);
+  const leads: any[] = await getLeads(lenderId);
 
   return (
     <main className="min-h-screen bg-[#06111f] text-white">
@@ -31,10 +39,12 @@ export default async function LenderPage() {
 
       <section className="mx-auto max-w-[1500px] px-4 py-8 sm:px-6 lg:px-8">
         <div className="rounded-[34px] border border-white/10 bg-gradient-to-br from-[#0b1b2e] to-[#06111f] p-6 shadow-2xl">
-          <div className="text-xs font-black uppercase tracking-[.35em] text-[#f6c15a]">Good Day, Partner</div>
+          <div className="text-xs font-black uppercase tracking-[.35em] text-[#f6c15a]">
+            Good Day{lenderUser?.lender_name ? `, ${lenderUser.lender_name}` : ""}
+          </div>
           <h1 className="mt-3 text-4xl font-black tracking-[-.05em] md:text-6xl">Assigned Lead Pipeline</h1>
           <p className="mt-3 max-w-3xl text-base font-semibold text-white/70">
-            Review homeowner requests, calculator details, contact info, and update statuses that sync back to the homeowner portal.
+            {lenderUser?.company_name || "Network lender"} can review assigned homeowner requests and update statuses.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -49,7 +59,7 @@ export default async function LenderPage() {
             <div className="rounded-[34px] border border-white/10 bg-[#071421] p-10 text-center">
               <div className="text-4xl">📋</div>
               <h2 className="mt-3 text-2xl font-black">No assigned leads yet</h2>
-              <p className="mt-2 text-white/60">Once the admin assigns leads, they will appear here.</p>
+              <p className="mt-2 text-white/60">When HELOC CONNECT admin assigns leads to you, they will appear here.</p>
             </div>
           ) : leads.map((l) => (
             <div key={l.id} className="rounded-[30px] border border-white/10 bg-[#071421] p-5 shadow-2xl">

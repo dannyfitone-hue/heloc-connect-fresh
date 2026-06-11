@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
+
+const FALLBACK_SUPABASE_URL = "https://cpljanwlpclyhshrsfzv.supabase.co";
 
 function token() {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -7,21 +8,6 @@ function token() {
 
 function num(v: any) {
   return Number(String(v || "").replace(/[^0-9.]/g, "")) || 0;
-}
-
-
-function envHasBadChar(name: string) {
-  const value = process.env[name] || "";
-  return value.includes("•") || value.includes("●") || value.includes("…");
-}
-
-function missingOrBadEnv() {
-  const names = [
-    "NEXT_PUBLIC_SUPABASE_URL",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    "SUPABASE_SERVICE_ROLE_KEY"
-  ];
-  return names.filter((name) => !process.env[name] || envHasBadChar(name));
 }
 
 function clean(v: any, max = 240) {
@@ -32,6 +18,16 @@ function cleanLong(v: any) {
   return String(v || "").replace(/\s+/g, " ").trim().slice(0, 2000);
 }
 
+function cleanUrl(v: any) {
+  const raw = String(v || "").trim();
+  const noRest = raw.replace(/\/rest\/v1\/?$/i, "");
+  return noRest || FALLBACK_SUPABASE_URL;
+}
+
+function cleanKey(v: any) {
+  return String(v || "").replace(/[\r\n\s]/g, "").trim();
+}
+
 export async function POST(req: Request) {
   let body: any = {};
   try {
@@ -40,17 +36,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
   }
 
-  const badEnv = missingOrBadEnv();
-  if (badEnv.length) {
-    return NextResponse.json({
-      error: `Bad or missing Supabase environment variable: ${badEnv.join(", ")}`,
-      fix: "Re-enter these variables in Vercel manually. Do not paste masked values with bullet dots."
-    }, { status: 500 });
-  }
+  const supabaseUrl = cleanUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const serviceKey = cleanKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-  if (!supabaseAdmin) {
+  if (!serviceKey || !serviceKey.startsWith("sb_secret_")) {
     return NextResponse.json({
-      error: "Supabase is not connected. Check NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Vercel."
+      error: "SUPABASE_SERVICE_ROLE_KEY is missing or not the new sb_secret_ key.",
+      currentStartsWith: serviceKey ? serviceKey.slice(0, 12) : "missing"
     }, { status: 500 });
   }
 
@@ -79,15 +71,50 @@ export async function POST(req: Request) {
     notes: cleanLong("Submitted from HELOC CONNECT smart calculator")
   };
 
-  const { data, error } = await supabaseAdmin.from("leads").insert(lead).select("id, token").single();
+  const endpoint = `${supabaseUrl}/rest/v1/leads`;
 
-  if (error) {
+  try {
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "apikey": serviceKey,
+        "Authorization": `Bearer ${serviceKey}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+      },
+      body: JSON.stringify(lead),
+      cache: "no-store"
+    });
+
+    const text = await res.text();
+    let data: any = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+
+    if (!res.ok) {
+      return NextResponse.json({
+        error: "Supabase REST insert failed.",
+        status: res.status,
+        response: data,
+        endpoint,
+        urlUsed: supabaseUrl
+      }, { status: 500 });
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+
     return NextResponse.json({
-      error: error.message,
-      details: error,
-      fix: "Run supabase/schema.sql in Supabase SQL Editor. It changes limited varchar fields to text."
+      token: row?.token || t,
+      id: row?.id || null,
+      saved: true
+    });
+  } catch (error: any) {
+    return NextResponse.json({
+      error: "Server could not reach Supabase REST endpoint.",
+      message: error?.message || "fetch failed",
+      endpoint,
+      urlUsed: supabaseUrl,
+      serviceKeyStartsWith: serviceKey.slice(0, 12),
+      serviceKeyHasSpacesOrLineBreaks: /[\r\n\s]/.test(String(process.env.SUPABASE_SERVICE_ROLE_KEY || ""))
     }, { status: 500 });
   }
-
-  return NextResponse.json({ token: data?.token || t, id: data?.id });
 }
