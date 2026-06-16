@@ -1,138 +1,127 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-function toMoney(value: any): number | null {
-  const n = Number(String(value ?? "").replace(/[^0-9.]/g, ""));
-  if (!Number.isFinite(n)) return null;
+function pickValue(data: any) {
+  const p = data?.property?.[0];
 
-  // Safety guard: avoid wrong ATTOM fields like IDs, geo codes, oversized unrelated values.
-  if (n < 100000 || n > 5000000) return null;
-
-  return Math.round(n);
+  return (
+    p?.avm?.amount?.value ||
+    p?.avm?.amount?.scr ||
+    p?.avm?.amount?.high ||
+    p?.avm?.amount?.low ||
+    p?.avm?.value ||
+    p?.assessment?.market?.mktttlvalue ||
+    p?.assessment?.assessed?.assdttlvalue ||
+    p?.sale?.amount?.saleamt ||
+    null
+  );
 }
 
-function get(obj: any, path: string): any {
-  return path.split(".").reduce((acc, key) => {
-    if (acc == null) return undefined;
-    if (Array.isArray(acc)) return acc[0]?.[key];
-    return acc[key];
-  }, obj);
+function splitFullAddress(full: string) {
+  const parts = String(full || "").split(",").map((x) => x.trim()).filter(Boolean);
+  const address1 = parts[0] || "";
+  const city = parts[1] || "";
+  const stateZip = parts[2] || "";
+  const address2 = [city, stateZip].filter(Boolean).join(", ");
+  return { address1, address2 };
 }
 
-function pickAttomValue(payload: any) {
-  const property = payload?.property?.[0] || payload?.property || payload?.data?.[0] || payload?.data || payload;
+async function callAttom(endpoint: string, address1: string, address2: string, key: string) {
+  const url =
+    `https://api.gateway.attomdata.com/propertyapi/v1.0.0/${endpoint}` +
+    `?address1=${encodeURIComponent(address1)}` +
+    `&address2=${encodeURIComponent(address2)}`;
 
-  // Explicit known market/AVM fields only. Do NOT deep-search random fields.
-  const marketPaths = [
-    "avm.amount.value",
-    "avm.amount.estimatedValue",
-    "avm.amount.estimate",
-    "avm.value",
-    "avm.estimatedValue",
-    "avm.estimate",
-    "assessment.market.mktttlvalue",
-    "assessment.market.mktTtlValue",
-    "assessment.market.marketTotalValue",
-    "assessment.market.totalValue"
-  ];
+  const res = await fetch(url, {
+    headers: {
+      apikey: key,
+      accept: "application/json"
+    },
+    cache: "no-store"
+  });
 
-  for (const path of marketPaths) {
-    const value = toMoney(get(property, path));
-    if (value) {
-      return { value, source: path };
-    }
-  }
-
-  const assessedPaths = [
-    "assessment.assessed.assdttlvalue",
-    "assessment.assessed.assdTtlValue",
-    "assessment.assessed.totalValue"
-  ];
-
-  for (const path of assessedPaths) {
-    const value = toMoney(get(property, path));
-    if (value) {
-      return { value, source: "assessed_fallback" };
-    }
-  }
-
-  return { value: null, source: "not_found" };
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data };
 }
 
-export async function POST(req: NextRequest) {
-  const { address } = await req.json();
+export async function POST(req: Request) {
+  const body = await req.json();
+  const key = process.env.ATTOM_API_KEY;
 
-  if (!address) {
-    return NextResponse.json({ value: null, message: "Address is required." }, { status: 400 });
-  }
-
-  const attomKey = process.env.ATTOM_API_KEY;
-
-  if (!attomKey) {
+  if (!key) {
     return NextResponse.json({
       value: null,
-      message: "Home value lookup needs ATTOM_API_KEY in Vercel."
+      message: "ATTOM_API_KEY is missing. Add it in Vercel to auto-pull estimated home values."
     });
   }
 
-  try {
-    const parts = String(address).split(",");
-    const address1 = parts[0]?.trim() || String(address);
-    const address2 = parts.slice(1).join(",").trim();
+  let address1 = String(body.address1 || body.street || "").trim();
+  let address2 = String(body.address2 || "").trim();
 
-    const endpoints = [
-      "https://api.gateway.attomdata.com/propertyapi/v1.0.0/avm/detail",
-      "https://api.gateway.attomdata.com/propertyapi/v1.0.0/property/basicprofile",
-      "https://api.gateway.attomdata.com/propertyapi/v1.0.0/assessment/detail"
-    ];
+  if (!address2) {
+    const city = String(body.city || "").trim();
+    const state = String(body.state || "").trim();
+    const zip = String(body.zip || "").trim();
+    address2 = [city, [state, zip].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  }
 
-    let fallback: any = null;
+  if ((!address1 || !address2) && body.address) {
+    const parsed = splitFullAddress(body.address);
+    address1 = address1 || parsed.address1;
+    address2 = address2 || parsed.address2;
+  }
 
-    for (const endpoint of endpoints) {
-      const url = new URL(endpoint);
-      url.searchParams.set("address1", address1);
-      if (address2) url.searchParams.set("address2", address2);
+  if (!address1 || !address2) {
+    return NextResponse.json({
+      value: null,
+      message: "Full property address is required for ATTOM lookup."
+    });
+  }
 
-      const res = await fetch(url.toString(), {
-        headers: {
-          apikey: attomKey,
-          accept: "application/json"
-        },
-        cache: "no-store"
+  const endpoints = [
+    { name: "AVM Detail", endpoint: "avm/detail" },
+    { name: "AVM Snapshot", endpoint: "avm/snapshot" },
+    { name: "Basic Profile", endpoint: "property/basicprofile" },
+    { name: "Assessment Snapshot", endpoint: "assessment/snapshot" },
+    { name: "Assessment Detail", endpoint: "assessment/detail" },
+    { name: "Sale Snapshot", endpoint: "sale/snapshot" }
+  ];
+
+  const attempts: any[] = [];
+
+  for (const item of endpoints) {
+    try {
+      const result = await callAttom(item.endpoint, address1, address2, key);
+      const value = pickValue(result.data);
+
+      attempts.push({
+        endpoint: item.name,
+        status: result.status,
+        foundValue: Boolean(value),
+        propertyCount: result.data?.property?.length || 0
       });
 
-      if (!res.ok) continue;
-
-      const payload = await res.json();
-      const picked = pickAttomValue(payload);
-
-      if (picked.value && picked.source !== "assessed_fallback") {
+      if (value) {
         return NextResponse.json({
-          value: picked.value,
-          source: picked.source,
-          message: "Estimated market value found."
+          value,
+          source: item.name,
+          address1,
+          address2,
+          message: `Estimated value found through ${item.name}.`
         });
       }
-
-      if (picked.value && !fallback) fallback = picked;
-    }
-
-    if (fallback?.value) {
-      return NextResponse.json({
-        value: fallback.value,
-        source: "assessed_fallback",
-        message: "Only assessed/tax value found. Please adjust to current market estimate if needed."
+    } catch (error: any) {
+      attempts.push({
+        endpoint: item.name,
+        error: error?.message || "Request failed"
       });
     }
-
-    return NextResponse.json({
-      value: null,
-      message: "Market value could not be confidently verified. Please enter estimated value manually."
-    });
-  } catch (error) {
-    console.error("Property value lookup error:", error);
-    return NextResponse.json({
-      value: null,
-      message: "Property value lookup is temporarily unavailable."
-    });
   }
+
+  return NextResponse.json({
+    value: null,
+    address1,
+    address2,
+    message: "ATTOM responded, but no AVM/assessment/sale value was returned for this address. Enter estimated value manually.",
+    attempts
+  });
 }

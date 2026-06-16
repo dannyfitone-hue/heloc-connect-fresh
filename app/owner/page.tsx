@@ -1,82 +1,204 @@
-"use client";
-import {useEffect,useMemo,useRef,useState} from "react";
-import {clientStatuses,documentOptions,payoutForLead} from "@/lib/status";
-function money(n:any){return `$${Number(n||0).toLocaleString()}`}
-function timeAgo(date:any){
- const t=new Date(date||Date.now()).getTime(); const diff=Math.max(0,Date.now()-t);
- const m=Math.floor(diff/60000), h=Math.floor(m/60), d=Math.floor(h/24);
- if(m<1)return "Just now"; if(m<60)return `${m} min ago`; if(h<24)return `${h} hr${h>1?"s":""} ago`; if(d===1)return "Yesterday"; return `${d} days ago`;
-}
-function isHotLead(l:any){
- const home=Number(l.home_value||0), cash=Number(l.requested_cash||0), income=Number(l.monthly_income||0);
- const credit=String(l.credit_score||"");
- return home>=1000000 || cash>=250000 || income>=15000 || /720|740|760|780|800|excellent|good/i.test(credit);
-}
-function hotReason(l:any){
- if(Number(l.home_value||0)>=1000000)return "High Value Property";
- if(Number(l.requested_cash||0)>=250000)return "Large Funding Request";
- if(/720|740|760|780|800|excellent/i.test(String(l.credit_score||"")))return "Strong Credit Profile";
- return "Priority Lead";
-}
-export default function OwnerPortal(){
- const[leads,setLeads]=useState<any[]>([]),[companies,setCompanies]=useState<any[]>([]),[users,setUsers]=useState<any[]>([]),[selectedId,setSelectedId]=useState(""),[status,setStatus]=useState("Application Received"),[fundedAmount,setFundedAmount]=useState(""),[note,setNote]=useState(""),[docType,setDocType]=useState(documentOptions[0]),[docNote,setDocNote]=useState(""),[companyId,setCompanyId]=useState(""),[userId,setUserId]=useState(""),[tab,setTab]=useState("leads"),[leadSearch,setLeadSearch]=useState(""),[soundReady,setSoundReady]=useState(false);
- const seenNewLeadIds=useRef<string[]>([]);
- const firstLoadDone=useRef(false);
- const soundReadyRef=useRef(false);
- const[newCompany,setNewCompany]=useState({name:"",contact_name:"",contact_email:"",phone:"",notes:""});
- const[newUser,setNewUser]=useState({company_id:"",name:"",email:"",password:"",role:"lender"});
- async function load(){const res=await fetch("/api/owner/leads");const data=await res.json();setLeads(data.leads||[]);if(!selectedId&&data.leads?.[0])setSelectedId(data.leads[0].id);const lr=await fetch("/api/lenders/manage");const ld=await lr.json().catch(()=>({}));setCompanies(ld.companies||[]);setUsers(ld.users||[])}
- useEffect(()=>{load();const timer=setInterval(load,12000);return()=>clearInterval(timer)},[]);
- useEffect(()=>{soundReadyRef.current=soundReady},[soundReady]);
- function playNewLeadDing(){try{const Ctx=(window as any).AudioContext||(window as any).webkitAudioContext;const ctx=new Ctx();const now=ctx.currentTime;const osc=ctx.createOscillator();const gain=ctx.createGain();osc.type="sine";osc.frequency.setValueAtTime(880,now);osc.frequency.exponentialRampToValueAtTime(1320,now+.12);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.28,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.42);osc.connect(gain);gain.connect(ctx.destination);osc.start(now);osc.stop(now+.45)}catch(e){console.warn("New lead sound unavailable",e)}}
- function enableSound(){setSoundReady(true);playNewLeadDing()}
- const selected=useMemo(()=>leads.find(l=>l.id===selectedId),[leads,selectedId]);
- useEffect(()=>{if(selected){setStatus(selected.status||"Application Received");setFundedAmount(String(selected.funded_amount||""));setCompanyId(selected.assigned_company_id||"");setUserId(selected.assigned_user_id||"")}},[selectedId,selected]);
- const totals=useMemo(()=>({total:leads.length,docs:leads.filter(l=>l.status==="Documents Requested").length,funded:leads.filter(l=>l.status==="Funded").length,volume:leads.reduce((s,l)=>s+Number(l.funded_amount||0),0),payout:leads.reduce((s,l)=>s+payoutForLead(l.funded_amount),0)}),[leads]);
- const isAssigned=(l:any)=>Boolean(l.assigned_company_id||l.assigned_user_id||l.assigned_lender);
- const newLeads=useMemo(()=>leads.filter(l=>!isAssigned(l)),[leads]);
- const filteredLeads=useMemo(()=>{const q=leadSearch.trim().toLowerCase();if(!q)return leads;return leads.filter(l=>`${l.tracking_id||""} ${l.first_name||""} ${l.last_name||""} ${l.phone||""} ${l.email||""} ${l.property_address||""}`.toLowerCase().includes(q))},[leads,leadSearch]);
- useEffect(()=>{const ids=newLeads.map(l=>l.id);if(!firstLoadDone.current){seenNewLeadIds.current=ids;firstLoadDone.current=true;return}const hasFresh=ids.some(id=>!seenNewLeadIds.current.includes(id));if(hasFresh&&soundReadyRef.current)playNewLeadDing();seenNewLeadIds.current=ids},[newLeads]);
- const reports=useMemo(()=>companies.map(c=>{const rows=leads.filter(l=>l.assigned_company_id===c.id||l.assigned_lender===c.name);return{company:c,received:rows.length,funded:rows.filter(l=>l.status==="Funded").length,volume:rows.reduce((s,l)=>s+Number(l.funded_amount||0),0),pending:rows.filter(l=>l.status!=="Funded"&&l.status!=="Declined").length,conversion:rows.length?Math.round((rows.filter(l=>l.status==="Funded").length/rows.length)*100):0}}).sort((a,b)=>b.volume-a.volume),[companies,leads]);
- async function updateStatus(){await fetch("/api/owner/update-lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({leadId:selectedId,status,fundedAmount:Number(fundedAmount||0),note})});setNote("");await load()}
- async function requestDocument(){await fetch("/api/documents/request",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({leadId:selectedId,documentType:docType,note:docNote})});setDocNote("");await load()}
- async function createCompany(){const res=await fetch("/api/lenders/manage",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"company",...newCompany})});if(!res.ok){alert((await res.json()).error||"Could not create company");return}setNewCompany({name:"",contact_name:"",contact_email:"",phone:"",notes:""});await load()}
- async function createUser(){const res=await fetch("/api/lenders/manage",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"user",...newUser})});if(!res.ok){alert((await res.json()).error||"Could not create user");return}setNewUser({company_id:"",name:"",email:"",password:"",role:"lender"});await load()}
- async function assignLead(){const c=companies.find(x=>x.id===companyId);const u=users.find(x=>x.id===userId);const res=await fetch("/api/lenders/assign",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({leadId:selectedId,companyId,userId:userId||null,companyName:c?.name||"",userName:u?.name||""})});if(!res.ok){alert((await res.json()).error||"Could not assign lead");return}await load()}
- async function deleteLead(){if(!selectedId)return alert("Select a lead first");const lead=leads.find(l=>l.id===selectedId);const label=lead?`${lead.first_name||""} ${lead.last_name||""} ${lead.tracking_id?"("+lead.tracking_id+")":""}`.trim():"this lead";if(!confirm(`Delete ${label}? This cannot be undone.`))return;const res=await fetch(`/api/owner/leads?leadId=${encodeURIComponent(selectedId)}`,{method:"DELETE",headers:{"Cache-Control":"no-cache"}});const data=await res.json().catch(()=>({}));if(!res.ok){alert(data.error||"Could not delete lead");return}setSelectedId("");await load();}
- return <main className="min-h-screen overflow-x-hidden bg-slate-50"><header className="border-b bg-white"><div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-4"><div className="font-black"><span className="text-blue-700">HELOC CONNECT</span> Owner Control Center</div><div className="flex items-center gap-2"><a className="rounded-xl border px-4 py-2 font-black" href="/">Landing</a><a className="rounded-xl border px-4 py-2 font-black" href="/lender">Lender Portal</a><OwnerLogoutButton /></div></div></header><div className="mx-auto w-full max-w-7xl px-5 py-7">
- <section className="rounded-[1.4rem] bg-gradient-to-br from-navy to-[#132946] p-6 text-white"><h1 className="text-3xl font-black">Master Owner Dashboard</h1><p className="mt-2 text-blue-100">Manage leads, create lender logins, assign mortgage companies, request documents, and track funded volume.</p></section>
- <div className="mt-5 grid gap-4 md:grid-cols-5"><Kpi label="Total Leads" value={totals.total}/><Kpi label="Needs Docs" value={totals.docs}/><Kpi label="Funded Deals" value={totals.funded}/><Kpi label="Total Funded" value={money(totals.volume)}/><Kpi label="Expected Payout" value={money(totals.payout)}/></div>
- <section className="mt-5 rounded-[1.4rem] border border-emerald-300/70 bg-gradient-to-br from-emerald-950 via-emerald-900 to-slate-950 p-5 text-white shadow-xl shadow-emerald-900/20">
-  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-   <div><div className="flex items-center gap-2"><span className="relative flex h-3 w-3"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75"></span><span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-400"></span></span><p className="text-xs font-black uppercase tracking-[.28em] text-emerald-200">New Leads Live Desk</p></div><h2 className="mt-1 text-2xl font-black">Fresh Applications Waiting For Assignment</h2><p className="mt-1 text-sm text-emerald-100">Only unassigned leads show here. Once you assign a lead, it automatically clears from this area but remains searchable below.</p></div>
-   <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-emerald-400 px-4 py-2 text-sm font-black text-emerald-950">{newLeads.length} New</span><button onClick={enableSound} className={`rounded-full px-4 py-2 text-sm font-black ${soundReady?"bg-white/15 text-emerald-100":"bg-amber-400 text-slate-950"}`}>{soundReady?"🔔 Ding Enabled":"Enable New Lead Ding"}</button></div>
-  </div>
-  <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{newLeads.length?newLeads.slice(0,6).map(lead=><button key={lead.id} onClick={()=>{setSelectedId(lead.id);setTab("leads")}} className="rounded-2xl border border-emerald-300/40 bg-white/10 p-4 text-left transition hover:bg-white/15"><div className="flex items-start justify-between gap-3"><div><p className="font-black text-white">{lead.first_name||"New"} {lead.last_name||"Lead"}</p><p className="text-xs font-bold text-emerald-100">{lead.tracking_id||"No tracking ID"} • {timeAgo(lead.created_at)}</p></div><div className="flex flex-col items-end gap-1"><span className="rounded-full bg-emerald-300 px-3 py-1 text-xs font-black text-emerald-950">Open</span>{isHotLead(lead)&&<span className="rounded-full bg-red-500 px-3 py-1 text-xs font-black text-white">🔥 HOT</span>}</div></div><div className="mt-3 grid grid-cols-2 gap-2 text-sm"><div><span className="block text-xs font-black uppercase text-emerald-200">Goal</span>{lead.loan_purpose||"—"}</div><div><span className="block text-xs font-black uppercase text-emerald-200">Requested</span>{money(lead.requested_cash)}</div><div><span className="block text-xs font-black uppercase text-emerald-200">Age</span>{timeAgo(lead.created_at)}</div><div><span className="block text-xs font-black uppercase text-emerald-200">Priority</span>{isHotLead(lead)?hotReason(lead):"Standard"}</div><div className="col-span-2"><span className="block text-xs font-black uppercase text-emerald-200">Property</span>{lead.property_address||"—"}</div></div></button>):<div className="rounded-2xl border border-emerald-300/30 bg-white/10 p-5 text-emerald-100 md:col-span-2 xl:col-span-3">No unassigned new leads right now. New submissions will appear here automatically.</div>}</div>
- </section>
- <div className="mt-5 flex flex-wrap gap-2">{["leads","network","reports"].map(t=><button key={t} onClick={()=>setTab(t)} className={`rounded-xl px-5 py-3 font-black ${tab===t?"bg-blue-700 text-white":"bg-white border"}`}>{t==="leads"?"Lead Control":t==="network"?"Network Users":"Funding Reports"}</button>)}</div>
- {tab==="leads"&&<div className="mt-5 grid gap-5 lg:grid-cols-[.9fr_1.1fr]"><section className="rounded-[1.4rem] border bg-white p-6 shadow"><h2 className="text-2xl font-black">Lead Control</h2><label className="mt-4 block text-xs font-black text-slate-500">Search / Select Any Lead</label><input className="mt-2 w-full rounded-xl border p-3" value={leadSearch} onChange={e=>setLeadSearch(e.target.value)} placeholder="Search client name, phone, email, tracking ID, or address"/><select className="mt-2 w-full rounded-xl border p-3" value={selectedId} onChange={e=>setSelectedId(e.target.value)}>{filteredLeads.map(lead=><option key={lead.id} value={lead.id}>{lead.tracking_id} - {lead.first_name} {lead.last_name}{isHotLead(lead)?" 🔥 HOT":""}{isAssigned(lead)?" • Assigned":" • NEW"}</option>)}</select><div className="mt-5 rounded-2xl bg-amber-50 p-4"><h3 className="font-black">Assign To Mortgage Company</h3><select className="mt-3 w-full rounded-xl border p-3" value={companyId} onChange={e=>{setCompanyId(e.target.value);setUserId("")}}><option value="">Unassigned</option>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select><select className="mt-3 w-full rounded-xl border p-3" value={userId} onChange={e=>setUserId(e.target.value)}><option value="">Company pool / no specific agent</option>{users.filter(u=>!companyId||u.company_id===companyId).map(u=><option key={u.id} value={u.id}>{u.name} - {u.role}</option>)}</select><button onClick={assignLead} className="mt-3 w-full rounded-xl bg-amber-500 p-4 font-black text-slate-950">Assign Lead</button></div><label className="mt-4 block text-xs font-black text-slate-500">Update Status</label><select className="mt-2 w-full rounded-xl border p-3" value={status} onChange={e=>setStatus(e.target.value)}>{clientStatuses.map(s=><option key={s}>{s}</option>)}</select><label className="mt-4 block text-xs font-black text-slate-500">Funded Amount</label><input className="mt-2 w-full rounded-xl border p-3" value={fundedAmount} onChange={e=>setFundedAmount(e.target.value)} placeholder="Funded amount"/><label className="mt-4 block text-xs font-black text-slate-500">Note</label><textarea className="mt-2 w-full rounded-xl border p-3" value={note} onChange={e=>setNote(e.target.value)}/><button onClick={updateStatus} className="mt-4 w-full rounded-xl bg-blue-700 p-4 font-black text-white">Save Status Update</button><button onClick={deleteLead} className="mt-3 w-full rounded-xl bg-red-600 p-4 font-black text-white">Delete This Lead</button><hr className="my-6"/><h3 className="text-xl font-black">Request Documents</h3><p className="mt-1 text-sm text-slate-500">Requests show instantly on the client status portal with upload buttons.</p><select className="mt-3 w-full rounded-xl border p-3" value={docType} onChange={e=>setDocType(e.target.value)}>{documentOptions.map(d=><option key={d}>{d}</option>)}</select><input className="mt-3 w-full rounded-xl border p-3" value={docNote} onChange={e=>setDocNote(e.target.value)} placeholder="Optional note"/><button onClick={requestDocument} className="mt-3 w-full rounded-xl bg-green-600 p-4 font-black text-white">Send Document Request</button>{selected&&<DocumentList documents={selected.documents||[]}/>}</section><section className="rounded-[1.4rem] border bg-white p-6 shadow"><h2 className="text-2xl font-black">Selected Lead — Complete Intake File</h2>{selected?<FullLeadDetails lead={selected} companies={companies}/>:<p>No lead selected.</p>}</section></div>}
- {tab==="network"&&<div className="mt-5 grid gap-5 lg:grid-cols-2"><section className="rounded-[1.4rem] border bg-white p-6 shadow"><h2 className="text-2xl font-black">Create Mortgage Company</h2><Text value={newCompany.name} set={v=>setNewCompany({...newCompany,name:v})} ph="Company name"/><Text value={newCompany.contact_name} set={v=>setNewCompany({...newCompany,contact_name:v})} ph="Main contact"/><Text value={newCompany.contact_email} set={v=>setNewCompany({...newCompany,contact_email:v})} ph="Contact email"/><Text value={newCompany.phone} set={v=>setNewCompany({...newCompany,phone:v})} ph="Phone"/><Text value={newCompany.notes} set={v=>setNewCompany({...newCompany,notes:v})} ph="Notes"/><button onClick={createCompany} className="mt-3 w-full rounded-xl bg-blue-700 p-4 font-black text-white">Create Company</button></section><section className="rounded-[1.4rem] border bg-white p-6 shadow"><h2 className="text-2xl font-black">Create Lender / Agent Login</h2><select className="mt-3 w-full rounded-xl border p-3" value={newUser.company_id} onChange={e=>setNewUser({...newUser,company_id:e.target.value})}><option value="">Select company</option>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select><Text value={newUser.name} set={v=>setNewUser({...newUser,name:v})} ph="User name"/><Text value={newUser.email} set={v=>setNewUser({...newUser,email:v})} ph="Login email"/><Text value={newUser.password} set={v=>setNewUser({...newUser,password:v})} ph="Temporary password" type="password"/><select className="mt-3 w-full rounded-xl border p-3" value={newUser.role} onChange={e=>setNewUser({...newUser,role:e.target.value})}><option value="lender">Lender manager</option><option value="agent">Agent</option></select><button onClick={createUser} className="mt-3 w-full rounded-xl bg-green-600 p-4 font-black text-white">Create Login</button></section><section className="lg:col-span-2 rounded-[1.4rem] border bg-white p-6 shadow"><h2 className="text-2xl font-black">Network List</h2><div className="mt-4 overflow-auto"><table className="w-full min-w-[900px] text-left"><thead className="bg-slate-100 text-xs font-black uppercase text-slate-500"><tr><th className="p-3">Company</th><th className="p-3">Contact</th><th className="p-3">Users</th><th className="p-3">Login URL</th></tr></thead><tbody>{companies.map(c=><tr key={c.id} className="border-b"><td className="p-3 font-black">{c.name}</td><td className="p-3">{c.contact_name}<br/>{c.contact_email}<br/>{c.phone}</td><td className="p-3">{users.filter(u=>u.company_id===c.id).map(u=><div key={u.id}>{u.name} — {u.email} ({u.role})</div>)}</td><td className="p-3 font-bold">/lender-login</td></tr>)}</tbody></table></div></section></div>}
- {tab==="reports"&&<section className="mt-5 rounded-[1.4rem] border bg-white p-6 shadow"><h2 className="text-2xl font-black">🏆 Funding Leaderboard By Mortgage Company</h2><p className="mt-1 text-slate-500">Ranked by total funded volume from HELOC CONNECT assigned leads.</p><div className="mt-4 overflow-auto"><table className="w-full min-w-[900px] text-left"><thead className="bg-slate-100 text-xs font-black uppercase text-slate-500"><tr><th className="p-3">Mortgage Company</th><th className="p-3">Leads Received</th><th className="p-3">Pending</th><th className="p-3">Funded Deals</th><th className="p-3">Total Funded Volume</th><th className="p-3">Close Rate</th></tr></thead><tbody>{reports.map((r,i)=><tr key={r.company.id} className="border-b"><td className="p-3 font-black"><span className="mr-2 rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-700">#{i+1}</span>{r.company.name}</td><td className="p-3">{r.received}</td><td className="p-3">{r.pending}</td><td className="p-3">{r.funded}</td><td className="p-3 font-black">{money(r.volume)}</td><td className="p-3 font-black">{r.conversion}%</td></tr>)}</tbody></table></div></section>}
- </div></main>}
-function Text({value,set,ph,type="text"}:{value:string,set:(v:string)=>void,ph:string,type?:string}){return <input className="mt-3 w-full rounded-xl border p-3" value={value} onChange={e=>set(e.target.value)} placeholder={ph} type={type}/>}
-function Kpi({label,value}:{label:string,value:any}){return <div className="rounded-[1.4rem] border bg-white p-5 shadow"><p className="text-sm font-black text-slate-500">{label}</p><b className="mt-1 block text-2xl">{value}</b></div>}
-function Info({label,value}:{label:string,value:any}){return <div className="flex justify-between gap-4 border-b pb-2"><span className="font-bold text-slate-500">{label}</span><b className="text-right">{value || "—"}</b></div>}
-function OwnerLogoutButton(){async function logout(){await fetch("/api/owner/logout",{method:"POST"});window.location.href="/owner-login"}return <button onClick={logout} className="rounded-xl bg-slate-900 px-4 py-2 font-black text-white">Logout</button>}
+import { supabaseAdmin } from "@/lib/supabase";
+import { CLIENT_STATUSES, DOCUMENT_TYPES, money } from "@/lib/statuses";
 
-function smartDetails(lead:any){
- const notes=lead?.notes||[];
- const note=notes.find((n:any)=>String(n.note||"").includes("Smart calculator details:"));
- return String(note?.note||"").replace("Smart calculator details:\n","").trim();
+async function getLenders() {
+  if (!supabaseAdmin) return [];
+  const { data, error } = await supabaseAdmin
+    .from("lender_users")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Owner lender load failed:", error.message);
+    return [];
+  }
+
+  return data || [];
 }
-function FullLeadDetails({lead,companies}:{lead:any,companies:any[]}){
- const assigned=companies.find(c=>c.id===lead.assigned_company_id)?.name || lead.assigned_lender || "Unassigned";
- const details=smartDetails(lead);
- return <div className="mt-4 space-y-5">
-  <div className="grid gap-3 md:grid-cols-2"><Info label="Tracking ID" value={lead.tracking_id}/><Info label="Status" value={lead.status}/><Info label="Name" value={`${lead.first_name||""} ${lead.last_name||""}`}/><Info label="Phone" value={lead.phone}/><Info label="Email" value={lead.email}/><Info label="Assigned" value={assigned}/><Info label="Property Address" value={lead.property_address}/><Info label="Estimated Home Value" value={money(lead.home_value)}/><Info label="Current Mortgage Balance" value={money(lead.mortgage_balance)}/><Info label="Requested Funding" value={money(lead.requested_cash)}/><Info label="Monthly Income" value={money(lead.monthly_income)}/><Info label="Credit Score Range" value={lead.credit_score}/><Info label="Goal" value={lead.loan_purpose}/><Info label="Funded Amount" value={money(lead.funded_amount)}/><Info label="Lead Age" value={timeAgo(lead.created_at)}/><Info label="Priority" value={isHotLead(lead)?`🔥 ${hotReason(lead)}`:"Standard"}/><Info label="Private Link" value={`/status/${lead.client_token}`}/></div>
-  {details&&<section className="rounded-2xl border bg-slate-50 p-4"><h3 className="font-black">Smart Calculator Full Intake Details</h3><pre className="mt-3 whitespace-pre-wrap rounded-xl bg-white p-4 text-sm text-slate-700">{details}</pre></section>}
-  <DocumentList documents={lead.documents||[]}/>
-  {(lead.notes||[]).length>0&&<section className="rounded-2xl border bg-white p-4"><h3 className="font-black">Lead Notes / Activity</h3><div className="mt-3 space-y-2">{lead.notes.map((n:any)=><div key={n.id} className="rounded-xl bg-slate-50 p-3 text-sm"><p className="whitespace-pre-wrap">{n.note}</p><p className="mt-1 text-xs font-bold text-slate-400">{n.created_at?new Date(n.created_at).toLocaleString():""}</p></div>)}</div></section>}
- </div>
+
+async function getLeads(lenders: any[] = []) {
+  if (!supabaseAdmin) return [];
+
+  // Do not use nested lender_users(*) here. Some live Supabase tables do not
+  // have the foreign-key relationship registered, which makes Supabase return
+  // an error and the dashboard appear empty even though leads were saved.
+  const { data, error } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(300);
+
+  if (error) {
+    console.error("Owner leads load failed:", error.message);
+    return [];
+  }
+
+  return (data || []).map((lead: any) => {
+    const lender = lenders.find((u: any) => String(u.id) === String(lead.assigned_lender_id));
+    return {
+      ...lead,
+      address: lead.address || lead.property_address || "",
+      token: lead.token || lead.client_token || "",
+      income: lead.income ?? lead.monthly_income ?? 0,
+      lender_users: lender || null,
+    };
+  });
 }
-function DocumentList({documents}:{documents:any[]}){return <section className="mt-5 rounded-2xl border bg-slate-50 p-4"><h3 className="font-black">Requested Documents Visible To Client</h3>{!documents?.length?<p className="mt-2 text-sm text-slate-500">No documents requested yet.</p>:<div className="mt-3 space-y-2">{documents.map((d:any)=><div key={d.id} className="flex flex-col justify-between gap-2 rounded-xl border bg-white p-3 md:flex-row md:items-center"><div><b>{d.document_type}</b><p className="text-sm text-slate-500">{d.note||""}</p>{d.file_name&&<p className="text-xs font-bold text-green-700">Uploaded: {d.file_name}</p>}</div><span className={(d.status==="Uploaded"?"bg-green-100 text-green-700":"bg-amber-100 text-amber-700")+" rounded-full px-3 py-2 text-xs font-black"}>{d.status}</span></div>)}</div>}</section>}
+
+function statCount(leads: any[], status: string) {
+  return leads.filter((l) => String(l.status || "").toLowerCase().includes(status.toLowerCase())).length;
+}
+
+export default async function OwnerPage() {
+  const lenders: any[] = await getLenders();
+  const leads: any[] = await getLeads(lenders);
+  const totalRequested = leads.reduce((sum, l) => sum + Number(l.requested_amount || 0), 0);
+  const funded = leads.reduce((sum, l) => sum + Number(l.funded_amount || 0), 0);
+
+  return (
+    <main className="min-h-screen bg-[#06111f] text-white">
+      <header className="border-b border-white/10 bg-[#06101d]/95 px-5 py-5">
+        <div className="mx-auto flex max-w-[1500px] flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <a href="/" className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl border border-[#d9a94e]/70 bg-[#091827] text-[#f6c15a]">⌂</div>
+            <div>
+              <div className="text-2xl font-black tracking-[-.04em]">HELOC CONNECT</div>
+              <div className="text-xs font-black uppercase tracking-[.35em] text-[#f6c15a]">Owner Command Center</div>
+            </div>
+          </a>
+          <div className="flex flex-wrap gap-3 text-sm font-black">
+            <a href="/lender" className="rounded-2xl border border-white/10 bg-white/[.04] px-4 py-3">Lender View</a>
+            <a href="/api/auth/logout" className="rounded-2xl bg-[#f6c15a] px-5 py-3 text-[#06111f]">Logout</a>
+          </div>
+        </div>
+      </header>
+
+      <section className="mx-auto max-w-[1500px] px-4 py-8 sm:px-6 lg:px-8">
+        <div className="rounded-[34px] border border-white/10 bg-gradient-to-br from-[#0b1b2e] to-[#06111f] p-6 shadow-2xl">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="text-xs font-black uppercase tracking-[.35em] text-[#f6c15a]">Live Funding Platform</div>
+              <h1 className="mt-3 text-4xl font-black tracking-[-.05em] md:text-6xl">Admin Dashboard</h1>
+              <p className="mt-3 max-w-3xl text-base font-semibold text-white/70">
+                Create lender users, assign leads, update client status pages, delete old leads, and control the network pipeline.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-5 py-4 font-black text-emerald-200">
+              ● Supabase Connected
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-5">
+            <div className="rounded-3xl border border-white/10 bg-[#08182b] p-5"><div className="text-sm font-black text-white/50">Total Leads</div><div className="mt-2 text-4xl font-black">{leads.length}</div></div>
+            <div className="rounded-3xl border border-white/10 bg-[#08182b] p-5"><div className="text-sm font-black text-white/50">Network Lenders</div><div className="mt-2 text-4xl font-black text-[#f6c15a]">{lenders.length}</div></div>
+            <div className="rounded-3xl border border-white/10 bg-[#08182b] p-5"><div className="text-sm font-black text-white/50">Assigned Leads</div><div className="mt-2 text-4xl font-black">{leads.filter(l=>l.assigned_lender_id).length}</div></div>
+            <div className="rounded-3xl border border-white/10 bg-[#08182b] p-5"><div className="text-sm font-black text-white/50">Requested Funding</div><div className="mt-2 text-3xl font-black">{money(totalRequested)}</div></div>
+            <div className="rounded-3xl border border-white/10 bg-[#08182b] p-5"><div className="text-sm font-black text-white/50">Funded Volume</div><div className="mt-2 text-3xl font-black text-emerald-300">{money(funded)}</div></div>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-6 xl:grid-cols-[.75fr_1.25fr]">
+          <div className="rounded-[34px] border border-white/10 bg-[#071421] p-6 shadow-2xl">
+            <h2 className="text-2xl font-black">Create Network Lender User</h2>
+            <p className="mt-1 text-sm font-semibold text-white/55">The lender logs in with the email/password you create here.</p>
+            <form action="/api/owner/create-lender" method="post" className="mt-5 grid gap-3">
+              <input name="lender_name" required placeholder="Lender / Agent Name" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
+              <input name="company_name" placeholder="Mortgage Company Name" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
+              <input name="email" type="email" required placeholder="Login Email" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
+              <input name="phone" placeholder="Phone" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
+              <input name="password" required placeholder="Create Password" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
+              <button className="rounded-2xl bg-[#f6c15a] p-4 font-black text-[#06111f]">Create Lender User</button>
+            </form>
+
+            <h3 className="mt-8 text-xl font-black">Existing Network Lenders</h3>
+            <div className="mt-4 grid gap-3">
+              {lenders.length ? lenders.map((u) => (
+                <div key={u.id} className="rounded-2xl border border-white/10 bg-[#091a2f] p-4">
+                  <b>{u.lender_name}</b>
+                  <div className="text-sm text-white/60">{u.company_name || "No company"} • {u.email}</div>
+                </div>
+              )) : <div className="rounded-2xl border border-dashed border-white/15 p-5 text-white/60">No lender users yet.</div>}
+            </div>
+          </div>
+
+          <div className="rounded-[34px] border border-white/10 bg-[#071421] p-4 shadow-2xl sm:p-6">
+            <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-2xl font-black">Leads, Assignment & Status Control</h2>
+                <p className="mt-1 text-sm font-semibold text-white/55">Assign leads to existing network lenders. The lender will see only assigned leads.</p>
+              </div>
+              <div className="rounded-full border border-[#f6c15a]/40 bg-[#f6c15a]/10 px-4 py-2 text-xs font-black uppercase tracking-[.2em] text-[#f6c15a]">
+                Live Lead Flow
+              </div>
+            </div>
+
+            {leads.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-white/15 bg-white/[.03] p-10 text-center">
+                <div className="text-4xl">📭</div>
+                <h3 className="mt-3 text-2xl font-black">No leads yet</h3>
+                <p className="mt-2 text-white/60">Submit a test lead from the homepage calculator to verify the full flow.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {leads.map((l) => (
+                  <div key={l.id} className="rounded-3xl border border-white/10 bg-[#091a2f] p-5">
+                    <div className="grid gap-5 xl:grid-cols-[1.1fr_.9fr_.95fr]">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h3 className="text-2xl font-black">{l.first_name || "Client"} {l.last_name || ""}</h3>
+                          <span className="rounded-full border border-[#f6c15a]/40 bg-[#f6c15a]/10 px-3 py-1 text-xs font-black text-[#f6c15a]">{l.status || "Application Received"}</span>
+                        </div>
+                        <p className="mt-2 text-sm font-semibold text-white/65">{l.email || "No email"} • {l.phone || "No phone"}</p>
+                        <p className="mt-2 text-sm font-semibold text-white/65">{l.address || "No address"} {l.city ? `• ${l.city}, ${l.state || ""} ${l.zip || ""}` : ""}</p>
+                        <p className="mt-2 text-xs font-black text-emerald-300">Assigned: {l.lender_users?.lender_name || l.assigned_agent || "Unassigned"}</p>
+                        <a className="mt-4 inline-flex rounded-2xl border border-white/10 px-4 py-2 text-sm font-black text-[#f6c15a]" href={`/status/${l.client_token || l.token}`} target="_blank">
+                          Open Client Status Page →
+                        </a>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="rounded-2xl bg-black/20 p-4"><div className="text-white/45">Home Value</div><b>{money(l.home_value)}</b></div>
+                        <div className="rounded-2xl bg-black/20 p-4"><div className="text-white/45">Mortgage Bal.</div><b>{money(l.mortgage_balance)}</b></div>
+                        <div className="rounded-2xl bg-black/20 p-4"><div className="text-white/45">Requested</div><b>{money(l.requested_amount)}</b></div>
+                        <div className="rounded-2xl bg-black/20 p-4"><div className="text-white/45">Equity Room</div><b>{money(l.equity_room)}</b></div>
+                        <div className="rounded-2xl bg-black/20 p-4"><div className="text-white/45">Credit</div><b>{l.credit_score || "—"}</b></div>
+                        <div className="rounded-2xl bg-black/20 p-4"><div className="text-white/45">Income</div><b>{money(l.income)}</b></div>
+                      </div>
+
+                      <div className="grid gap-3">
+                        <form action="/api/owner/assign-lead" method="post" className="rounded-2xl border border-white/10 bg-[#06101d] p-4">
+                          <input type="hidden" name="leadId" value={l.id} />
+                          <label className="text-xs font-black uppercase tracking-[.2em] text-white/50">Assign To Lender</label>
+                          <select name="lenderId" defaultValue={l.assigned_lender_id || ""} className="mt-2 w-full rounded-2xl border border-white/10 bg-[#091a2f] p-3 font-bold text-white">
+                            <option value="">Unassigned</option>
+                            {lenders.map((u) => <option key={u.id} value={u.id}>{u.lender_name} — {u.company_name || u.email}</option>)}
+                          </select>
+                          <button className="mt-3 w-full rounded-2xl bg-emerald-400 p-3 font-black text-[#06111f]">Assign Lead</button>
+                        </form>
+
+                        <form action="/api/owner/update-status" method="post" className="rounded-2xl border border-white/10 bg-[#06101d] p-4">
+                          <input type="hidden" name="leadId" value={l.id} />
+                          <label className="text-xs font-black uppercase tracking-[.2em] text-white/50">Update Status</label>
+                          <select name="status" defaultValue={l.status || "Application Received"} className="mt-2 w-full rounded-2xl border border-white/10 bg-[#091a2f] p-3 font-bold text-white">
+                            {CLIENT_STATUSES.map((s) => <option key={s}>{s}</option>)}
+                          </select>
+                          <textarea name="notes" placeholder="Internal notes / lender notes" defaultValue={l.notes || ""} className="mt-3 h-20 w-full rounded-2xl border border-white/10 bg-[#091a2f] p-3 font-semibold text-white" />
+                          <button className="mt-3 w-full rounded-2xl bg-gradient-to-b from-[#ffd36d] to-[#d89425] p-3 font-black text-[#06111f]">Save Update</button>
+                        </form>
+
+                        <form action="/api/owner/delete-lead" method="post">
+                          <input type="hidden" name="leadId" value={l.id} />
+                          <button className="w-full rounded-2xl border border-red-400/35 bg-red-500/10 p-3 font-black text-red-200">Delete Lead</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}

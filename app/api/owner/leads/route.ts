@@ -1,107 +1,82 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+function normalizeLead(lead: any, lenders: any[] = []) {
+  const lender = lenders.find((u: any) => String(u.id) === String(lead.assigned_lender_id));
+  return {
+    ...lead,
+    address: lead.address || lead.property_address || "",
+    token: lead.token || lead.client_token || "",
+    income: lead.income ?? lead.monthly_income ?? 0,
+    lender_users: lender || null,
+  };
+}
+
 export async function GET() {
-  try {
-    const s = supabaseAdmin();
+  if (!supabaseAdmin) {
+    return NextResponse.json({ error: "Supabase is not configured" }, { status: 500 });
+  }
 
-    const { data, error } = await s
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const { data: lendersData, error: lendersError } = await supabaseAdmin
+    .from("lender_users")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Owner leads load failed:", error);
-      return NextResponse.json(
-        { error: error.message, details: error.details || null, hint: error.hint || null },
-        { status: 500 }
-      );
-    }
+  const lenders = lendersError ? [] : (lendersData || []);
 
-    const leads = data || [];
-    const ids = leads.map((l: any) => l.id).filter(Boolean);
+  const { data, error } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(300);
 
-    let notes: any[] = [];
-    let documents: any[] = [];
-
-    if (ids.length) {
-      const nr = await s
-        .from("lead_notes")
-        .select("*")
-        .in("lead_id", ids)
-        .order("created_at", { ascending: false });
-
-      if (!nr.error) notes = nr.data || [];
-      else console.warn("Lead notes load skipped:", nr.error.message);
-
-      const dr = await s
-        .from("lead_documents")
-        .select("*")
-        .in("lead_id", ids)
-        .order("created_at", { ascending: false });
-
-      if (!dr.error) documents = dr.data || [];
-      else console.warn("Lead documents load skipped:", dr.error.message);
-    }
-
-    const enriched = leads.map((lead: any) => ({
-      ...lead,
-      notes: notes.filter((n: any) => n.lead_id === lead.id),
-      documents: documents.filter((d: any) => d.lead_id === lead.id),
-    }));
-
+  if (error) {
     return NextResponse.json(
-      { leads: enriched },
-      { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } }
-    );
-  } catch (err: any) {
-    console.error("Owner leads GET crashed:", err);
-    return NextResponse.json(
-      { error: err?.message || "Owner leads GET failed" },
+      { error: error.message, details: error.details || null, hint: error.hint || null },
       { status: 500 }
     );
   }
+
+  return NextResponse.json(
+    { leads: (data || []).map((lead: any) => normalizeLead(lead, lenders)) },
+    { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } }
+  );
 }
 
 export async function DELETE(req: NextRequest) {
-  try {
-    const s = supabaseAdmin();
-    const { searchParams } = new URL(req.url);
+  if (!supabaseAdmin) {
+    return NextResponse.json({ error: "Supabase is not configured" }, { status: 500 });
+  }
 
-    let leadId = searchParams.get("leadId") || searchParams.get("id") || "";
-    if (!leadId) {
-      try {
-        const body = await req.json();
-        leadId = body.leadId || body.id || "";
-      } catch {}
-    }
+  const { searchParams } = new URL(req.url);
+  let leadId = searchParams.get("leadId") || searchParams.get("id") || "";
 
-    if (!leadId) {
-      return NextResponse.json({ error: "Missing leadId" }, { status: 400 });
-    }
+  if (!leadId) {
+    try {
+      const body = await req.json();
+      leadId = body.leadId || body.id || "";
+    } catch {}
+  }
 
-    await s.from("lead_documents").delete().eq("lead_id", leadId);
-    await s.from("lead_notes").delete().eq("lead_id", leadId);
+  if (!leadId) {
+    return NextResponse.json({ error: "Missing leadId" }, { status: 400 });
+  }
 
-    const { error } = await s.from("leads").delete().eq("id", leadId);
+  // Ignore these failures because older Supabase projects may not have these tables.
+  try { await supabaseAdmin.from("lead_documents").delete().eq("lead_id", leadId); } catch {}
+  try { await supabaseAdmin.from("lead_notes").delete().eq("lead_id", leadId); } catch {}
 
-    if (error) {
-      console.error("Lead delete failed:", error);
-      return NextResponse.json(
-        { error: error.message, details: error.details || null, hint: error.hint || null },
-        { status: 500 }
-      );
-    }
+  const { error } = await supabaseAdmin.from("leads").delete().eq("id", leadId);
 
-    return NextResponse.json({ ok: true, deletedId: leadId });
-  } catch (err: any) {
-    console.error("Owner leads DELETE crashed:", err);
+  if (error) {
     return NextResponse.json(
-      { error: err?.message || "Owner leads DELETE failed" },
+      { error: error.message, details: error.details || null, hint: error.hint || null },
       { status: 500 }
     );
   }
+
+  return NextResponse.json({ ok: true, deletedId: leadId });
 }

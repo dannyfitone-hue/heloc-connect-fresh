@@ -1,121 +1,125 @@
-import {NextRequest,NextResponse} from "next/server";
-import {supabaseAdmin} from "@/lib/supabaseAdmin";
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-function token(){return crypto.randomUUID().replaceAll("-","")}
-function tracking(){return "EQ-"+Math.floor(1000+Math.random()*9000)}
+const FALLBACK_SUPABASE_URL = "https://cpljanwlpclyhshrsfzv.supabase.co";
 
-function parseMoney(value:any){
-  const cleaned = String(value ?? "").replace(/[^0-9.]/g, "");
-  const n = Number(cleaned);
-  return Number.isFinite(n) ? n : 0;
+function makeToken() {
+  return Math.random().toString(36).slice(2, 18) + Date.now().toString(36);
 }
 
-function normalizePhone(phone:string){
-  const digits = String(phone || "").replace(/\D/g,"");
-  if(digits.length===10) return "+1"+digits;
-  if(digits.length===11 && digits.startsWith("1")) return "+"+digits;
-  if(String(phone || "").startsWith("+")) return String(phone);
-  return "";
+function trackingId() {
+  return "EQ-" + Math.floor(1000 + Math.random() * 9000);
 }
 
-async function sendClientSMS(phone:string, name:string, link:string){
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const auth = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_FROM_NUMBER;
-  const to = normalizePhone(phone);
+function num(v: any) {
+  return Number(String(v || "").replace(/[^0-9.]/g, "")) || 0;
+}
 
-  if(!sid || !auth || !from || !to) return {skipped:true};
+function clean(v: any, max = 240) {
+  return String(v || "").replace(/\s+/g, " ").trim().slice(0, max);
+}
 
-  const body =
-`Hi ${name || "there"}, your HELOC CONNECT funding request has been received.
+function cleanLong(v: any) {
+  return String(v || "").replace(/\s+/g, " ").trim().slice(0, 2000);
+}
 
-Track your private funding status here:
-${link}
+function cleanUrl(v: any) {
+  const raw = String(v || "").trim();
+  return raw.replace(/\/rest\/v1\/?$/i, "") || FALLBACK_SUPABASE_URL;
+}
 
-If documents are needed, they will appear inside your secure portal.`;
+function cleanKey(v: any) {
+  return String(v || "").replace(/[\r\n\s]/g, "").trim();
+}
 
-  const params = new URLSearchParams();
-  params.append("To", to);
-  params.append("From", from);
-  params.append("Body", body);
-
-  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
-    method: "POST",
-    headers: {
-      "Authorization": "Basic " + Buffer.from(`${sid}:${auth}`).toString("base64"),
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: params.toString()
-  });
-
-  if(!res.ok){
-    const err = await res.text();
-    console.error("Twilio SMS failed:", err);
-    return {error:err};
+export async function POST(req: Request) {
+  let body: any = {};
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
   }
 
-  return {ok:true};
-}
+  const supabaseUrl = cleanUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const serviceKey = cleanKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-export async function POST(req:NextRequest){
-  const b=await req.json(),s=supabaseAdmin();
-  const client_token=token(),tracking_id=tracking();
-
-  const{data,error}=await s.from("leads").insert({
-    tracking_id,
-    client_token,
-    first_name:b.first_name||"",
-    last_name:b.last_name||"",
-    phone:b.phone||"",
-    email:b.email||"",
-    property_address:b.property_address||"",
-    home_value:parseMoney(b.home_value),
-    credit_score:b.credit_score||"",
-    monthly_income:parseMoney(b.monthly_income),
-    requested_cash:parseMoney(b.requested_cash),
-    loan_purpose:b.loan_purpose||"",
-    lead_source:"Landing Page / Instagram Ad",
-    status:"Application Received"
-  }).select().single();
-
-  if(error){
-    console.error("Lead insert failed:", error);
-    return NextResponse.json({error:error.message, details:error.details || null, hint:error.hint || null},{status:500});
+  if (!supabaseUrl || !serviceKey) {
+    return NextResponse.json({
+      error: "Missing Supabase URL or service key.",
+      supabaseUrlPresent: Boolean(supabaseUrl),
+      serviceKeyPresent: Boolean(serviceKey)
+    }, { status: 500 });
   }
 
-  await s.from("lead_notes").insert({
-    lead_id:data.id,
-    note:"New intake submitted. Private status link created."
-  });
+  if (!serviceKey.startsWith("sb_secret_")) {
+    return NextResponse.json({
+      error: "SUPABASE_SERVICE_ROLE_KEY must start with sb_secret_.",
+      currentStartsWith: serviceKey.slice(0, 12)
+    }, { status: 500 });
+  }
 
-  const smartSummary = [
-    `Street Address: ${b.street_address || ""}`,
-    `Unit: ${b.unit || ""}`,
-    `City: ${b.city || ""}`,
-    `State: ${b.state || ""}`,
-    `ZIP: ${b.zip || ""}`,
-    `Mortgage Balance: ${b.mortgage_balance || ""}`,
-    `Loans On Property: ${b.loans_on_property || ""}`,
-    `Mortgage Good Standing: ${b.mortgage_good_standing || ""}`,
-    `Missed Payments Last 6 Months: ${b.missed_payments_6_months || ""}`,
-    `Possible Equity Room: ${b.possible_equity_room || ""}`,
-    `Estimated Monthly Payment Preview: ${b.estimated_monthly_payment || ""}`,
-    `Estimated Max Cashout Payment Preview: ${b.estimated_max_cashout_payment || ""}`
-  ].join("\n");
+  const clientToken = makeToken();
 
-  await s.from("lead_notes").insert({
-    lead_id:data.id,
-    note:`Smart calculator details:\n${smartSummary}`
-  });
+  const lead = {
+    tracking_id: trackingId(),
+    client_token: clientToken,
+    first_name: clean(body.first_name, 80),
+    last_name: clean(body.last_name, 80),
+    phone: clean(body.phone, 40),
+    email: clean(body.email, 160),
+    property_address: cleanLong(body.property_address || body.street_address || ""),
+    city: clean(body.city, 120),
+    state: clean(body.state, 40),
+    zip: clean(body.zip, 20),
+    home_value: num(body.home_value),
+    mortgage_balance: num(body.mortgage_balance),
+    requested_amount: num(body.requested_cash),
+    equity_room: num(body.possible_equity_room),
+    estimated_payment: num(body.estimated_monthly_payment),
+    loans_on_property: clean(body.loans_on_property, 120),
+    credit_score: clean(body.credit_score, 120),
+    monthly_income: num(body.monthly_income),
+    mortgage_standing: clean(body.mortgage_good_standing, 120),
+    status: "Application Received",
+    notes: "Submitted from HELOC CONNECT smart calculator"
+  };
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://heloc-connect.vercel.app";
-  const statusLink = `${siteUrl}/status/${client_token}`;
+  try {
+    const supabase = createClient(supabaseUrl, serviceKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    });
 
-  await sendClientSMS(
-    b.phone || "",
-    b.first_name || "",
-    statusLink
-  );
+    const { data, error } = await supabase
+      .from("leads")
+      .insert(lead)
+      .select("id, client_token, tracking_id")
+      .single();
 
-  return NextResponse.json({token:client_token,trackingId:tracking_id});
+    if (error) {
+      return NextResponse.json({
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        sentColumns: Object.keys(lead)
+      }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      saved: true,
+      id: data?.id || null,
+      token: data?.client_token || clientToken,
+      client_token: data?.client_token || clientToken,
+      tracking_id: data?.tracking_id || lead.tracking_id
+    });
+  } catch (error: any) {
+    return NextResponse.json({
+      error: "Supabase JS insert crashed before returning a database response.",
+      message: error?.message || String(error),
+      supabaseUrl
+    }, { status: 500 });
+  }
 }

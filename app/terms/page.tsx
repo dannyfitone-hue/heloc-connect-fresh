@@ -1,28 +1,3 @@
-export default function TermsPage() {
-  return (
-    <main style={{padding:'40px',background:'#020817',color:'white',minHeight:'100vh'}}>
-      <h1>Terms and Conditions</h1>
-
-      <p>
-        HELOC CONNECT is a mortgage marketing and lead generation platform.
-        We are not a direct lender, bank, or financial institution.
-      </p>
-
-      <p>
-        By submitting information through our website, users agree to be
-        contacted regarding their inquiry by HELOC CONNECT and participating
-        mortgage providers.
-      </p>
-
-      <p>
-        Users may receive SMS and email communications related to their inquiry,
-        appointment reminders, document requests, and customer support.
-      </p>
-
-      <p>
-        Message and data rates may apply. Message frequency varies.
-        Reply HELP for help or STOP to unsubscribe.
-      </p>
-    </main>
-  )
+export default function Page() {
+  return <main className="min-h-screen bg-[#06111f] px-6 py-14 text-white"><div className="mx-auto max-w-4xl rounded-[28px] border border-white/10 bg-[#071421] p-8"><a href="/" className="text-sm font-black text-[#f6c15a]">← Back</a><h1 className="mt-6 text-4xl font-black">Terms</h1><p className="mt-5 text-white/75">HELOC CONNECT is a mortgage company connection platform and is not a lender.</p></div></main>
 }
