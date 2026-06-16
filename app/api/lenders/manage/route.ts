@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { hashPassword, newSalt } from "@/lib/lenderAuth";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export async function GET() {
   const s = supabaseAdmin();
   const { data: companies, error: ce } = await s.from("mortgage_companies").select("*").order("created_at", { ascending: false });
