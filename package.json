@@ -1,27 +1,26 @@
 {
-  "name": "heloc-connect-premium-working-final",
-  "version": "8.0.0",
+  "name": "heloc-live-mvp-system",
+  "version": "1.0.0",
   "private": true,
-  "engines": { "node": "20.x" },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.45.4",
-    "next": "14.2.16",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "twilio": "5.3.6"
+    "@supabase/supabase-js": "^2.49.1",
+    "lucide-react": "^0.468.0",
+    "next": "^15.2.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@types/node": "20.17.6",
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1",
-    "autoprefixer": "10.4.20",
-    "postcss": "8.4.49",
-    "tailwindcss": "3.4.15",
-    "typescript": "5.6.3"
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2"
   }
 }

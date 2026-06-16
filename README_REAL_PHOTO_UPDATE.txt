@@ -1,0 +1,1 @@
+Updated homepage hero image to use a real Unsplash free photo URL instead of generated AI-looking office/couple image. Source page: https://unsplash.com/photos/two-men-looking-at-papers-together-TITQKYpqXdE

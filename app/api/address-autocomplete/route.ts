@@ -1,41 +1,71 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-function parse(label: string) {
-  const parts = label.split(",").map((p) => p.trim());
-  const street = parts[0] || label;
-  const city = parts[1] || "";
-  const stateZip = parts[2] || "";
-  const [state, zip] = stateZip.split(" ").filter(Boolean);
-  return { street, city, state: state || "", zip: zip || "" };
+function parseGoogleComponents(components: any[]) {
+  const get = (type: string, short = false) => {
+    const c = components.find((item: any) => item.types?.includes(type));
+    return short ? c?.short_name || "" : c?.long_name || "";
+  };
+
+  const street = `${get("street_number")} ${get("route")}`.trim();
+  const city =
+    get("locality") ||
+    get("sublocality") ||
+    get("postal_town") ||
+    get("administrative_area_level_2");
+
+  return {
+    street,
+    city,
+    state: get("administrative_area_level_1", true),
+    zip: get("postal_code")
+  };
 }
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const q = searchParams.get("q") || "";
+export async function GET(req: NextRequest) {
+  const q = req.nextUrl.searchParams.get("q") || "";
   const key = process.env.GOOGLE_MAPS_SERVER_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-  if (!q || q.length < 3) return NextResponse.json({ results: [] });
+  if (!q || q.trim().length < 3) {
+    return NextResponse.json({ results: [] });
+  }
 
   if (!key) {
     return NextResponse.json({
-      results: [
-        { label: `${q}, Irvine, CA 92618`, street: q, city: "Irvine", state: "CA", zip: "92618" },
-        { label: `${q}, Lake Forest, CA 92630`, street: q, city: "Lake Forest", state: "CA", zip: "92630" },
-        { label: `${q}, Los Angeles, CA 90012`, street: q, city: "Los Angeles", state: "CA", zip: "90012" }
-      ],
-      message: "Connect Google Maps API key in Vercel for live address autocomplete."
+      results: [],
+      message: "Google address API key missing in Vercel."
     });
   }
 
-  const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(q)}&types=address&components=country:us&key=${key}`;
-  const res = await fetch(url);
-  const data = await res.json();
+  try {
+    const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
+    url.searchParams.set("address", q);
+    url.searchParams.set("components", "country:US");
+    url.searchParams.set("key", key);
 
-  const predictions = data?.predictions || [];
-  const results = predictions.map((p: any) => {
-    const label = p.description;
-    return { label, ...parse(label), place_id: p.place_id };
-  });
+    const res = await fetch(url.toString(), { cache: "no-store" });
+    const data = await res.json();
 
-  return NextResponse.json({ results });
+    if (data.status && data.status !== "OK" && data.status !== "ZERO_RESULTS") {
+      return NextResponse.json({
+        results: [],
+        message: data.error_message || `Google address search: ${data.status}`
+      });
+    }
+
+    const results = (data.results || []).slice(0, 5).map((item: any) => {
+      const parsed = parseGoogleComponents(item.address_components || []);
+      return {
+        label: item.formatted_address,
+        ...parsed
+      };
+    }).filter((item: any) => item.label);
+
+    return NextResponse.json({ results });
+  } catch (error) {
+    console.error("Address autocomplete error:", error);
+    return NextResponse.json({
+      results: [],
+      message: "Address search temporarily unavailable."
+    });
+  }
 }

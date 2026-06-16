@@ -1,3 +1,17 @@
 export default function Page() {
-  return <main className="min-h-screen bg-[#06111f] px-6 py-14 text-white"><div className="mx-auto max-w-4xl rounded-[28px] border border-white/10 bg-[#071421] p-8"><a href="/" className="text-sm font-black text-[#f6c15a]">← Back</a><h1 className="mt-6 text-4xl font-black">Contact</h1><p className="mt-5 text-white/75">HELOC CONNECT is a mortgage company connection platform and is not a lender.</p></div></main>
+  return (
+    <main className="min-h-screen bg-black text-white px-6 py-20">
+      <div className="max-w-4xl mx-auto">
+        <a href="/" className="text-sm text-gray-400 hover:text-white">← Back to Home</a>
+        <h1 className="text-4xl md:text-5xl font-bold mt-8 mb-8">Contact HELOC CONNECT</h1>
+        <div className="space-y-6 text-lg leading-8 text-gray-300">
+          <p>Daniel Emrani</p>
+          <p>CEO, HELOC CONNECT</p>
+          <p>Email: clientservices@helocconnect.com</p>
+          <p>Website: https://helocconnect.com</p>
+          <p>Our team is committed to providing homeowners with responsive support and trusted guidance throughout the financing exploration process.</p>
+        </div>
+      </div>
+    </main>
+  );
 }
