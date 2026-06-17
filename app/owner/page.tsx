@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import { CLIENT_STATUSES, DOCUMENT_TYPES, money } from "@/lib/statuses";
-import CreateLenderForm from "./CreateLenderForm";
 import DeleteLeadForm from "./DeleteLeadForm";
+import CreateLenderForm from "./CreateLenderForm";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -42,7 +42,7 @@ function statCount(leads: any[], status: string) {
   return leads.filter((l) => String(l.status || "").toLowerCase().includes(status.toLowerCase())).length;
 }
 
-export default async function OwnerPage() {
+export default async function OwnerPage({ searchParams }: { searchParams?: { error?: string; message?: string; created_lender?: string; lender_email?: string } }) {
   const leads: any[] = await getLeads();
   const lenders: any[] = await getLenders();
   const totalRequested = leads.reduce((sum, l) => sum + Number(l.requested_amount || 0), 0);
@@ -67,6 +67,19 @@ export default async function OwnerPage() {
       </header>
 
       <section className="mx-auto max-w-[1500px] px-4 py-8 sm:px-6 lg:px-8">
+
+        {searchParams?.created_lender && (
+          <div className="mb-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm font-black text-emerald-200">
+            Lender user saved{searchParams?.lender_email ? `: ${searchParams.lender_email}` : ""}.
+          </div>
+        )}
+
+        {searchParams?.error && (
+          <div className="mb-5 rounded-2xl border border-red-400/30 bg-red-500/10 p-4 text-sm font-black text-red-200">
+            Lender action error: {searchParams.error}{searchParams?.message ? ` — ${searchParams.message}` : ""}
+          </div>
+        )}
+
         <div className="rounded-[34px] border border-white/10 bg-gradient-to-br from-[#0b1b2e] to-[#06111f] p-6 shadow-2xl">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -95,6 +108,9 @@ export default async function OwnerPage() {
             <h2 className="text-2xl font-black">Create Network Lender User</h2>
             <p className="mt-1 text-sm font-semibold text-white/55">The lender logs in with the email/password you create here.</p>
             <CreateLenderForm initialLenders={lenders} />
+                </div>
+              )) : <div className="rounded-2xl border border-dashed border-white/15 p-5 text-white/60">No lender users yet.</div>}
+            </div>
           </div>
 
           <div className="rounded-[34px] border border-white/10 bg-[#071421] p-4 shadow-2xl sm:p-6">

@@ -6,14 +6,19 @@ import { CLIENT_STATUSES, money } from "@/lib/statuses";
 function getGreeting(name?: string) {
   const hour = new Date().getHours();
   let greeting = "Good evening";
+
   if (hour >= 5 && hour < 12) greeting = "Good morning";
   else if (hour >= 12 && hour < 17) greeting = "Good afternoon";
   else if (hour >= 17 && hour < 22) greeting = "Good evening";
   else greeting = "Good night";
+
   const firstName = String(name || "").trim().split(" ")[0];
   return firstName ? `${greeting}, ${firstName}` : greeting;
 }
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 async function getLenderUser(id: string) {
   if (!supabaseAdmin || !id) return null;
   const { data } = await supabaseAdmin.from("lender_users").select("*").eq("id", id).single();
@@ -38,7 +43,11 @@ async function getLeads(lenderId: string) {
 export default async function LenderPage() {
   const cookieStore = cookies();
   const lenderId = cookieStore.get("hc_lender_user_id")?.value || "";
+  if (!lenderId) redirect("/lender-login");
+
   const lenderUser: any = await getLenderUser(lenderId);
+  if (!lenderUser) redirect("/lender-login");
+
   const leads: any[] = lenderId ? await getLeads(lenderId) : [];
 
   return (

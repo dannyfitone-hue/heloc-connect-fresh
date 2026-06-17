@@ -14,11 +14,12 @@ export async function POST(req: Request) {
     }
 
     const form = await req.formData();
-    const lender_name = clean(form.get("lender_name"));
-    const company_name = clean(form.get("company_name"));
-    const email = clean(form.get("email")).toLowerCase();
+
+    const lender_name = clean(form.get("lender_name") || form.get("name") || form.get("agent_name"));
+    const company_name = clean(form.get("company_name") || form.get("company"));
+    const email = clean(form.get("email") || form.get("login_email")).toLowerCase();
     const phone = clean(form.get("phone"));
-    const password = clean(form.get("password"));
+    const password = clean(form.get("password") || form.get("login_password") || form.get("create_password"));
 
     if (!lender_name || !email || !password) {
       return NextResponse.json({ ok: false, error: "Missing lender name, login email, or password." }, { status: 400 });
@@ -30,20 +31,17 @@ export async function POST(req: Request) {
     }
 
     const existingId = existing.data?.[0]?.id;
-    const fullPayload = { lender_name, company_name, email, phone, password, is_active: true };
-    const minimalPayload = { lender_name, company_name, email, phone, password };
+    const fullPayload: any = { lender_name, company_name, email, phone, password, is_active: true };
+    const minimalPayload: any = { lender_name, company_name, email, phone, password };
 
     let result = existingId
       ? await supabaseAdmin.from("lender_users").update(fullPayload).eq("id", existingId).select("*").single()
       : await supabaseAdmin.from("lender_users").insert(fullPayload).select("*").single();
 
-    if (result.error) {
-      const msg = String(result.error.message || "").toLowerCase();
-      if (msg.includes("is_active") || msg.includes("column")) {
-        result = existingId
-          ? await supabaseAdmin.from("lender_users").update(minimalPayload).eq("id", existingId).select("*").single()
-          : await supabaseAdmin.from("lender_users").insert(minimalPayload).select("*").single();
-      }
+    if (result.error && String(result.error.message || "").toLowerCase().includes("is_active")) {
+      result = existingId
+        ? await supabaseAdmin.from("lender_users").update(minimalPayload).eq("id", existingId).select("*").single()
+        : await supabaseAdmin.from("lender_users").insert(minimalPayload).select("*").single();
     }
 
     if (result.error) {
@@ -52,6 +50,7 @@ export async function POST(req: Request) {
 
     const lender: any = result.data || { lender_name, company_name, email, phone };
     delete lender.password;
+
     return NextResponse.json({ ok: true, lender }, { headers: { "Cache-Control": "no-store" } });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err?.message || "Create lender crashed." }, { status: 500 });

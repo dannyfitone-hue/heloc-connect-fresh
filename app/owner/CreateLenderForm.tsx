@@ -13,14 +13,12 @@ type LenderUser = {
 export default function CreateLenderForm({ initialLenders }: { initialLenders: LenderUser[] }) {
   const [lenders, setLenders] = useState<LenderUser[]>(initialLenders || []);
   const [message, setMessage] = useState("");
-  const [isError, setIsError] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
     setMessage("");
-    setIsError(false);
 
     const form = e.currentTarget;
     const fd = new FormData(form);
@@ -35,8 +33,8 @@ export default function CreateLenderForm({ initialLenders }: { initialLenders: L
       const json = await res.json();
 
       if (!res.ok || !json.ok) {
-        setIsError(true);
         setMessage(json.error || "Lender user was not created.");
+        setBusy(false);
         return;
       }
 
@@ -46,12 +44,11 @@ export default function CreateLenderForm({ initialLenders }: { initialLenders: L
       if (json.lender) {
         setLenders((prev) => {
           const email = String(json.lender.email || "").toLowerCase();
-          const withoutDuplicate = prev.filter((u) => String(u.email || "").toLowerCase() !== email);
-          return [json.lender, ...withoutDuplicate];
+          const clean = prev.filter((u) => String(u.email || "").toLowerCase() !== email);
+          return [json.lender, ...clean];
         });
       }
     } catch (err: any) {
-      setIsError(true);
       setMessage(err?.message || "Lender user was not created.");
     } finally {
       setBusy(false);
@@ -72,7 +69,7 @@ export default function CreateLenderForm({ initialLenders }: { initialLenders: L
       </form>
 
       {message && (
-        <div className={`mt-4 rounded-2xl border p-4 text-sm font-black ${isError ? "border-red-400/30 bg-red-500/10 text-red-200" : "border-emerald-400/30 bg-emerald-400/10 text-emerald-200"}`}>
+        <div className="mt-4 rounded-2xl border border-white/10 bg-[#091a2f] p-4 text-sm font-black text-[#f6c15a]">
           {message}
         </div>
       )}

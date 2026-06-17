@@ -1,0 +1,1 @@
+Fixes Vercel npm ETIMEDOUT by forcing public npm registry. Removed internal OpenAI package registry references from package-lock/.npmrc and set Vercel installCommand to npm install --legacy-peer-deps --registry=https://registry.npmjs.org/. Includes the lender creation/login assigned-only fixes.
