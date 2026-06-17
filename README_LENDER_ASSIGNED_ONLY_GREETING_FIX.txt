@@ -1,0 +1,1 @@
+Fixes lender dashboard privacy: lenders/agents only see leads assigned to their own lender_users.id. New lender portals start empty. Adds time-based greeting. Removes global lender password fallback that could show a portal without assigned user id. Keeps owner dashboard as only full-lead view.
