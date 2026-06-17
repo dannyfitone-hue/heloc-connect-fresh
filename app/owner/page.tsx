@@ -176,7 +176,7 @@ export default async function OwnerPage() {
                           <button className="mt-3 w-full rounded-2xl bg-gradient-to-b from-[#ffd36d] to-[#d89425] p-3 font-black text-[#06111f]">Save Update</button>
                         </form>
 
-                        <form action="/api/owner/delete-lead" method="post">
+                        <form action="/api/owner/delete-lead" method="post" onSubmit={(e) => { if (!confirm("Are you sure you want to delete this lead? This cannot be undone.")) e.preventDefault(); }}>
                           <input type="hidden" name="leadId" value={l.id} />
                           <button className="w-full rounded-2xl border border-red-400/35 bg-red-500/10 p-3 font-black text-red-200">Delete Lead</button>
                         </form>

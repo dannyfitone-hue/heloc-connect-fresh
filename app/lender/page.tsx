@@ -2,6 +2,23 @@ import { cookies } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase";
 import { CLIENT_STATUSES, money } from "@/lib/statuses";
 
+
+function getGreeting(name?: string) {
+  const hour = new Date().getHours();
+  let greeting = "Good evening";
+  if (hour >= 5 && hour < 12) greeting = "Good morning";
+  else if (hour >= 12 && hour < 17) greeting = "Good afternoon";
+  else if (hour >= 17 && hour < 22) greeting = "Good evening";
+  else greeting = "Good night";
+
+  const cleanName = String(name || "").trim().split(" ")[0];
+  return cleanName ? `${greeting}, ${cleanName}` : greeting;
+}
+
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 async function getLenderUser(id: string) {
   if (!supabaseAdmin || !id) return null;
   const { data } = await supabaseAdmin.from("lender_users").select("*").eq("id", id).single();
@@ -9,10 +26,20 @@ async function getLenderUser(id: string) {
 }
 
 async function getLeads(lenderId: string) {
-  if (!supabaseAdmin) return [];
-  let q = supabaseAdmin.from("leads").select("*").order("created_at", { ascending: false }).limit(200);
-  if (lenderId) q = q.eq("assigned_lender_id", lenderId);
-  const { data } = await q;
+  if (!supabaseAdmin || !lenderId) return [];
+
+  const { data, error } = await supabaseAdmin
+    .from("leads")
+    .select("*")
+    .eq("assigned_lender_id", lenderId)
+    .order("created_at", { ascending: false })
+    .limit(300);
+
+  if (error) {
+    console.error("Lender assigned leads load failed:", error);
+    return [];
+  }
+
   return data || [];
 }
 
@@ -20,7 +47,7 @@ export default async function LenderPage() {
   const cookieStore = cookies();
   const lenderId = cookieStore.get("hc_lender_user_id")?.value || "";
   const lenderUser: any = await getLenderUser(lenderId);
-  const leads: any[] = await getLeads(lenderId);
+  const leads: any[] = lenderId ? await getLeads(lenderId) : [];
 
   return (
     <main className="min-h-screen bg-[#06111f] text-white">
@@ -40,7 +67,7 @@ export default async function LenderPage() {
       <section className="mx-auto max-w-[1500px] px-4 py-8 sm:px-6 lg:px-8">
         <div className="rounded-[34px] border border-white/10 bg-gradient-to-br from-[#0b1b2e] to-[#06111f] p-6 shadow-2xl">
           <div className="text-xs font-black uppercase tracking-[.35em] text-[#f6c15a]">
-            Good Day{lenderUser?.lender_name ? `, ${lenderUser.lender_name}` : ""}
+            {getGreeting(lenderUser?.lender_name || lenderUser?.email)}
           </div>
           <h1 className="mt-3 text-4xl font-black tracking-[-.05em] md:text-6xl">Assigned Lead Pipeline</h1>
           <p className="mt-3 max-w-3xl text-base font-semibold text-white/70">
