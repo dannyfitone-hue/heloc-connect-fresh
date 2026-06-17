@@ -16,7 +16,6 @@ export async function POST(req: Request) {
     .eq("email", email)
     .eq("is_active", true)
     .single();
-
   if (user && user.password === password) {
     const res = NextResponse.redirect(new URL("/lender", req.url), 303);
     res.cookies.set("hc_lender_user_id", user.id, { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 12 });
@@ -24,6 +23,5 @@ export async function POST(req: Request) {
     res.cookies.set("hc_lender_auth", "database_user", { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 12 });
     return res;
   }
-
   return NextResponse.redirect(new URL("/lender-login?error=1", req.url), 303);
 }

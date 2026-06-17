@@ -11,8 +11,8 @@ function getGreeting(name?: string) {
   else if (hour >= 17 && hour < 22) greeting = "Good evening";
   else greeting = "Good night";
 
-  const cleanName = String(name || "").trim().split(" ")[0];
-  return cleanName ? `${greeting}, ${cleanName}` : greeting;
+  const firstName = String(name || "").trim().split(" ")[0];
+  return firstName ? `${greeting}, ${firstName}` : greeting;
 }
 
 
