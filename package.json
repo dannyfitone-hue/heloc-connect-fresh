@@ -2,9 +2,7 @@
   "name": "heloc-connect-premium-working-final",
   "version": "8.0.0",
   "private": true,
-  "engines": {
-    "node": "20.x"
-  },
+  "engines": { "node": "20.x" },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -14,7 +12,8 @@
     "@supabase/supabase-js": "2.45.4",
     "next": "14.2.16",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "twilio": "5.3.6"
   },
   "devDependencies": {
     "@types/node": "20.17.6",

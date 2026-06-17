@@ -1,48 +1,23 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import { CLIENT_STATUSES, DOCUMENT_TYPES, money } from "@/lib/statuses";
 
-async function getLenders() {
+async function getLeads() {
   if (!supabaseAdmin) return [];
-  const { data, error } = await supabaseAdmin
-    .from("lender_users")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Owner lender load failed:", error.message);
-    return [];
-  }
-
-  return data || [];
-}
-
-async function getLeads(lenders: any[] = []) {
-  if (!supabaseAdmin) return [];
-
-  // Do not use nested lender_users(*) here. Some live Supabase tables do not
-  // have the foreign-key relationship registered, which makes Supabase return
-  // an error and the dashboard appear empty even though leads were saved.
-  const { data, error } = await supabaseAdmin
+  const { data } = await supabaseAdmin
     .from("leads")
     .select("*")
     .order("created_at", { ascending: false })
     .limit(300);
+  return data || [];
+}
 
-  if (error) {
-    console.error("Owner leads load failed:", error.message);
-    return [];
-  }
-
-  return (data || []).map((lead: any) => {
-    const lender = lenders.find((u: any) => String(u.id) === String(lead.assigned_lender_id));
-    return {
-      ...lead,
-      address: lead.address || lead.property_address || "",
-      token: lead.token || lead.client_token || "",
-      income: lead.income ?? lead.monthly_income ?? 0,
-      lender_users: lender || null,
-    };
-  });
+async function getLenders() {
+  if (!supabaseAdmin) return [];
+  const { data } = await supabaseAdmin
+    .from("lender_users")
+    .select("*")
+    .order("created_at", { ascending: false });
+  return data || [];
 }
 
 function statCount(leads: any[], status: string) {
@@ -50,8 +25,8 @@ function statCount(leads: any[], status: string) {
 }
 
 export default async function OwnerPage() {
+  const leads: any[] = await getLeads();
   const lenders: any[] = await getLenders();
-  const leads: any[] = await getLeads(lenders);
   const totalRequested = leads.reduce((sum, l) => sum + Number(l.requested_amount || 0), 0);
   const funded = leads.reduce((sum, l) => sum + Number(l.funded_amount || 0), 0);
 
@@ -150,8 +125,8 @@ export default async function OwnerPage() {
                         </div>
                         <p className="mt-2 text-sm font-semibold text-white/65">{l.email || "No email"} • {l.phone || "No phone"}</p>
                         <p className="mt-2 text-sm font-semibold text-white/65">{l.address || "No address"} {l.city ? `• ${l.city}, ${l.state || ""} ${l.zip || ""}` : ""}</p>
-                        <p className="mt-2 text-xs font-black text-emerald-300">Assigned: {l.lender_users?.lender_name || l.assigned_agent || "Unassigned"}</p>
-                        <a className="mt-4 inline-flex rounded-2xl border border-white/10 px-4 py-2 text-sm font-black text-[#f6c15a]" href={`/status/${l.client_token || l.token}`} target="_blank">
+                        <p className="mt-2 text-xs font-black text-emerald-300">Assigned: {l.assigned_agent || (l.assigned_lender_id ? "Assigned" : "Unassigned")}</p>
+                        <a className="mt-4 inline-flex rounded-2xl border border-white/10 px-4 py-2 text-sm font-black text-[#f6c15a]" href={`/status/${l.token}`} target="_blank">
                           Open Client Status Page →
                         </a>
                       </div>
