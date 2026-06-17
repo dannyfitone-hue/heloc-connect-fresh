@@ -30,15 +30,38 @@ export async function POST(req: Request) {
       is_active: true,
     };
 
-    // Upsert by email so creating/updating the same lender does not fail silently.
-    const { error } = await supabaseAdmin
+    // Do not use upsert because Supabase may not have email set as a unique constraint.
+    // Safer: if this email already exists, update it. If not, insert a new lender user.
+    const existing = await supabaseAdmin
       .from("lender_users")
-      .upsert(payload, { onConflict: "email" });
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
 
-    if (error) {
-      console.error("Create lender failed:", error);
+    if (existing.error) {
+      console.error("Create lender lookup failed:", existing.error);
       return NextResponse.redirect(
-        new URL(`/owner?error=create_lender_failed&message=${encodeURIComponent(error.message)}`, req.url),
+        new URL(`/owner?error=create_lender_lookup_failed&message=${encodeURIComponent(existing.error.message)}`, req.url),
+        303
+      );
+    }
+
+    let result;
+    if (existing.data?.id) {
+      result = await supabaseAdmin
+        .from("lender_users")
+        .update(payload)
+        .eq("id", existing.data.id);
+    } else {
+      result = await supabaseAdmin
+        .from("lender_users")
+        .insert(payload);
+    }
+
+    if (result.error) {
+      console.error("Create lender failed:", result.error);
+      return NextResponse.redirect(
+        new URL(`/owner?error=create_lender_failed&message=${encodeURIComponent(result.error.message)}`, req.url),
         303
       );
     }
