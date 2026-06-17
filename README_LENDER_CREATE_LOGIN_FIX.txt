@@ -1,0 +1,1 @@
+Fixes lender creation and login. Owner can create/update lender_users by email using upsert. Lender login only works for created lender users and sets hc_lender_user_id cookie. Lender dashboard redirects to login if no valid lender user cookie and only shows assigned leads.

@@ -1,27 +1,63 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: Request) {
-  const form = await req.formData();
-  const email = String(form.get("email") || "").trim().toLowerCase();
-  const password = String(form.get("password") || "");
+  try {
+    const form = await req.formData();
+    const email = String(form.get("email") || "").trim().toLowerCase();
+    const password = String(form.get("password") || "").trim();
 
-  if (!supabaseAdmin) {
-    return NextResponse.redirect(new URL("/lender-login?error=supabase", req.url), 303);
-  }
+    if (!supabaseAdmin) {
+      return NextResponse.redirect(new URL("/lender-login?error=supabase", req.url), 303);
+    }
 
-  const { data: user } = await supabaseAdmin
-    .from("lender_users")
-    .select("*")
-    .eq("email", email)
-    .eq("is_active", true)
-    .single();
-  if (user && user.password === password) {
-    const res = NextResponse.redirect(new URL("/lender", req.url), 303);
-    res.cookies.set("hc_lender_user_id", user.id, { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 12 });
-    res.cookies.set("hc_lender_name", user.lender_name || user.email, { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 12 });
-    res.cookies.set("hc_lender_auth", "database_user", { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 12 });
-    return res;
+    if (!email || !password) {
+      return NextResponse.redirect(new URL("/lender-login?error=missing", req.url), 303);
+    }
+
+    const { data: user, error } = await supabaseAdmin
+      .from("lender_users")
+      .select("*")
+      .eq("email", email)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Lender login lookup failed:", error);
+      return NextResponse.redirect(new URL("/lender-login?error=db", req.url), 303);
+    }
+
+    if (user && String(user.password || "").trim() === password) {
+      const res = NextResponse.redirect(new URL("/lender", req.url), 303);
+      res.cookies.set("hc_lender_user_id", user.id, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 12,
+      });
+      res.cookies.set("hc_lender_name", user.lender_name || user.email, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 12,
+      });
+      res.cookies.set("hc_lender_auth", "database_user", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 12,
+      });
+      return res;
+    }
+
+    return NextResponse.redirect(new URL("/lender-login?error=1", req.url), 303);
+  } catch (err: any) {
+    console.error("Lender login crashed:", err);
+    return NextResponse.redirect(new URL("/lender-login?error=crashed", req.url), 303);
   }
-  return NextResponse.redirect(new URL("/lender-login?error=1", req.url), 303);
 }

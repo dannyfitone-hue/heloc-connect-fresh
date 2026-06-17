@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { supabaseAdmin } from "@/lib/supabase";
 import { CLIENT_STATUSES, money } from "@/lib/statuses";
 
@@ -45,8 +46,12 @@ async function getLeads(lenderId: string) {
 export default async function LenderPage() {
   const cookieStore = cookies();
   const lenderId = cookieStore.get("hc_lender_user_id")?.value || "";
+  if (!lenderId) redirect("/lender-login");
+
   const lenderUser: any = await getLenderUser(lenderId);
-  const leads: any[] = lenderId ? await getLeads(lenderId) : [];
+  if (!lenderUser) redirect("/lender-login");
+
+  const leads: any[] = await getLeads(lenderId);
 
   return (
     <main className="min-h-screen bg-[#06111f] text-white">
