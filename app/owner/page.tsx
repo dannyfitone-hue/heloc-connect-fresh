@@ -1,7 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import { CLIENT_STATUSES, DOCUMENT_TYPES, money } from "@/lib/statuses";
 import DeleteLeadForm from "./DeleteLeadForm";
-import CreateLenderForm from "./CreateLenderForm";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -107,7 +106,21 @@ export default async function OwnerPage({ searchParams }: { searchParams?: { err
           <div className="rounded-[34px] border border-white/10 bg-[#071421] p-6 shadow-2xl">
             <h2 className="text-2xl font-black">Create Network Lender User</h2>
             <p className="mt-1 text-sm font-semibold text-white/55">The lender logs in with the email/password you create here.</p>
-            <CreateLenderForm initialLenders={lenders} />
+            <form action="/api/owner/create-lender" method="post" className="mt-5 grid gap-3">
+              <input name="lender_name" required placeholder="Lender / Agent Name" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
+              <input name="company_name" placeholder="Mortgage Company Name (optional)" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
+              <input name="email" type="email" required placeholder="Login Email" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
+              <input name="phone" placeholder="Phone" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
+              <input name="password" required placeholder="Create Password" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
+              <button className="rounded-2xl bg-[#f6c15a] p-4 font-black text-[#06111f]">Create Lender User</button>
+            </form>
+
+            <h3 className="mt-8 text-xl font-black">Existing Network Lenders</h3>
+            <div className="mt-4 grid gap-3">
+              {lenders.length ? lenders.map((u) => (
+                <div key={u.id} className="rounded-2xl border border-white/10 bg-[#091a2f] p-4">
+                  <b>{u.lender_name}</b>
+                  <div className="text-sm text-white/60">{(u as any).company_name || "No company"} • {u.email}</div>
                 </div>
               )) : <div className="rounded-2xl border border-dashed border-white/15 p-5 text-white/60">No lender users yet.</div>}
             </div>
