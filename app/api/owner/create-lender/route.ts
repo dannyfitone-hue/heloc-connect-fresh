@@ -9,77 +9,51 @@ function clean(value: FormDataEntryValue | null) {
 
 export async function POST(req: Request) {
   try {
-    const form = await req.formData();
-
     if (!supabaseAdmin) {
-      return NextResponse.redirect(new URL("/owner?error=supabase_missing", req.url), 303);
+      return NextResponse.json({ ok: false, error: "Missing Supabase admin client." }, { status: 500 });
     }
 
-    const lender_name = clean(form.get("lender_name") || form.get("name") || form.get("agent_name"));
-    const company_name = clean(form.get("company_name") || form.get("company"));
-    const email = clean(form.get("email") || form.get("login_email")).toLowerCase();
+    const form = await req.formData();
+    const lender_name = clean(form.get("lender_name"));
+    const company_name = clean(form.get("company_name"));
+    const email = clean(form.get("email")).toLowerCase();
     const phone = clean(form.get("phone"));
-    const password = clean(form.get("password") || form.get("login_password") || form.get("create_password"));
+    const password = clean(form.get("password"));
 
     if (!lender_name || !email || !password) {
-      return NextResponse.redirect(new URL("/owner?error=lender_missing_fields", req.url), 303);
+      return NextResponse.json({ ok: false, error: "Missing lender name, login email, or password." }, { status: 400 });
     }
 
-    const payload: any = {
-      lender_name,
-      company_name,
-      email,
-      phone,
-      password,
-      is_active: true,
-    };
-
-    // First check if this email already exists. Use limit(1) to avoid maybeSingle errors if duplicates exist.
-    const existing = await supabaseAdmin
-      .from("lender_users")
-      .select("id")
-      .eq("email", email)
-      .limit(1);
-
+    const existing = await supabaseAdmin.from("lender_users").select("id").eq("email", email).limit(1);
     if (existing.error) {
-      console.error("Create lender lookup failed:", existing.error);
-      return NextResponse.redirect(
-        new URL(`/owner?error=create_lender_lookup_failed&message=${encodeURIComponent(existing.error.message)}`, req.url),
-        303
-      );
+      return NextResponse.json({ ok: false, error: existing.error.message, details: existing.error.details || null, hint: existing.error.hint || null }, { status: 500 });
     }
 
     const existingId = existing.data?.[0]?.id;
-    const result = existingId
-      ? await supabaseAdmin.from("lender_users").update(payload).eq("id", existingId).select("id,email,lender_name,company_name").single()
-      : await supabaseAdmin.from("lender_users").insert(payload).select("id,email,lender_name,company_name").single();
+    const fullPayload = { lender_name, company_name, email, phone, password, is_active: true };
+    const minimalPayload = { lender_name, company_name, email, phone, password };
+
+    let result = existingId
+      ? await supabaseAdmin.from("lender_users").update(fullPayload).eq("id", existingId).select("*").single()
+      : await supabaseAdmin.from("lender_users").insert(fullPayload).select("*").single();
 
     if (result.error) {
-      console.error("Create lender failed:", result.error);
-
-      // If is_active column is missing in an older schema, retry without it.
-      const fallbackPayload = { lender_name, company_name, email, phone, password };
-      const retry = existingId
-        ? await supabaseAdmin.from("lender_users").update(fallbackPayload).eq("id", existingId).select("id,email,lender_name,company_name").single()
-        : await supabaseAdmin.from("lender_users").insert(fallbackPayload).select("id,email,lender_name,company_name").single();
-
-      if (retry.error) {
-        console.error("Create lender retry failed:", retry.error);
-        return NextResponse.redirect(
-          new URL(`/owner?error=create_lender_failed&message=${encodeURIComponent(retry.error.message)}`, req.url),
-          303
-        );
+      const msg = String(result.error.message || "").toLowerCase();
+      if (msg.includes("is_active") || msg.includes("column")) {
+        result = existingId
+          ? await supabaseAdmin.from("lender_users").update(minimalPayload).eq("id", existingId).select("*").single()
+          : await supabaseAdmin.from("lender_users").insert(minimalPayload).select("*").single();
       }
-
-      return NextResponse.redirect(new URL(`/owner?created_lender=1&lender_email=${encodeURIComponent(email)}`, req.url), 303);
     }
 
-    return NextResponse.redirect(new URL(`/owner?created_lender=1&lender_email=${encodeURIComponent(email)}`, req.url), 303);
+    if (result.error) {
+      return NextResponse.json({ ok: false, error: result.error.message, details: result.error.details || null, hint: result.error.hint || null }, { status: 500 });
+    }
+
+    const lender: any = result.data || { lender_name, company_name, email, phone };
+    delete lender.password;
+    return NextResponse.json({ ok: true, lender }, { headers: { "Cache-Control": "no-store" } });
   } catch (err: any) {
-    console.error("Create lender crashed:", err);
-    return NextResponse.redirect(
-      new URL(`/owner?error=create_lender_crashed&message=${encodeURIComponent(err?.message || "Unknown error")}`, req.url),
-      303
-    );
+    return NextResponse.json({ ok: false, error: err?.message || "Create lender crashed." }, { status: 500 });
   }
 }

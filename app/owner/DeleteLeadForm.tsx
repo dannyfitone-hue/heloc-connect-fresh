@@ -12,9 +12,7 @@ export default function DeleteLeadForm({ leadId }: { leadId: string }) {
       }}
     >
       <input type="hidden" name="leadId" value={leadId} />
-      <button className="w-full rounded-2xl border border-red-400/35 bg-red-500/10 p-3 font-black text-red-200">
-        Delete Lead
-      </button>
+      <button className="w-full rounded-2xl border border-red-400/35 bg-red-500/10 p-3 font-black text-red-200">Delete Lead</button>
     </form>
   );
 }
