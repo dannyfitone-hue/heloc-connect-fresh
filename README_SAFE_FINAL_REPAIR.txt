@@ -1,0 +1,1 @@
+Safe final repair built from the last owner-dashboard-working ZIP. Owner page remains same design; delete confirmation moved to client component so /owner does not crash. Lender page only shows assigned leads and greets lender by time of day. Generic lender password fallback removed.
