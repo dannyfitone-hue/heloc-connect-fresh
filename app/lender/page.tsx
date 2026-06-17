@@ -51,7 +51,7 @@ export default async function LenderPage() {
   const lenderUser: any = await getLenderUser(lenderId);
   if (!lenderUser) redirect("/lender-login");
 
-  const leads: any[] = await getLeads(lenderId);
+  const leads: any[] = lenderId ? await getLeads(lenderId) : [];
 
   return (
     <main className="min-h-screen bg-[#06111f] text-white">

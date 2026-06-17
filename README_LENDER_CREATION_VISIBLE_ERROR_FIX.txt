@@ -1,0 +1,1 @@
+Fixes lender creation by avoiding upsert, inserting/updating safely, retrying older schema without is_active, showing success/error banners on owner dashboard, and reading lender users fresh. Lender dashboard remains assigned-only with time greeting.
