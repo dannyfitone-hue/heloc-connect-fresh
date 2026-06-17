@@ -1,22 +1,37 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import { CLIENT_STATUSES, DOCUMENT_TYPES, money } from "@/lib/statuses";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 async function getLeads() {
   if (!supabaseAdmin) return [];
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from("leads")
     .select("*")
     .order("created_at", { ascending: false })
-    .limit(300);
+    .limit(500);
+
+  if (error) {
+    console.error("Owner dashboard leads load failed:", error);
+    return [];
+  }
+
   return data || [];
 }
 
 async function getLenders() {
   if (!supabaseAdmin) return [];
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from("lender_users")
     .select("*")
     .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Owner dashboard lenders load failed:", error);
+    return [];
+  }
+
   return data || [];
 }
 
