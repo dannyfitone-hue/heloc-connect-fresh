@@ -1,1 +1,0 @@
-Final safe ZIP based on the working version uploaded by user. Fixes lender creation by removing company_name from create-lender insert. Replaces package-lock.json with a clean public-registry lockfile to remove internal OpenAI registry URLs. Adds .npmrc for public npm registry. No homepage/design changes intended.

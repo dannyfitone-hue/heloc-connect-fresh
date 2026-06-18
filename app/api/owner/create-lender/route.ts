@@ -10,23 +10,65 @@ export async function POST(req: Request) {
     return NextResponse.redirect(new URL("/owner?error=supabase_missing", req.url), 303);
   }
 
-  const lender_name = String(form.get("lender_name") || "").trim();
+  const name = String(form.get("lender_name") || form.get("name") || "").trim();
   const email = String(form.get("email") || "").trim().toLowerCase();
-  const phone = String(form.get("phone") || "").trim();
-  const password = String(form.get("password") || "").trim();
+  const companyText = String(form.get("company_name") || form.get("company") || "").trim();
 
-  if (!lender_name || !email || !password) {
+  if (!name || !email) {
     return NextResponse.redirect(new URL("/owner?error=lender_missing_fields", req.url), 303);
   }
 
-  // lender_users table does NOT have company_name.
-  // Sending company_name makes Supabase reject lender creation.
+  // REAL SUPABASE SCHEMA CONFIRMED:
+  // lender_users columns are: id, company_id, name, email
+  // mortgage_companies columns include: id, name, contact_name
+  // Do NOT send lender_name, company_name, phone, password, or is_active to lender_users.
+
+  let company_id: string | null = null;
+
+  if (companyText) {
+    const existingCompany = await supabaseAdmin
+      .from("mortgage_companies")
+      .select("id")
+      .ilike("name", companyText)
+      .limit(1);
+
+    if (existingCompany.error) {
+      console.error("Mortgage company lookup failed:", existingCompany.error);
+      return NextResponse.redirect(
+        new URL(`/owner?error=company_lookup_failed&message=${encodeURIComponent(existingCompany.error.message)}`, req.url),
+        303
+      );
+    }
+
+    if (existingCompany.data?.[0]?.id) {
+      company_id = existingCompany.data[0].id;
+    } else {
+      const createdCompany = await supabaseAdmin
+        .from("mortgage_companies")
+        .insert({
+          name: companyText,
+          contact_name: name,
+          contact_email: email
+        })
+        .select("id")
+        .single();
+
+      if (createdCompany.error) {
+        console.error("Mortgage company create failed:", createdCompany.error);
+        return NextResponse.redirect(
+          new URL(`/owner?error=company_create_failed&message=${encodeURIComponent(createdCompany.error.message)}`, req.url),
+          303
+        );
+      }
+
+      company_id = createdCompany.data?.id || null;
+    }
+  }
+
   const lender = {
-    lender_name,
+    name,
     email,
-    phone,
-    password,
-    is_active: true
+    company_id
   };
 
   const { error } = await supabaseAdmin.from("lender_users").insert(lender);

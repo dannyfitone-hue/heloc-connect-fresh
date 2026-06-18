@@ -119,8 +119,8 @@ export default async function OwnerPage({ searchParams }: { searchParams?: { err
             <div className="mt-4 grid gap-3">
               {lenders.length ? lenders.map((u) => (
                 <div key={u.id} className="rounded-2xl border border-white/10 bg-[#091a2f] p-4">
-                  <b>{u.lender_name}</b>
-                  <div className="text-sm text-white/60">{u.company_name || "No company"} • {u.email}</div>
+                  <b>{(u.name || u.lender_name)}</b>
+                  <div className="text-sm text-white/60">{(u.company_name || u.mortgage_companies?.name) || "No company"} • {u.email}</div>
                 </div>
               )) : <div className="rounded-2xl border border-dashed border-white/15 p-5 text-white/60">No lender users yet.</div>}
             </div>
@@ -176,7 +176,7 @@ export default async function OwnerPage({ searchParams }: { searchParams?: { err
                           <label className="text-xs font-black uppercase tracking-[.2em] text-white/50">Assign To Lender</label>
                           <select name="lenderId" defaultValue={l.assigned_lender_id || ""} className="mt-2 w-full rounded-2xl border border-white/10 bg-[#091a2f] p-3 font-bold text-white">
                             <option value="">Unassigned</option>
-                            {lenders.map((u) => <option key={u.id} value={u.id}>{u.lender_name} — {u.company_name || u.email}</option>)}
+                            {lenders.map((u) => <option key={u.id} value={u.id}>{(u.name || u.lender_name)} — {(u.company_name || u.mortgage_companies?.name) || u.email}</option>)}
                           </select>
                           <button className="mt-3 w-full rounded-2xl bg-emerald-400 p-3 font-black text-[#06111f]">Assign Lead</button>
                         </form>
