@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import { CLIENT_STATUSES, DOCUMENT_TYPES, money } from "@/lib/statuses";
 import DeleteLeadForm from "./DeleteLeadForm";
+import DeleteLenderForm from "./DeleteLenderForm";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -18,7 +19,24 @@ async function getLeads() {
     return [];
   }
 
-  return data || [];
+  const leads = data || [];
+  const ids = leads.map((l: any) => l.id).filter(Boolean);
+  let documents: any[] = [];
+
+  if (ids.length) {
+    const docs = await supabaseAdmin
+      .from("lead_documents")
+      .select("*")
+      .in("lead_id", ids)
+      .order("created_at", { ascending: false });
+
+    if (!docs.error) documents = docs.data || [];
+  }
+
+  return leads.map((lead: any) => ({
+    ...lead,
+    documents: documents.filter((d: any) => d.lead_id === lead.id)
+  }));
 }
 
 async function getLenders() {
@@ -73,6 +91,19 @@ export default async function OwnerPage({ searchParams }: { searchParams?: { err
           </div>
         )}
 
+
+        {searchParams?.deleted_lender && (
+          <div className="mb-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm font-black text-emerald-200">
+            Lender user deleted and assigned leads were unassigned.
+          </div>
+        )}
+
+        {searchParams?.requested_doc && (
+          <div className="mb-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm font-black text-emerald-200">
+            Document request sent to the client status page.
+          </div>
+        )}
+
         {searchParams?.error && (
           <div className="mb-5 rounded-2xl border border-red-400/30 bg-red-500/10 p-4 text-sm font-black text-red-200">
             Lender action error: {searchParams.error}{searchParams?.message ? ` — ${searchParams.message}` : ""}
@@ -121,6 +152,7 @@ export default async function OwnerPage({ searchParams }: { searchParams?: { err
                 <div key={u.id} className="rounded-2xl border border-white/10 bg-[#091a2f] p-4">
                   <b>{(u.name || u.lender_name)}</b>
                   <div className="text-sm text-white/60">{(u.company_name || u.mortgage_companies?.name) || "No company"} • {u.email}</div>
+                  <DeleteLenderForm lenderId={u.id} lenderEmail={u.email} />
                 </div>
               )) : <div className="rounded-2xl border border-dashed border-white/15 p-5 text-white/60">No lender users yet.</div>}
             </div>
@@ -190,6 +222,34 @@ export default async function OwnerPage({ searchParams }: { searchParams?: { err
                           <textarea name="notes" placeholder="Internal notes / lender notes" defaultValue={l.notes || ""} className="mt-3 h-20 w-full rounded-2xl border border-white/10 bg-[#091a2f] p-3 font-semibold text-white" />
                           <button className="mt-3 w-full rounded-2xl bg-gradient-to-b from-[#ffd36d] to-[#d89425] p-3 font-black text-[#06111f]">Save Update</button>
                         </form>
+
+                        <div className="rounded-2xl border border-white/10 bg-[#06101d] p-4">
+                          <label className="text-xs font-black uppercase tracking-[.2em] text-white/50">Request Documents</label>
+                          <form action="/api/documents/request" method="post" className="mt-3 grid gap-3">
+                            <input type="hidden" name="leadId" value={l.id} />
+                            <input type="hidden" name="returnTo" value="/owner" />
+                            <select name="documentType" defaultValue="Driving License" className="w-full rounded-2xl border border-white/10 bg-[#091a2f] p-3 font-bold text-white">
+                              {DOCUMENT_TYPES.map((d) => <option key={d}>{d}</option>)}
+                            </select>
+                            <input name="otherDoc" placeholder="If Other Docs, type exactly what is needed" className="w-full rounded-2xl border border-white/10 bg-[#091a2f] p-3 font-semibold text-white" />
+                            <textarea name="note" placeholder="Optional note for client" className="h-16 w-full rounded-2xl border border-white/10 bg-[#091a2f] p-3 font-semibold text-white" />
+                            <button className="w-full rounded-2xl bg-[#f6c15a] p-3 font-black text-[#06111f]">Request Docs</button>
+                          </form>
+
+                          <div className="mt-4 grid gap-2">
+                            {(l.documents || []).length === 0 ? (
+                              <p className="text-xs font-bold text-white/45">No documents requested yet.</p>
+                            ) : (l.documents || []).map((doc: any) => (
+                              <div key={doc.id} className="rounded-xl border border-white/10 bg-black/20 p-3 text-xs">
+                                <div className="font-black text-white">{doc.document_type}</div>
+                                <div className={doc.status === "Uploaded" ? "font-black text-emerald-300" : "font-black text-amber-300"}>{doc.status}</div>
+                                {doc.note ? <div className="mt-1 text-white/50">{doc.note}</div> : null}
+                                {doc.file_name ? <div className="mt-1 text-white/70">Uploaded: {doc.file_name}</div> : null}
+                                {doc.file_path ? <a className="mt-2 inline-flex rounded-lg border border-emerald-300/30 px-3 py-1 font-black text-emerald-300" href={`/api/documents/download?path=${encodeURIComponent(doc.file_path)}`} target="_blank">Download</a> : null}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
 
                         <DeleteLeadForm leadId={l.id} />
                       </div>

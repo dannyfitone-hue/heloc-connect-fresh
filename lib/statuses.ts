@@ -10,13 +10,10 @@ export const CLIENT_STATUSES = [
 ];
 
 export const DOCUMENT_TYPES = [
-  "Valid State ID",
-  "Last 3 Months Bank Statements",
-  "Last 6 Months Bank Statements",
-  "Last 12 Months Bank Statements",
-  "Mortgage Statement",
-  "Proof of Income",
-  "Other"
+  "Driving License",
+  "3 Month Most Recent Bank Statement",
+  "12 Months Of Bank Statements",
+  "Other Docs"
 ];
 
 export function money(value: any) {
