@@ -1,0 +1,1 @@
+Fixes lender creation/login using confirmed Supabase schema. create-lender inserts name, email, company_id, password_hash, password_salt. lender-login verifies SHA256(salt:password). Does not insert non-existent columns lender_name/company_name/phone/password/is_active into lender_users.

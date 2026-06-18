@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
+import { createHash, randomBytes } from "crypto";
 import { supabaseAdmin } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
+
+function hashPassword(password: string, salt: string) {
+  return createHash("sha256").update(`${salt}:${password}`).digest("hex");
+}
 
 export async function POST(req: Request) {
   const form = await req.formData();
@@ -19,9 +24,9 @@ export async function POST(req: Request) {
     return NextResponse.redirect(new URL("/owner?error=lender_missing_fields", req.url), 303);
   }
 
-  // REAL SUPABASE SCHEMA CONFIRMED FROM ERRORS/SCREENSHOTS:
-  // lender_users uses: id, company_id, name, email, password_hash
-  // It does NOT use lender_name, company_name, phone, password, or is_active.
+  // REAL lender_users schema confirmed by Supabase errors:
+  // id, company_id, name, email, password_hash, password_salt
+  // Do NOT send lender_name, company_name, phone, password, or is_active.
 
   let company_id: string | null = null;
 
@@ -65,11 +70,15 @@ export async function POST(req: Request) {
     }
   }
 
+  const password_salt = randomBytes(16).toString("hex");
+  const password_hash = hashPassword(password, password_salt);
+
   const lender = {
     name,
     email,
     company_id,
-    password_hash: password
+    password_hash,
+    password_salt
   };
 
   const { error } = await supabaseAdmin.from("lender_users").insert(lender);

@@ -1,1 +1,0 @@
-Fixes lender creation with actual Supabase schema: lender_users requires password_hash. create-lender now inserts name, email, company_id, password_hash. It does not insert lender_name/company_name/phone/password/is_active.

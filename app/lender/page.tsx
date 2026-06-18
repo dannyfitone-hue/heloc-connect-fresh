@@ -71,11 +71,11 @@ export default async function LenderPage() {
       <section className="mx-auto max-w-[1500px] px-4 py-8 sm:px-6 lg:px-8">
         <div className="rounded-[34px] border border-white/10 bg-gradient-to-br from-[#0b1b2e] to-[#06111f] p-6 shadow-2xl">
           <div className="text-xs font-black uppercase tracking-[.35em] text-[#f6c15a]">
-            {getGreeting(lenderUser?.lender_name || lenderUser?.email)}
+            {getGreeting((lenderUser?.name || lenderUser?.lender_name) || lenderUser?.email)}
           </div>
           <h1 className="mt-3 text-4xl font-black tracking-[-.05em] md:text-6xl">Assigned Lead Pipeline</h1>
           <p className="mt-3 max-w-3xl text-base font-semibold text-white/70">
-            {lenderUser?.company_name || "Network lender"} can review assigned homeowner requests and update statuses.
+            {(lenderUser?.company_name || lenderUser?.mortgage_companies?.name) || "Network lender"} can review assigned homeowner requests and update statuses.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">

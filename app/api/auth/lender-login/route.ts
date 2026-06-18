@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { supabaseAdmin } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
+
+function hashPassword(password: string, salt: string) {
+  return createHash("sha256").update(`${salt}:${password}`).digest("hex");
+}
 
 export async function POST(req: Request) {
   try {
@@ -30,7 +35,11 @@ export async function POST(req: Request) {
 
     const user: any = users?.[0];
 
-    if (user && String((user.password_hash || user.password) || "").trim() === password && user.is_active !== false) {
+    const salt = String(user?.password_salt || "");
+    const storedHash = String(user?.password_hash || "");
+    const hashedInput = salt ? hashPassword(password, salt) : "";
+
+    if (user && storedHash && hashedInput === storedHash) {
       const res = NextResponse.redirect(new URL("/lender", req.url), 303);
       res.cookies.set("hc_lender_user_id", user.id, {
         httpOnly: true,
@@ -39,7 +48,7 @@ export async function POST(req: Request) {
         path: "/",
         maxAge: 60 * 60 * 12,
       });
-      res.cookies.set("hc_lender_name", (user.name || user.lender_name) || user.email, {
+      res.cookies.set("hc_lender_name", user.name || user.email, {
         httpOnly: true,
         secure: true,
         sameSite: "lax",
