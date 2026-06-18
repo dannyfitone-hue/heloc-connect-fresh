@@ -19,9 +19,8 @@ export async function POST(req: Request) {
     return NextResponse.redirect(new URL("/owner?error=lender_missing_fields", req.url), 303);
   }
 
-  // IMPORTANT:
-  // Your current Supabase lender_users table does NOT have a company_name column.
-  // Do not insert company_name or Supabase will reject the new lender user.
+  // lender_users table does NOT have company_name.
+  // Sending company_name makes Supabase reject lender creation.
   const lender = {
     lender_name,
     email,

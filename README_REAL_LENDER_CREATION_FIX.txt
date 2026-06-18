@@ -1,1 +1,0 @@
-Client-side lender creation form with visible error/success and instant Existing Network Lenders update. API returns JSON and inserts/updates lender_users safely. Lender portal remains assigned-only with greeting.\n

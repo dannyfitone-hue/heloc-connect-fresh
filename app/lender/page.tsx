@@ -75,7 +75,7 @@ export default async function LenderPage() {
           </div>
           <h1 className="mt-3 text-4xl font-black tracking-[-.05em] md:text-6xl">Assigned Lead Pipeline</h1>
           <p className="mt-3 max-w-3xl text-base font-semibold text-white/70">
-            {(lenderUser as any)?.company_name || "Network lender"} can review assigned homeowner requests and update statuses.
+            {lenderUser?.company_name || "Network lender"} can review assigned homeowner requests and update statuses.
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-3">

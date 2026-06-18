@@ -108,7 +108,7 @@ export default async function OwnerPage({ searchParams }: { searchParams?: { err
             <p className="mt-1 text-sm font-semibold text-white/55">The lender logs in with the email/password you create here.</p>
             <form action="/api/owner/create-lender" method="post" className="mt-5 grid gap-3">
               <input name="lender_name" required placeholder="Lender / Agent Name" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
-              <input name="company_name" placeholder="Mortgage Company Name (optional)" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
+              <input name="company_name" placeholder="Mortgage Company Name" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
               <input name="email" type="email" required placeholder="Login Email" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
               <input name="phone" placeholder="Phone" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
               <input name="password" required placeholder="Create Password" className="rounded-2xl border border-white/10 bg-[#06101d] p-4" />
@@ -120,7 +120,7 @@ export default async function OwnerPage({ searchParams }: { searchParams?: { err
               {lenders.length ? lenders.map((u) => (
                 <div key={u.id} className="rounded-2xl border border-white/10 bg-[#091a2f] p-4">
                   <b>{u.lender_name}</b>
-                  <div className="text-sm text-white/60">{(u as any).company_name || "No company"} • {u.email}</div>
+                  <div className="text-sm text-white/60">{u.company_name || "No company"} • {u.email}</div>
                 </div>
               )) : <div className="rounded-2xl border border-dashed border-white/15 p-5 text-white/60">No lender users yet.</div>}
             </div>

@@ -1,1 +1,0 @@
-Deep-scanned fix. Built from last owner-dashboard-working ZIP. Owner page syntax checked by build. Lender creation is client-side with visible success/error and instant lender list update. Lender portal is assigned-only with greeting. SMS disabled.
