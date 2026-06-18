@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
     const user: any = users?.[0];
 
-    if (user && String(user.password || "").trim() === password && user.is_active !== false) {
+    if (user && String((user.password_hash || user.password) || "").trim() === password && user.is_active !== false) {
       const res = NextResponse.redirect(new URL("/lender", req.url), 303);
       res.cookies.set("hc_lender_user_id", user.id, {
         httpOnly: true,
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
         path: "/",
         maxAge: 60 * 60 * 12,
       });
-      res.cookies.set("hc_lender_name", user.lender_name || user.email, {
+      res.cookies.set("hc_lender_name", (user.name || user.lender_name) || user.email, {
         httpOnly: true,
         secure: true,
         sameSite: "lax",

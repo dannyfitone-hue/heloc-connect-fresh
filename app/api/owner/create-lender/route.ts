@@ -12,16 +12,16 @@ export async function POST(req: Request) {
 
   const name = String(form.get("lender_name") || form.get("name") || "").trim();
   const email = String(form.get("email") || "").trim().toLowerCase();
+  const password = String(form.get("password") || "").trim();
   const companyText = String(form.get("company_name") || form.get("company") || "").trim();
 
-  if (!name || !email) {
+  if (!name || !email || !password) {
     return NextResponse.redirect(new URL("/owner?error=lender_missing_fields", req.url), 303);
   }
 
-  // REAL SUPABASE SCHEMA CONFIRMED:
-  // lender_users columns are: id, company_id, name, email
-  // mortgage_companies columns include: id, name, contact_name
-  // Do NOT send lender_name, company_name, phone, password, or is_active to lender_users.
+  // REAL SUPABASE SCHEMA CONFIRMED FROM ERRORS/SCREENSHOTS:
+  // lender_users uses: id, company_id, name, email, password_hash
+  // It does NOT use lender_name, company_name, phone, password, or is_active.
 
   let company_id: string | null = null;
 
@@ -68,7 +68,8 @@ export async function POST(req: Request) {
   const lender = {
     name,
     email,
-    company_id
+    company_id,
+    password_hash: password
   };
 
   const { error } = await supabaseAdmin.from("lender_users").insert(lender);

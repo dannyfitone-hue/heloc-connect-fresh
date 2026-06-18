@@ -1,1 +1,0 @@
-Fixes create lender using actual Supabase schema: lender_users has id, company_id, name, email. mortgage_companies has id/name/contact fields. create-lender route no longer inserts lender_name/company_name/phone/password/is_active into lender_users.
