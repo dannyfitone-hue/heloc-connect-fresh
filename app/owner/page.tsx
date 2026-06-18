@@ -59,7 +59,7 @@ function statCount(leads: any[], status: string) {
   return leads.filter((l) => String(l.status || "").toLowerCase().includes(status.toLowerCase())).length;
 }
 
-export default async function OwnerPage({ searchParams }: { searchParams?: { error?: string; message?: string; created_lender?: string; lender_email?: string } }) {
+export default async function OwnerPage({ searchParams }: { searchParams?: { error?: string; message?: string; created_lender?: string; lender_email?: string; deleted_lender?: string } }) {
   const leads: any[] = await getLeads();
   const lenders: any[] = await getLenders();
   const totalRequested = leads.reduce((sum, l) => sum + Number(l.requested_amount || 0), 0);
