@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type ProductPath = "heloc" | "refinance" | "creditLine" | "purchase";
-type AddressResult = { label: string; street?: string; city?: string; state?: string; zip?: string };
+type AddressResult = { label: string; street?: string; city?: string; state?: string; zip?: string; place_id?: string };
 
 const HERO_PHOTO = "https://images.pexels.com/photos/7031607/pexels-photo-7031607.jpeg?auto=compress&cs=tinysrgb&w=2200";
 const RATE_FOR_PREVIEW = 0.065;
@@ -138,6 +138,7 @@ export default function LandingPage() {
           city: payloadCity,
           state: payloadState,
           zip: payloadZip,
+          place_id: selectedParts?.place_id,
           address2: [payloadCity, [payloadState, payloadZip].filter(Boolean).join(" ")].filter(Boolean).join(", ")
         })
       });
@@ -169,7 +170,8 @@ export default function LandingPage() {
       street: selectedStreet,
       city: selectedCity,
       state: selectedState,
-      zip: selectedZip
+      zip: selectedZip,
+      place_id: result.place_id
     });
   }
 
@@ -326,6 +328,16 @@ export default function LandingPage() {
                       </div>
                     )}
                     {valueStatus && <p className="mt-2 text-sm font-black text-emerald-300">{valueStatus}</p>}
+                    <div className="mt-5 rounded-[24px] border border-emerald-300/25 bg-emerald-300/8 p-5">
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                          <div className="text-xs font-black uppercase tracking-[.24em] text-emerald-200">Property value</div>
+                          <div className="mt-2 text-3xl font-black tracking-[-.04em] text-emerald-300">{homeValue ? formatMoney(homeValue) : "Waiting for value"}</div>
+                          <div className="mt-1 text-sm font-semibold text-white/60">Auto-fills when the selected address returns a market value. You can also type an estimated value here.</div>
+                        </div>
+                        <input name="home_value" value={moneyDisplay(homeValueInput)} onChange={(e) => setHomeValueInput(e.target.value)} placeholder="Enter estimated property value" className="w-full rounded-2xl border border-white/15 bg-[#020914] p-4 font-bold outline-none lg:max-w-[320px]" />
+                      </div>
+                    </div>
                     {path === "purchase" && (
                       <label className="mt-5 flex cursor-pointer gap-4 rounded-3xl border border-white/12 bg-white/[.045] p-5 text-lg font-black">
                         <input type="checkbox" checked={noPurchaseAddress} onChange={(e) => setNoPurchaseAddress(e.target.checked)} className="mt-1 h-5 w-5" />
@@ -393,7 +405,10 @@ export default function LandingPage() {
                 </div>
 
                 <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <input name="home_value" value={moneyDisplay(homeValueInput)} onChange={(e) => setHomeValueInput(e.target.value)} placeholder="Estimated Home Value" className="rounded-2xl border border-white/15 bg-[#020914] p-4 outline-none" />
+                  <div className="rounded-2xl border border-white/15 bg-[#020914] p-4 text-white/70">
+                    <div className="text-xs font-black uppercase tracking-[.18em] text-white/40">Property value used</div>
+                    <div className="mt-1 text-lg font-black text-white">{homeValue ? formatMoney(homeValue) : "Enter value above"}</div>
+                  </div>
                   <input name="mortgage_balance" value={moneyDisplay(mortgageBalanceInput)} onChange={(e) => setMortgageBalanceInput(e.target.value)} placeholder={path === "purchase" ? "Down Payment / Cash Available" : "Mortgage Balance"} className="rounded-2xl border border-white/15 bg-[#020914] p-4 outline-none" />
                   <select name="loans_on_property" className="rounded-2xl border border-white/15 bg-[#020914] p-4 outline-none"><option>How many loans?</option><option>1 loan</option><option>2 loans</option><option>3+ loans</option></select>
                   <select name="mortgage_good_standing" className="rounded-2xl border border-white/15 bg-[#020914] p-4 outline-none"><option>Mortgage standing?</option><option>Current</option><option>Mostly current</option><option>Behind</option><option>Purchase buyer</option></select>
