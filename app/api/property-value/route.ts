@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 
-type Candidate = { address1: string; address2: string; source: string };
+function clean(value: any) {
+  return String(value || "")
+    .replace(/,?\s*USA\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 function toNumber(value: any): number | null {
   if (value === null || value === undefined || value === "") return null;
@@ -9,27 +14,17 @@ function toNumber(value: any): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-function pickValue(data: any): number | null {
-  const p = Array.isArray(data?.property) ? data.property[0] : data?.property;
-
+function pickRentCastValue(data: any): number | null {
   const directCandidates = [
-    p?.avm?.amount?.value,
-    p?.avm?.amount?.scr,
-    p?.avm?.amount?.high,
-    p?.avm?.amount?.low,
-    p?.avm?.value,
-    p?.avm?.estimatedValue,
-    p?.avm?.estimate,
-    p?.avm?.avmValue,
-    p?.assessment?.market?.mktttlvalue,
-    p?.assessment?.market?.mktTtlValue,
-    p?.assessment?.market?.mktTotalValue,
-    p?.assessment?.market?.totalValue,
-    p?.assessment?.assessed?.assdttlvalue,
-    p?.assessment?.assessed?.assdTtlValue,
-    p?.assessment?.assessed?.totalValue,
-    p?.sale?.amount?.saleamt,
-    p?.sale?.amount?.saleAmt
+    data?.price,
+    data?.value,
+    data?.estimatedValue,
+    data?.estimate,
+    data?.avm,
+    data?.priceEstimate,
+    data?.priceRangeLow && data?.priceRangeHigh
+      ? (toNumber(data.priceRangeLow)! + toNumber(data.priceRangeHigh)!) / 2
+      : null,
   ];
 
   for (const item of directCandidates) {
@@ -37,9 +32,6 @@ function pickValue(data: any): number | null {
     if (n && n >= 50000 && n <= 10000000) return Math.round(n);
   }
 
-  // ATTOM responses vary by endpoint and account permissions. This second pass
-  // looks through the returned object for any plausible valuation field instead
-  // of only one exact path. It intentionally avoids tiny numbers like square feet.
   const scored: Array<{ value: number; score: number; path: string }> = [];
   function walk(obj: any, path: string[] = []) {
     if (!obj || typeof obj !== "object") return;
@@ -49,10 +41,9 @@ function pickValue(data: any): number | null {
       const n = toNumber(val);
       if (n && n >= 50000 && n <= 10000000) {
         let score = 0;
-        if (/avm|estimate|valuation|market|mkt|assess|assd|sale/.test(keyPath)) score += 6;
-        if (/value|amount|amt|price/.test(keyPath)) score += 4;
-        if (/total|ttl/.test(keyPath)) score += 2;
-        if (/tax|year|sqft|size|area|lot|bed|bath|lat|lon|longitude|latitude/.test(keyPath)) score -= 8;
+        if (/price|value|estimate|avm|valuation/.test(keyPath)) score += 8;
+        if (/range|low|high/.test(keyPath)) score += 2;
+        if (/rent|tax|year|sqft|size|area|lot|bed|bath|lat|lon|longitude|latitude/.test(keyPath)) score -= 10;
         if (score > 0) scored.push({ value: Math.round(n), score, path: keyPath });
       }
       if (typeof val === "object") walk(val, next);
@@ -64,69 +55,28 @@ function pickValue(data: any): number | null {
 }
 
 function splitFullAddress(full: string) {
-  const parts = String(full || "")
+  const parts = clean(full)
     .split(",")
-    .map((x) => x.trim())
+    .map((x) => clean(x))
     .filter(Boolean)
     .filter((x) => x.toUpperCase() !== "USA");
 
-  const address1 = parts[0] || "";
+  const street = parts[0] || "";
   const city = parts[1] || "";
   const stateZip = parts[2] || "";
-  const address2 = [city, stateZip].filter(Boolean).join(", ");
+  const stateZipParts = stateZip.split(" ").filter(Boolean);
+  const state = stateZipParts[0] || "";
+  const zip = stateZipParts.find((p) => /^\d{5}/.test(p)) || "";
 
-  return { address1, address2, city, stateZip };
+  return { street, city, state, zip };
 }
 
-function clean(value: string) {
-  return String(value || "")
-    .replace(/,?\s*USA\s*$/i, "")
-    .replace(/\s+/g, " ")
-    .trim();
+function formatAddress(street: string, city: string, state: string, zip: string, fallback: string) {
+  const line = [clean(street), clean(city), [clean(state), clean(zip)].filter(Boolean).join(" ")]
+    .filter(Boolean)
+    .join(", ");
+  return clean(line || fallback);
 }
-
-function streetVariants(street: string) {
-  const s = clean(street);
-  const variants = new Set<string>([s]);
-  const pairs: Array<[RegExp, string]> = [
-    [/\bDrive\b/i, "Dr"],
-    [/\bDr\.?\b/i, "Drive"],
-    [/\bStreet\b/i, "St"],
-    [/\bSt\.?\b/i, "Street"],
-    [/\bAvenue\b/i, "Ave"],
-    [/\bAve\.?\b/i, "Avenue"],
-    [/\bRoad\b/i, "Rd"],
-    [/\bRd\.?\b/i, "Road"],
-    [/\bLane\b/i, "Ln"],
-    [/\bLn\.?\b/i, "Lane"],
-    [/\bCourt\b/i, "Ct"],
-    [/\bCt\.?\b/i, "Court"],
-    [/\bCircle\b/i, "Cir"],
-    [/\bCir\.?\b/i, "Circle"],
-    [/\bPlace\b/i, "Pl"],
-    [/\bPl\.?\b/i, "Place"],
-    [/\bBoulevard\b/i, "Blvd"],
-    [/\bBlvd\.?\b/i, "Boulevard"]
-  ];
-  for (const [regex, replacement] of pairs) {
-    if (regex.test(s)) variants.add(s.replace(regex, replacement));
-  }
-  return Array.from(variants).filter(Boolean);
-}
-
-function uniqueCandidates(candidates: Candidate[]) {
-  const seen = new Set<string>();
-  return candidates
-    .map((c) => ({ address1: clean(c.address1), address2: clean(c.address2), source: c.source }))
-    .filter((c) => {
-      if (!c.address1 || !c.address2) return false;
-      const key = `${c.address1.toLowerCase()}|${c.address2.toLowerCase()}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-}
-
 
 async function placeDetails(placeId: string, key?: string | null) {
   if (!key || !placeId) return null;
@@ -146,10 +96,10 @@ async function placeDetails(placeId: string, key?: string | null) {
   };
   return {
     street: [get("street_number"), get("route")].filter(Boolean).join(" ").trim(),
-    city: get("locality") || get("postal_town") || get("sublocality") || get("administrative_area_level_3"),
+    city: get("locality") || get("postal_town") || get("sublocality") || get("administrative_area_level_3") || get("administrative_area_level_2"),
     state: get("administrative_area_level_1", true),
     zip: get("postal_code"),
-    formatted: result.formatted_address
+    formatted: clean(result.formatted_address || ""),
   };
 }
 
@@ -169,22 +119,25 @@ async function geocodeAddress(fullAddress: string, key?: string | null) {
     const c = comps.find((x: any) => Array.isArray(x.types) && x.types.includes(type));
     return c ? (short ? c.short_name : c.long_name) : "";
   };
-  const street = [get("street_number"), get("route")].filter(Boolean).join(" ").trim();
-  const city = get("locality") || get("postal_town") || get("sublocality") || get("administrative_area_level_3");
-  const state = get("administrative_area_level_1", true);
-  const zip = get("postal_code");
-  return { street, city, state, zip, formatted: result.formatted_address };
+  return {
+    street: [get("street_number"), get("route")].filter(Boolean).join(" ").trim(),
+    city: get("locality") || get("postal_town") || get("sublocality") || get("administrative_area_level_3") || get("administrative_area_level_2"),
+    state: get("administrative_area_level_1", true),
+    zip: get("postal_code"),
+    formatted: clean(result.formatted_address || ""),
+  };
 }
 
-async function callAttom(endpoint: string, address1: string, address2: string, key: string) {
+async function callRentCast(address: string, key: string) {
   const url =
-    `https://api.gateway.attomdata.com/propertyapi/v1.0.0/${endpoint}` +
-    `?address1=${encodeURIComponent(address1)}` +
-    `&address2=${encodeURIComponent(address2)}`;
+    "https://api.rentcast.io/v1/avm/value" +
+    `?address=${encodeURIComponent(address)}` +
+    "&compCount=5" +
+    "&lookupSubjectAttributes=true";
 
   const res = await fetch(url, {
-    headers: { apikey: key, accept: "application/json" },
-    cache: "no-store"
+    headers: { "X-Api-Key": key, accept: "application/json" },
+    cache: "no-store",
   });
 
   const data = await res.json().catch(() => ({}));
@@ -192,104 +145,115 @@ async function callAttom(endpoint: string, address1: string, address2: string, k
 }
 
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => ({}));
-  const attomKey = process.env.ATTOM_API_KEY;
-  const googleKey = process.env.GOOGLE_MAPS_SERVER_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  try {
+    const body = await req.json().catch(() => ({}));
+    const rentCastKey = process.env.RENTCAST_API_KEY;
+    const googleKey = process.env.GOOGLE_MAPS_SERVER_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-  if (!attomKey) {
-    return NextResponse.json({ value: null, message: "Property value lookup is not connected yet. Please enter estimated value manually." });
-  }
-
-  const fullAddress = clean(body.address || body.label || "");
-  const parsed = splitFullAddress(fullAddress);
-
-  let street = clean(body.address1 || body.street || parsed.address1);
-  let city = clean(body.city || parsed.city);
-  let state = clean(body.state || "");
-  let zip = clean(body.zip || "");
-
-  if (body.place_id && (!street || !city || !state || !zip)) {
-    const detail = await placeDetails(String(body.place_id), googleKey);
-    if (detail) {
-      street = street || detail.street;
-      city = city || detail.city;
-      state = state || detail.state;
-      zip = zip || detail.zip;
+    if (!rentCastKey) {
+      return NextResponse.json({
+        value: null,
+        message: "Property value lookup is not connected yet. Please enter estimated value manually.",
+      });
     }
-  }
 
-  if ((!street || !city || !state || !zip) && fullAddress) {
-    const geo = await geocodeAddress(fullAddress, googleKey);
-    if (geo) {
-      street = street || geo.street;
-      city = city || geo.city;
-      state = state || geo.state;
-      zip = zip || geo.zip;
+    const fullAddress = clean(body.address || body.label || "");
+    const parsed = splitFullAddress(fullAddress);
+
+    let street = clean(body.address1 || body.street || parsed.street);
+    let city = clean(body.city || parsed.city);
+    let state = clean(body.state || parsed.state);
+    let zip = clean(body.zip || parsed.zip);
+
+    if (body.place_id && (!street || !city || !state || !zip)) {
+      const detail = await placeDetails(String(body.place_id), googleKey);
+      if (detail) {
+        street = street || clean(detail.street);
+        city = city || clean(detail.city);
+        state = state || clean(detail.state);
+        zip = zip || clean(detail.zip);
+      }
     }
-  }
 
-  const address2Full = [city, [state, zip].filter(Boolean).join(" ")].filter(Boolean).join(", ");
-  const address2NoZip = [city, state].filter(Boolean).join(", ");
-  const parsedAddress2 = parsed.address2;
+    if ((!street || !city || !state || !zip) && fullAddress) {
+      const geo = await geocodeAddress(fullAddress, googleKey);
+      if (geo) {
+        street = street || clean(geo.street);
+        city = city || clean(geo.city);
+        state = state || clean(geo.state);
+        zip = zip || clean(geo.zip);
+      }
+    }
 
-  const candidates: Candidate[] = [];
-  for (const s of streetVariants(street || parsed.address1)) {
-    candidates.push({ address1: s, address2: address2Full, source: "google_components_full" });
-    candidates.push({ address1: s, address2: address2NoZip, source: "google_components_no_zip" });
-    candidates.push({ address1: s, address2: parsedAddress2, source: "google_label" });
-  }
+    const candidates = Array.from(
+      new Set(
+        [
+          formatAddress(street, city, state, zip, fullAddress),
+          fullAddress,
+          formatAddress(street, city, state, "", fullAddress),
+        ]
+          .map(clean)
+          .filter(Boolean)
+      )
+    );
 
-  const finalCandidates = uniqueCandidates(candidates);
-  if (!finalCandidates.length) {
-    return NextResponse.json({ value: null, message: "Please select a complete property address before value lookup." });
-  }
+    if (!candidates.length) {
+      return NextResponse.json({
+        value: null,
+        message: "Please select a complete property address before value lookup.",
+      });
+    }
 
-  const endpoints = [
-    { name: "AVM Detail", endpoint: "avm/detail" },
-    { name: "AVM Snapshot", endpoint: "avm/snapshot" },
-    { name: "Basic Profile", endpoint: "property/basicprofile" },
-    { name: "Expanded Profile", endpoint: "property/expandedprofile" },
-    { name: "Property Detail", endpoint: "property/detail" },
-    { name: "Assessment Snapshot", endpoint: "assessment/snapshot" },
-    { name: "Assessment Detail", endpoint: "assessment/detail" },
-    { name: "Sale Snapshot", endpoint: "sale/snapshot" }
-  ];
-
-  const attempts: any[] = [];
-  for (const candidate of finalCandidates) {
-    for (const item of endpoints) {
+    const attempts: any[] = [];
+    for (const address of candidates) {
       try {
-        const result = await callAttom(item.endpoint, candidate.address1, candidate.address2, attomKey);
-        const value = pickValue(result.data);
+        const result = await callRentCast(address, rentCastKey);
+        const value = pickRentCastValue(result.data);
         attempts.push({
-          source: candidate.source,
-          endpoint: item.name,
+          provider: "RentCast",
+          endpoint: "Value Estimate",
           status: result.status,
           foundValue: Boolean(value),
-          propertyCount: result.data?.property?.length || 0,
-          address1: candidate.address1,
-          address2: candidate.address2
+          address,
+          accuracy: result.data?.accuracy || null,
+          error: result.data?.error || null,
         });
+
         if (value) {
           return NextResponse.json({
             value,
-            source: `${item.name} / ${candidate.source}`,
-            address1: candidate.address1,
-            address2: candidate.address2,
-            message: "Estimated property value found."
+            source: "RentCast Value Estimate",
+            address,
+            accuracy: result.data?.accuracy || null,
+            priceRangeLow: result.data?.priceRangeLow || null,
+            priceRangeHigh: result.data?.priceRangeHigh || null,
+            message: "Estimated property value found.",
           });
         }
       } catch (error: any) {
-        attempts.push({ source: candidate.source, endpoint: item.name, error: error?.message || "Request failed", address1: candidate.address1, address2: candidate.address2 });
+        attempts.push({
+          provider: "RentCast",
+          endpoint: "Value Estimate",
+          address,
+          error: error?.message || "Request failed",
+        });
       }
     }
-  }
 
-  return NextResponse.json({
-    value: null,
-    address1: finalCandidates[0]?.address1,
-    address2: finalCandidates[0]?.address2,
-    message: "Property value was not available automatically. Please enter an estimated value to continue your review.",
-    attempts
-  });
+    return NextResponse.json({
+      value: null,
+      address: candidates[0],
+      message: "Property value was not available automatically. Please enter an estimated value to continue your review.",
+      attempts,
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      {
+        value: null,
+        message: "Value lookup is unavailable right now. You can enter the value manually.",
+        error: error?.message || "Unknown error",
+      },
+      { status: 200 }
+    );
+  }
 }
