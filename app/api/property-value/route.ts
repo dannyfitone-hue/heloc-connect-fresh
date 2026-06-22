@@ -15,16 +15,27 @@ function toNumber(value: any): number | null {
 }
 
 function pickRentCastValue(data: any): number | null {
+  // RentCast often returns a base AVM plus a low/high market range.
+  // For HELOC CONNECT we want the stronger current-market estimate, not the conservative midpoint/base AVM.
+  const rangeHigh = toNumber(data?.priceRangeHigh);
+  const rangeLow = toNumber(data?.priceRangeLow);
+  const baseEstimate =
+    toNumber(data?.price) ||
+    toNumber(data?.value) ||
+    toNumber(data?.estimatedValue) ||
+    toNumber(data?.estimate) ||
+    toNumber(data?.avm) ||
+    toNumber(data?.priceEstimate);
+
+  // Prefer the high side of RentCast's own value range when it is realistic.
+  // This usually lines up better with current retail market value/Zillow-style estimates.
+  if (rangeHigh && rangeHigh >= 50000 && rangeHigh <= 10000000) {
+    if (!baseEstimate || rangeHigh <= baseEstimate * 1.35) return Math.round(rangeHigh);
+  }
+
   const directCandidates = [
-    data?.price,
-    data?.value,
-    data?.estimatedValue,
-    data?.estimate,
-    data?.avm,
-    data?.priceEstimate,
-    data?.priceRangeLow && data?.priceRangeHigh
-      ? (toNumber(data.priceRangeLow)! + toNumber(data.priceRangeHigh)!) / 2
-      : null,
+    baseEstimate,
+    rangeLow && rangeHigh ? (rangeLow + rangeHigh) / 2 : null,
   ];
 
   for (const item of directCandidates) {
@@ -132,7 +143,7 @@ async function callRentCast(address: string, key: string) {
   const url =
     "https://api.rentcast.io/v1/avm/value" +
     `?address=${encodeURIComponent(address)}` +
-    "&compCount=5" +
+    "&compCount=15" +
     "&lookupSubjectAttributes=true";
 
   const res = await fetch(url, {
@@ -222,12 +233,12 @@ export async function POST(req: Request) {
         if (value) {
           return NextResponse.json({
             value,
-            source: "RentCast Value Estimate",
+            source: "RentCast Market Range High",
             address,
             accuracy: result.data?.accuracy || null,
             priceRangeLow: result.data?.priceRangeLow || null,
             priceRangeHigh: result.data?.priceRangeHigh || null,
-            message: "Estimated property value found.",
+            message: "Current market value estimate found.",
           });
         }
       } catch (error: any) {
