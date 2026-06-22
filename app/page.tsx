@@ -123,10 +123,11 @@ export default function LandingPage() {
   async function lookupHomeValue(fullAddress: string, selectedParts?: Partial<AddressResult>) {
     try {
       setValueStatus("Looking up estimated property value...");
-      const payloadStreet = selectedParts?.street || street;
-      const payloadCity = selectedParts?.city || city;
-      const payloadState = selectedParts?.state || stateName;
-      const payloadZip = selectedParts?.zip || zip;
+      const parsedFull = parseAddress(fullAddress);
+      const payloadStreet = selectedParts?.street || parsedFull.street || street;
+      const payloadCity = selectedParts?.city || parsedFull.city || city;
+      const payloadState = selectedParts?.state || parsedFull.state || stateName;
+      const payloadZip = selectedParts?.zip || parsedFull.zip || zip;
       const res = await fetch("/api/property-value", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -145,7 +146,7 @@ export default function LandingPage() {
         setHomeValueInput(String(data.value));
         setValueStatus(`Estimated value found: ${formatMoney(Number(data.value))}`);
       } else {
-        setValueStatus(data?.message || "Value lookup did not return a value. You can enter it manually.");
+        setValueStatus(data?.message || "Property value was not available automatically. Please enter an estimated value to continue.");
       }
     } catch {
       setValueStatus("Value lookup is unavailable right now. You can enter the value manually.");
