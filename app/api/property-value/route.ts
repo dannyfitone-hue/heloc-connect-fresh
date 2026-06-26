@@ -127,16 +127,43 @@ async function callAttom(endpoint: string, address1: string, address2: string, k
   return { ok: res.ok, status: res.status, data };
 }
 
+
+function fallbackValue(address1: string, address2: string): number | null {
+  const combined = `${address1} ${address2}`.toLowerCase();
+  const zip = combined.match(/\b\d{5}\b/)?.[0] || "";
+
+  const zipMap: Record<string, number> = {
+    "92692": 1250000,
+    "92691": 1100000,
+    "92688": 1050000,
+    "92618": 1350000,
+    "92620": 1500000,
+    "92630": 1150000,
+    "92656": 1150000,
+    "92677": 1600000,
+    "92651": 2500000,
+    "92660": 2600000,
+    "92663": 2400000,
+    "92657": 3500000,
+    "90210": 1800000,
+    "90049": 2300000,
+    "91302": 1900000,
+  };
+  if (zip && zipMap[zip]) return zipMap[zip];
+
+  if (combined.includes("mission viejo")) return 1200000;
+  if (combined.includes("irvine")) return 1400000;
+  if (combined.includes("lake forest")) return 1100000;
+  if (combined.includes("laguna")) return 2200000;
+  if (combined.includes("newport")) return 2500000;
+  if (combined.includes("beverly hills")) return 1800000;
+  if (combined.includes("orange county") || combined.includes(" ca ") || combined.endsWith(" ca")) return 950000;
+  return null;
+}
+
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const key = process.env.ATTOM_API_KEY;
-
-  if (!key) {
-    return NextResponse.json({
-      value: null,
-      message: "ATTOM_API_KEY is missing. Add it in Vercel to auto-pull estimated home values."
-    });
-  }
 
   const fullFromBody = String(body.address || body.fullAddress || "").trim();
   const parsed = splitFullAddress(fullFromBody);
@@ -177,8 +204,9 @@ export async function POST(req: Request) {
 
   const attempts: any[] = [];
 
-  for (const candidate of candidates) {
-    for (const item of endpoints) {
+  if (key) {
+    for (const candidate of candidates) {
+      for (const item of endpoints) {
       try {
         const result = await callAttom(item.endpoint, candidate.address1, candidate.address2, key);
         const value = pickValue(result.data);
@@ -212,6 +240,23 @@ export async function POST(req: Request) {
         });
       }
     }
+  }
+  } else {
+    attempts.push({ endpoint: "Environment", error: "ATTOM_API_KEY missing. Used preview estimate fallback when possible." });
+  }
+
+  const estimated = fallbackValue(candidates[0]?.address1 || address1 || fullFromBody, candidates[0]?.address2 || address2 || "");
+
+  if (estimated) {
+    return NextResponse.json({
+      value: estimated,
+      source: "Preview market estimate fallback",
+      address1: candidates[0]?.address1 || address1,
+      address2: candidates[0]?.address2 || address2,
+      message: "Estimated market value generated for preview. Final values may vary by property data and mortgage company review.",
+      fallback: true,
+      attempts: attempts.slice(0, 30)
+    });
   }
 
   return NextResponse.json({
