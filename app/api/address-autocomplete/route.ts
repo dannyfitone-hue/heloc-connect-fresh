@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 function parse(label: string) {
-  const parts = label.split(",").map((p) => p.trim()).filter(Boolean);
+  const parts = String(label || "").split(",").map((p) => p.trim()).filter(Boolean);
   const street = parts[0] || label;
   const city = parts[1] || "";
   const stateZip = parts.find((p) => /\b[A-Z]{2}\b/.test(p) || /\d{5}/.test(p)) || "";
@@ -15,19 +15,33 @@ function component(components: any[], type: string, useShort = false) {
   return item ? (useShort ? item.short_name : item.long_name) : "";
 }
 
-async function getPlaceDetails(placeId: string, key: string) {
+async function getPlaceDetails(placeId: string, key: string, fallbackLabel: string) {
   const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(placeId)}&fields=address_component,formatted_address&key=${key}`;
   const res = await fetch(url, { cache: "no-store" });
   const data = await res.json().catch(() => ({}));
+
+  // IMPORTANT: If Google Place Details is blocked, restricted, or not enabled,
+  // do NOT return blank fields. Fall back to the autocomplete description.
+  if (data?.status && data.status !== "OK") {
+    return { label: fallbackLabel, ...parse(fallbackLabel), place_id: placeId };
+  }
+
   const components = data?.result?.address_components || [];
+  const formatted = data?.result?.formatted_address || fallbackLabel;
+
+  if (!components.length && !formatted) {
+    return { label: fallbackLabel, ...parse(fallbackLabel), place_id: placeId };
+  }
+
   const streetNumber = component(components, "street_number");
   const route = component(components, "route");
-  const city = component(components, "locality") || component(components, "postal_town") || component(components, "sublocality") || component(components, "administrative_area_level_3");
-  const state = component(components, "administrative_area_level_1", true);
-  const zip = component(components, "postal_code");
-  const street = [streetNumber, route].filter(Boolean).join(" ") || (data?.result?.formatted_address || "").split(",")[0];
+  const city = component(components, "locality") || component(components, "postal_town") || component(components, "sublocality") || component(components, "administrative_area_level_3") || parse(formatted).city;
+  const state = component(components, "administrative_area_level_1", true) || parse(formatted).state;
+  const zip = component(components, "postal_code") || parse(formatted).zip;
+  const street = [streetNumber, route].filter(Boolean).join(" ") || parse(formatted).street;
+
   return {
-    label: data?.result?.formatted_address || [street, city, [state, zip].filter(Boolean).join(" ")].filter(Boolean).join(", "),
+    label: formatted,
     street,
     city,
     state,
@@ -60,13 +74,13 @@ export async function GET(req: Request) {
   const predictions = data?.predictions || [];
 
   const results = await Promise.all(predictions.slice(0, 6).map(async (p: any) => {
+    const label = p.description || "";
     try {
-      return await getPlaceDetails(p.place_id, key);
+      return await getPlaceDetails(p.place_id, key, label);
     } catch {
-      const label = p.description;
       return { label, ...parse(label), place_id: p.place_id };
     }
   }));
 
-  return NextResponse.json({ results });
+  return NextResponse.json({ results: results.filter((r) => r.label) });
 }

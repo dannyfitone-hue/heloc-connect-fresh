@@ -317,32 +317,50 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <section className="relative mx-auto grid max-w-[1560px] gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[.95fr_1.05fr] lg:px-8 lg:py-16">
-        <div className="relative z-10">
-          <div className="text-xs font-black uppercase tracking-[.45em] text-cyan-300">Homeowner Advantage</div>
-          <h1 className="mt-5 text-[48px] font-black leading-[.9] tracking-[-.07em] sm:text-7xl xl:text-[92px]">
-            Unlock the cash already sitting in your <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">home.</span>
+      <section className="relative mx-auto grid max-w-[1560px] gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_.95fr] lg:px-8 lg:py-12">
+        <div className="relative z-10 flex flex-col justify-center">
+          <div className="inline-flex w-fit rounded-full border border-cyan-300/25 bg-cyan-300/8 px-5 py-2 text-xs font-black uppercase tracking-[.42em] text-cyan-200 shadow-[0_0_35px_rgba(34,211,238,.16)]">Free Homeowner Match Review</div>
+          <h1 className="mt-5 text-[44px] font-black leading-[.9] tracking-[-.07em] sm:text-7xl xl:text-[84px]">
+            Stop searching. Start with the <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">right match.</span>
           </h1>
-          <p className="mt-7 max-w-3xl text-xl font-semibold leading-relaxed text-white/78">
-            Use your home equity to pay off high-interest debt, remodel your home, cover emergencies, lower payments, or increase financial flexibility with less paperwork and faster review through our mortgage company network.
+          <p className="mt-6 max-w-3xl text-xl font-semibold leading-relaxed text-white/78">
+            HELOC CONNECT helps homeowners avoid wasting time with the wrong mortgage company. We review your goal, property, and financial situation first — then help match you with mortgage companies that may fit your needs for HELOC, refinance, cash-out, home equity credit line, or purchase mortgage options.
           </p>
-          <div className="mt-7 flex flex-wrap items-center gap-3 text-lg font-black"><span className="text-emerald-300">✓</span> Fast approvals <span className="text-cyan-300">•</span> Low rates <span className="text-cyan-300">•</span> 97% happy approvals</div>
-          <div className="mt-8 grid max-w-[770px] gap-3 sm:grid-cols-4">
-            {[
-              ["⏱", "Approvals", "as quick as 1 hour"],
-              ["📄", "Only 3 months", "bank statements"],
-              ["⚡", "Funding", "as fast as 7 days"],
-              ["💳", "Lower rates", "than most cards"]
-            ].map(([icon, title, desc]) => <div key={title} className="rounded-2xl border border-cyan-300/25 bg-[#0b1a2c]/80 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"><div className="text-2xl">{icon}</div><div className="mt-3 font-black">{title}</div><div className="text-sm font-bold text-white/70">{desc}</div></div>)}
+
+          <div className="mt-6 grid max-w-3xl gap-3 sm:grid-cols-2">
+            <div className="rounded-3xl border border-emerald-300/25 bg-emerald-300/8 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">
+              <div className="text-xs font-black uppercase tracking-[.25em] text-emerald-200">Homeowners Pay $0</div>
+              <div className="mt-2 text-2xl font-black">The benefit is yours. The cost is with the mortgage company.</div>
+              <p className="mt-2 text-sm font-bold leading-relaxed text-white/62">Mortgage companies in our network compensate us for successful introductions, so your review and matching service is provided at no direct cost to you.</p>
+            </div>
+            <div className="rounded-3xl border border-cyan-300/25 bg-cyan-300/8 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">
+              <div className="text-xs font-black uppercase tracking-[.25em] text-cyan-200">Why Us</div>
+              <div className="mt-2 text-2xl font-black">One smart review before you apply everywhere.</div>
+              <p className="mt-2 text-sm font-bold leading-relaxed text-white/62">We help you focus on mortgage companies and programs that better fit your situation instead of applying blindly and hoping for approval.</p>
+            </div>
           </div>
+
+          <div className="mt-6 grid max-w-[770px] gap-3 sm:grid-cols-4">
+            {[
+              ["🧠", "Smart Review", "before matching"],
+              ["🏆", "Top Network", "mortgage companies"],
+              ["⚡", "Fast Review", "quick response"],
+              ["🔒", "Secure", "private process"]
+            ].map(([icon, title, desc]) => <div key={title} className="rounded-2xl border border-cyan-300/20 bg-[#0b1a2c]/75 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"><div className="text-2xl">{icon}</div><div className="mt-3 font-black">{title}</div><div className="text-sm font-bold text-white/64">{desc}</div></div>)}
+          </div>
+
+          <button type="button" onClick={() => document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="mt-7 w-fit rounded-[24px] bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-400 px-8 py-5 text-lg font-black text-white shadow-[0_0_45px_rgba(59,130,246,.35)]">
+            Start My Free Review →
+          </button>
         </div>
-        <div className="relative min-h-[520px] overflow-hidden rounded-[42px] border border-white/10 bg-[#08101d] shadow-2xl shadow-black/50">
+        <div className="relative min-h-[440px] overflow-hidden rounded-[42px] border border-white/10 bg-[#08101d] shadow-2xl shadow-black/50 lg:min-h-[560px]">
           <img src={HERO_PHOTO} alt="Luxury home" className="absolute inset-0 h-full w-full object-cover opacity-90" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#050914] via-[#050914]/15 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#050914] via-[#050914]/20 to-transparent" />
           <div className="scan-line absolute left-0 right-0 top-1/2 h-[3px] bg-gradient-to-r from-transparent via-emerald-300 to-transparent shadow-[0_0_35px_rgba(52,211,153,.9)]" />
           <div className="absolute bottom-6 left-6 right-6 rounded-[30px] border border-white/15 bg-black/45 p-5 backdrop-blur-xl">
             <div className="text-xs font-black uppercase tracking-[.35em] text-cyan-200">Property Intelligence</div>
-            <div className="mt-2 text-2xl font-black">Smart review starts with your goal and property.</div>
+            <div className="mt-2 text-2xl font-black">We match. They review. You choose.</div>
+            <p className="mt-2 text-sm font-bold text-white/62">Start with your goal, then let the smart calculator build the right preview.</p>
           </div>
         </div>
       </section>
