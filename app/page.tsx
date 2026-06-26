@@ -281,86 +281,90 @@ export default function LandingPage() {
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_12%_8%,rgba(44,116,255,.28),transparent_28%),radial-gradient(circle_at_88%_18%,rgba(0,255,171,.18),transparent_30%),radial-gradient(circle_at_52%_100%,rgba(139,92,246,.20),transparent_35%),linear-gradient(180deg,#07111f,#050914)]" />
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.035)_1px,transparent_1px)] bg-[size:88px_88px] opacity-40" />
 
-      <section className="mx-auto max-w-[1560px] px-4 pt-4 sm:px-6 lg:px-8">
-        <div className="rounded-[26px] border border-cyan-400/30 bg-[#07111f]/80 p-4 shadow-[0_0_50px_rgba(31,111,235,.18)] backdrop-blur-xl lg:flex lg:items-center lg:justify-between lg:gap-7">
-          <div className="flex items-center gap-4 border-b border-white/10 pb-4 lg:min-w-[360px] lg:border-b-0 lg:border-r lg:pb-0 lg:pr-7">
-            <div className="text-xs font-black uppercase tracking-[.25em] text-white/65">As Featured On</div>
-            <div className="text-3xl font-black tracking-[-.08em] text-white sm:text-4xl">yahoo! <span className="text-2xl">finance</span></div>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:mt-0 lg:flex lg:flex-1 lg:justify-between">
-            {[
-              ["🛡", "Secure Review", "Your information is always protected"],
-              ["📄", "No Obligation", "Completely free to review"],
-              ["👥", "Top Mortgage Network", "Matched with mortgage companies"],
-              ["⚡", "Fast & Easy", "Get matched quickly"]
-            ].map(([icon, title, body]) => (
-              <div key={title} className="flex items-center gap-3 rounded-2xl bg-white/[.035] px-4 py-3">
-                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/10 text-2xl">{icon}</div>
-                <div><div className="font-black">{title}</div><div className="text-xs font-semibold text-white/65">{body}</div></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#050914]/85 backdrop-blur-2xl">
+      <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#050914]/92 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-[1560px] items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
           <a href="/" className="flex items-center gap-3">
-            <div className="relative h-12 w-12 rounded-2xl border border-cyan-300/40 bg-gradient-to-br from-emerald-400/20 to-blue-500/20 shadow-[0_0_30px_rgba(34,211,238,.28)]"><span className="absolute left-2 top-5 h-5 w-8 rotate-[-38deg] rounded-md border-l-4 border-t-4 border-emerald-300"/><span className="absolute bottom-2 right-2 h-7 w-7 rounded-md border-4 border-cyan-300"/></div>
+            <div className="relative h-12 w-12 rounded-2xl border border-cyan-300/45 bg-gradient-to-br from-emerald-400/20 to-blue-500/20 shadow-[0_0_30px_rgba(34,211,238,.28)]"><span className="absolute left-2 top-5 h-5 w-8 rotate-[-38deg] rounded-md border-l-4 border-t-4 border-emerald-300"/><span className="absolute bottom-2 right-2 h-7 w-7 rounded-md border-4 border-cyan-300"/></div>
             <div><div className="text-2xl font-black tracking-[.08em]">HELOC</div><div className="text-sm font-black uppercase tracking-[.35em] text-cyan-300">Connect</div></div>
           </a>
-          <div className="hidden items-center gap-7 text-sm font-black text-white/75 lg:flex">
-            {products.map((p) => <button key={p.key} onClick={() => switchProduct(p.key)} className={product === p.key ? "text-white underline decoration-cyan-300 decoration-2 underline-offset-[12px]" : "hover:text-white"}>{p.key === "equity_card" ? "Home Equity Line" : p.key === "purchase" ? "Purchase Mortgage" : p.title}</button>)}
+          <div className="hidden items-center gap-7 text-sm font-black text-white/72 lg:flex">
+            {products.map((p) => <button key={p.key} onClick={() => switchProduct(p.key)} className={product === p.key ? "text-white underline decoration-cyan-300 decoration-2 underline-offset-[12px]" : "hover:text-white"}>{p.key === "equity_card" ? "Home Equity Line" : p.key === "purchase" ? "Purchase Mortgage" : p.key === "refinance" ? "Cash-Out + Lower Payment" : p.title}</button>)}
             <a href="#calculator" className="hover:text-white">Check My Options</a>
           </div>
           <a href="tel:+19498662466" className="hidden rounded-2xl border border-cyan-300/40 bg-gradient-to-r from-emerald-400/20 to-blue-600/30 px-5 py-3 text-sm font-black shadow-[0_0_30px_rgba(59,130,246,.28)] md:inline-flex">☎ Connect to Live Agent</a>
         </div>
       </nav>
 
-      <section className="relative mx-auto grid max-w-[1560px] gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_.95fr] lg:px-8 lg:py-12">
+      <section className="mx-auto max-w-[1560px] px-4 pt-5 sm:px-6 lg:px-8">
+        <div className="grid gap-4 rounded-[28px] border border-cyan-400/25 bg-[#07111f]/78 p-4 shadow-[0_0_55px_rgba(31,111,235,.18)] backdrop-blur-xl lg:grid-cols-[.95fr_1fr] lg:items-center lg:p-5">
+          <div className="flex items-center gap-5 rounded-[22px] border border-white/10 bg-black/18 px-5 py-4">
+            <div className="text-xs font-black uppercase tracking-[.28em] text-cyan-200/80">As Featured On</div>
+            <div className="h-10 w-px bg-white/15" />
+            <div className="text-3xl font-black tracking-[-.08em] text-white sm:text-4xl">yahoo! <span className="text-2xl">finance</span></div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["🔒", "Secure Review", "Your information stays protected"],
+              ["💲", "Homeowners Pay $0", "Mortgage companies pay us"],
+              ["🏆", "Top Mortgage Network", "Proven companies only"],
+              ["📄", "Minimum Docs", "Less paperwork, less stress"]
+            ].map(([icon, title, body]) => (
+              <div key={title} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.04] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">
+                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/10 text-xl">{icon}</div>
+                <div><div className="text-sm font-black leading-tight">{title}</div><div className="text-xs font-bold text-white/58">{body}</div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative mx-auto grid max-w-[1560px] gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_.86fr] lg:px-8 lg:py-10">
         <div className="relative z-10 flex flex-col justify-center">
           <div className="inline-flex w-fit rounded-full border border-cyan-300/25 bg-cyan-300/8 px-5 py-2 text-xs font-black uppercase tracking-[.42em] text-cyan-200 shadow-[0_0_35px_rgba(34,211,238,.16)]">Free Homeowner Match Review</div>
-          <h1 className="mt-5 text-[44px] font-black leading-[.9] tracking-[-.07em] sm:text-7xl xl:text-[84px]">
-            Stop searching. Start with the <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">right match.</span>
+          <h1 className="mt-5 max-w-5xl text-[44px] font-black leading-[.9] tracking-[-.07em] sm:text-7xl xl:text-[86px]">
+            Protect your time. Protect your credit. Start with the <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent">right match.</span>
           </h1>
-          <p className="mt-6 max-w-3xl text-xl font-semibold leading-relaxed text-white/78">
-            HELOC CONNECT helps homeowners avoid wasting time with the wrong mortgage company. We review your goal, property, and financial situation first — then help match you with mortgage companies that may fit your needs for HELOC, refinance, cash-out, home equity credit line, or purchase mortgage options.
+          <p className="mt-6 max-w-3xl text-xl font-semibold leading-relaxed text-white/80">
+            HELOC CONNECT was built to help homeowners avoid wasting time and unnecessary credit pulls with the wrong mortgage company. We review your goals, property, and financial picture first — then help connect you with proven mortgage companies that make lending less stressful, with fewer documents, clearer options, and faster review paths.
           </p>
 
-          <div className="mt-6 grid max-w-3xl gap-3 sm:grid-cols-2">
+          <div className="mt-6 grid max-w-4xl gap-3 sm:grid-cols-3">
             <div className="rounded-3xl border border-emerald-300/25 bg-emerald-300/8 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">
-              <div className="text-xs font-black uppercase tracking-[.25em] text-emerald-200">Homeowners Pay $0</div>
-              <div className="mt-2 text-2xl font-black">The benefit is yours. The cost is with the mortgage company.</div>
-              <p className="mt-2 text-sm font-bold leading-relaxed text-white/62">Mortgage companies in our network compensate us for successful introductions, so your review and matching service is provided at no direct cost to you.</p>
+              <div className="text-xs font-black uppercase tracking-[.25em] text-emerald-200">Why We Exist</div>
+              <div className="mt-2 text-2xl font-black">No more guessing who to apply with.</div>
+              <p className="mt-2 text-sm font-bold leading-relaxed text-white/62">We help match your situation with mortgage companies that may actually fit your needs before you waste time chasing the wrong option.</p>
             </div>
             <div className="rounded-3xl border border-cyan-300/25 bg-cyan-300/8 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">
-              <div className="text-xs font-black uppercase tracking-[.25em] text-cyan-200">Why Us</div>
-              <div className="mt-2 text-2xl font-black">One smart review before you apply everywhere.</div>
-              <p className="mt-2 text-sm font-bold leading-relaxed text-white/62">We help you focus on mortgage companies and programs that better fit your situation instead of applying blindly and hoping for approval.</p>
+              <div className="text-xs font-black uppercase tracking-[.25em] text-cyan-200">Top Network</div>
+              <div className="mt-2 text-2xl font-black">We work with proven mortgage companies.</div>
+              <p className="mt-2 text-sm font-bold leading-relaxed text-white/62">Our network is built around companies that can make the lending process easier, faster, and more transparent.</p>
+            </div>
+            <div className="rounded-3xl border border-violet-300/25 bg-violet-300/8 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">
+              <div className="text-xs font-black uppercase tracking-[.25em] text-violet-200">Homeowners Pay $0</div>
+              <div className="mt-2 text-2xl font-black">The benefit is yours. The cost is not.</div>
+              <p className="mt-2 text-sm font-bold leading-relaxed text-white/62">Mortgage companies compensate us for successful introductions, so your review and matching service is provided at no direct cost to you.</p>
             </div>
           </div>
 
-          <div className="mt-6 grid max-w-[770px] gap-3 sm:grid-cols-4">
-            {[
-              ["🧠", "Smart Review", "before matching"],
-              ["🏆", "Top Network", "mortgage companies"],
-              ["⚡", "Fast Review", "quick response"],
-              ["🔒", "Secure", "private process"]
-            ].map(([icon, title, desc]) => <div key={title} className="rounded-2xl border border-cyan-300/20 bg-[#0b1a2c]/75 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]"><div className="text-2xl">{icon}</div><div className="mt-3 font-black">{title}</div><div className="text-sm font-bold text-white/64">{desc}</div></div>)}
+          <div className="mt-6 flex flex-wrap gap-3 text-sm font-black text-white/78">
+            {["Minimum document programs", "Fast approvals", "Cash-out options", "HELOC & refinance", "Purchase mortgage matching"].map((item) => (
+              <span key={item} className="rounded-full border border-white/10 bg-white/[.045] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">✓ {item}</span>
+            ))}
           </div>
 
           <button type="button" onClick={() => document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="mt-7 w-fit rounded-[24px] bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-400 px-8 py-5 text-lg font-black text-white shadow-[0_0_45px_rgba(59,130,246,.35)]">
             Start My Free Review →
           </button>
         </div>
-        <div className="relative min-h-[440px] overflow-hidden rounded-[42px] border border-white/10 bg-[#08101d] shadow-2xl shadow-black/50 lg:min-h-[560px]">
-          <img src={HERO_PHOTO} alt="Luxury home" className="absolute inset-0 h-full w-full object-cover opacity-90" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#050914] via-[#050914]/20 to-transparent" />
+        <div className="relative min-h-[420px] overflow-hidden rounded-[42px] border border-white/10 bg-[#08101d] shadow-2xl shadow-black/50 lg:min-h-[540px]">
+          <img src={HERO_PHOTO} alt="Luxury home" className="absolute inset-0 h-full w-full object-cover opacity-85" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#050914] via-[#050914]/16 to-transparent" />
           <div className="scan-line absolute left-0 right-0 top-1/2 h-[3px] bg-gradient-to-r from-transparent via-emerald-300 to-transparent shadow-[0_0_35px_rgba(52,211,153,.9)]" />
-          <div className="absolute bottom-6 left-6 right-6 rounded-[30px] border border-white/15 bg-black/45 p-5 backdrop-blur-xl">
-            <div className="text-xs font-black uppercase tracking-[.35em] text-cyan-200">Property Intelligence</div>
-            <div className="mt-2 text-2xl font-black">We match. They review. You choose.</div>
-            <p className="mt-2 text-sm font-bold text-white/62">Start with your goal, then let the smart calculator build the right preview.</p>
+          <div className="absolute left-6 top-6 rounded-full border border-emerald-300/25 bg-black/38 px-5 py-3 text-xs font-black uppercase tracking-[.28em] text-emerald-200 backdrop-blur-xl">Smart Match Technology</div>
+          <div className="absolute bottom-6 left-6 right-6 rounded-[30px] border border-white/15 bg-black/48 p-5 backdrop-blur-xl">
+            <div className="text-xs font-black uppercase tracking-[.35em] text-cyan-200">HELOC CONNECT Advantage</div>
+            <div className="mt-2 text-2xl font-black">One smart review before the wrong credit pull.</div>
+            <p className="mt-2 text-sm font-bold text-white/62">Select your goal next. The calculator will adjust to the right product path automatically.</p>
           </div>
         </div>
       </section>
