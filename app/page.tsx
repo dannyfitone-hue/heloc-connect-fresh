@@ -32,20 +32,20 @@ const products = [
     eyebrow: "ACCESS TO CASH",
     title: "HELOC",
     accent: "from-cyan-300 via-sky-400 to-blue-500",
-    glow: "shadow-[0_30px_80px_rgba(34,211,238,.22)]",
-    subtitle: "Access the equity you have already built while usually keeping your current mortgage in place.",
-    body: "A Home Equity Line of Credit can help with cash needs, debt payoff, remodels, emergency funds, or financial flexibility. Some homeowners may also prefer a home equity credit card option where your equity becomes your spending limit and you use funds as needed.",
+    glow: "shadow-[0_45px_110px_rgba(34,211,238,.32)]",
+    subtitle: "Access available equity while usually keeping your current mortgage in place.",
+    body: "Use your equity for cash needs, debt payoff, remodels, emergency funds, or financial flexibility. Some homeowners may also prefer a home equity credit card option where your equity becomes your spending limit and you use funds as needed.",
     tag: "Cash access • Flexible line",
-    bullets: ["Keep current mortgage", "Use funds as needed", "Great for debt or remodel"]
+    bullets: ["Keep current mortgage", "Use funds as needed", "Debt payoff or remodel"]
   },
   {
     key: "refinance" as ProductKey,
     eyebrow: "REFINANCE",
     title: "Cash-Out + Lower Payment",
     accent: "from-violet-300 via-blue-400 to-cyan-300",
-    glow: "shadow-[0_30px_80px_rgba(99,102,241,.24)]",
-    subtitle: "Replace your current mortgage and add the cash you need into one cleaner loan review.",
-    body: "A refinance can pay off your existing mortgage and combine requested cash-out into one new loan. The goal is simple: review whether a better available term, easier payment, and cash-out option may fit your situation when qualified.",
+    glow: "shadow-[0_45px_110px_rgba(124,58,237,.34)]",
+    subtitle: "Replace your current mortgage and add requested cash into one cleaner loan review.",
+    body: "A cash-out refinance can pay off your old mortgage and combine the cash you need into one new loan. The review helps compare what you may be paying now versus a new estimated payment when qualified.",
     tag: "One new loan • Cash-out",
     bullets: ["Current loan payoff", "Cash-out added", "One payment preview"]
   },
@@ -54,20 +54,20 @@ const products = [
     eyebrow: "HOME EQUITY CREDIT LINE",
     title: "Equity Credit Card",
     accent: "from-emerald-300 via-teal-300 to-cyan-400",
-    glow: "shadow-[0_30px_80px_rgba(16,185,129,.22)]",
-    subtitle: "Your equity can become flexible spending power with a card-style credit line option.",
-    body: "Instead of relying on high-interest traditional cards, homeowners may access a credit-card-style equity line with larger potential limits, flexible use, and program-based payment options.",
+    glow: "shadow-[0_45px_110px_rgba(16,185,129,.30)]",
+    subtitle: "Your equity can become flexible spending power with a credit-card-style line.",
+    body: "Instead of relying on high-interest traditional cards, homeowners may access a card-style equity line with larger potential limits, flexible use, and program-based payment options.",
     tag: "Your equity • Your limit",
-    bullets: ["Flexible spending", "Potentially larger limits", "Use as needed"]
+    bullets: ["Flexible spending", "Potential larger limits", "Use and reuse"]
   },
   {
     key: "purchase" as ProductKey,
     eyebrow: "BUYING A NEW HOME",
     title: "Purchase Mortgage",
-    accent: "from-amber-200 via-orange-300 to-violet-300",
-    glow: "shadow-[0_30px_80px_rgba(245,158,11,.20)]",
-    subtitle: "Buying a home? Get connected with a top-rated certified mortgage company network.",
-    body: "HELOC CONNECT helps buyers review competitive purchase loan options, strong terms, fast guidance, and mortgage companies that may fit their goals through our certified network.",
+    accent: "from-amber-200 via-orange-300 to-yellow-500",
+    glow: "shadow-[0_45px_110px_rgba(245,158,11,.28)]",
+    subtitle: "Get matched with a top-rated certified mortgage company network for purchase financing.",
+    body: "HELOC CONNECT helps buyers review competitive rates, strong terms, fast guidance, and purchase loan options that may fit their goals through our certified mortgage company network.",
     tag: "Purchase loan • Match review",
     bullets: ["Competitive terms", "Fast guidance", "Certified network"]
   }
@@ -351,31 +351,38 @@ export default function LandingPage() {
         <section className="rounded-[44px] border border-white/10 bg-[#070d18]/88 p-5 shadow-[0_40px_120px_rgba(0,0,0,.55)] backdrop-blur-xl sm:p-8">
           <div className="mx-auto max-w-4xl text-center">
             <div className="inline-flex rounded-full border border-cyan-300/25 bg-cyan-300/8 px-5 py-2 text-xs font-black uppercase tracking-[.42em] text-cyan-200 shadow-[0_0_35px_rgba(34,211,238,.16)]">Start Here</div>
-            <h2 className="mt-5 text-4xl font-black tracking-[-.055em] sm:text-6xl">What brings you in today?</h2>
-            <p className="mx-auto mt-4 max-w-3xl text-lg font-semibold leading-relaxed text-white/65">Choose the goal that fits you best. The smart calculator will instantly move to the right review path and update the numbers for that option.</p>
+            <h2 className="mt-5 text-4xl font-black tracking-[-.055em] sm:text-6xl">What are you most interested in?</h2>
+            <p className="mx-auto mt-4 max-w-3xl text-lg font-semibold leading-relaxed text-white/65">Pick the path that matches what you want to accomplish. The smart calculator will scroll down and update the payment preview for that exact option.</p>
           </div>
-          <div className="mt-10 grid gap-5 lg:grid-cols-4">
+          <div className="service-perspective mt-12 grid gap-7 lg:grid-cols-4">
             {products.map((p, index) => (
-              <button key={p.key} type="button" onClick={() => switchProduct(p.key)} className={`group relative min-h-[430px] overflow-hidden rounded-[36px] border p-0 text-left transition duration-500 [transform-style:preserve-3d] hover:-translate-y-3 hover:rotate-x-[3deg] hover:rotate-y-[-3deg] ${product === p.key ? `border-white/40 ${p.glow}` : "border-white/12 shadow-2xl hover:border-white/30"}`}>
-                <div className={`absolute inset-0 bg-gradient-to-br ${p.accent} opacity-0 blur-2xl transition duration-500 group-hover:opacity-25 ${product === p.key ? "opacity-25" : ""}`} />
-                <img src={PRODUCT_PHOTOS[p.key]} alt={p.title} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-110" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/64 to-black/10" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_10%,rgba(255,255,255,.22),transparent_28%),linear-gradient(120deg,transparent,rgba(255,255,255,.12),transparent)] opacity-45" />
-                <div className={`absolute inset-x-5 top-5 h-1 rounded-full bg-gradient-to-r ${p.accent} shadow-[0_0_26px_rgba(34,211,238,.35)]`} />
-                <div className="relative flex h-full flex-col justify-between p-6">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="grid h-14 w-14 place-items-center rounded-2xl border border-white/15 bg-white/15 text-2xl backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,.18)]">{index === 0 ? "🏠" : index === 1 ? "↻" : index === 2 ? "💳" : "🔑"}</div>
-                    {product === p.key && <div className="rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-[.18em] text-[#07111f] shadow-[0_0_35px_rgba(255,255,255,.35)]">Selected</div>}
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => switchProduct(p.key)}
+                className={`service-card group relative min-h-[500px] overflow-hidden rounded-[42px] border p-0 text-left transition duration-500 ${product === p.key ? `is-selected border-white/45 ${p.glow}` : "border-white/15 shadow-[0_28px_90px_rgba(0,0,0,.5)] hover:border-white/35"}`}
+              >
+                <div className="absolute inset-0 bg-[#080f1b]" />
+                <div className={`absolute inset-0 bg-gradient-to-br ${p.accent} opacity-[.10] transition duration-500 group-hover:opacity-[.18] ${product === p.key ? "opacity-[.24]" : ""}`} />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_12%,rgba(255,255,255,.16),transparent_28%),radial-gradient(circle_at_80%_0%,rgba(255,255,255,.10),transparent_18%),linear-gradient(145deg,rgba(255,255,255,.08),transparent_34%,rgba(0,0,0,.22))]" />
+                <div className={`absolute inset-x-6 top-5 h-1 rounded-full bg-gradient-to-r ${p.accent} shadow-[0_0_30px_rgba(34,211,238,.32)]`} />
+                <div className={`absolute -bottom-16 left-8 right-8 h-20 rounded-[100%] bg-gradient-to-r ${p.accent} opacity-0 blur-2xl transition duration-500 group-hover:opacity-45 ${product === p.key ? "opacity-55" : ""}`} />
+                <div className="relative flex h-full flex-col justify-between p-7">
+                  <div>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className={`grid h-20 w-20 place-items-center rounded-[26px] border border-white/18 bg-gradient-to-br ${p.accent} bg-opacity-20 text-4xl shadow-[inset_0_1px_0_rgba(255,255,255,.24),0_18px_40px_rgba(0,0,0,.35)]`}>{index === 0 ? "🏠" : index === 1 ? "↻" : index === 2 ? "💳" : "🔑"}</div>
+                      {product === p.key && <div className="rounded-full bg-white px-4 py-2 text-xs font-black uppercase tracking-[.18em] text-[#07111f] shadow-[0_0_40px_rgba(255,255,255,.35)]">Selected</div>}
+                    </div>
+                    <div className={`mt-8 inline-flex w-fit rounded-full border border-white/12 bg-white/[.06] px-4 py-2 text-[11px] font-black uppercase tracking-[.24em] text-white/80 backdrop-blur-xl`}>{p.eyebrow}</div>
+                    <h3 className={`mt-5 bg-gradient-to-r ${p.accent} bg-clip-text text-[38px] font-black leading-[.9] tracking-[-.065em] text-transparent sm:text-[44px]`}>{p.title}</h3>
+                    <p className="mt-5 text-lg font-black leading-snug text-white">{p.subtitle}</p>
+                    <p className="mt-4 text-[15px] font-semibold leading-relaxed text-white/68">{p.body}</p>
                   </div>
                   <div>
-                    <div className={`mb-4 inline-flex w-fit rounded-2xl border border-white/15 bg-white/12 px-3 py-2 text-[11px] font-black uppercase tracking-[.23em] text-cyan-100 backdrop-blur-xl`}>{p.eyebrow}</div>
-                    <h3 className={`bg-gradient-to-r ${p.accent} bg-clip-text text-4xl font-black leading-[.95] tracking-[-.055em] text-transparent`}>{p.title}</h3>
-                    <p className="mt-4 text-base font-black leading-snug text-white">{p.subtitle}</p>
-                    <p className="mt-3 text-sm font-semibold leading-relaxed text-white/72">{p.body}</p>
-                    <div className="mt-4 grid gap-2">
-                      {p.bullets.map((b) => <div key={b} className="flex items-center gap-2 text-xs font-black uppercase tracking-[.12em] text-white/76"><span className={`h-2 w-2 rounded-full bg-gradient-to-r ${p.accent}`} />{b}</div>)}
+                    <div className="mt-6 grid gap-3 border-t border-white/10 pt-5">
+                      {p.bullets.map((b) => <div key={b} className="flex items-center gap-3 text-sm font-black text-white/82"><span className={`grid h-6 w-6 place-items-center rounded-full bg-gradient-to-r ${p.accent} text-[11px] text-[#05101d] shadow-[0_0_18px_rgba(34,211,238,.22)]`}>✓</span>{b}</div>)}
                     </div>
-                    <div className={`mt-5 inline-flex rounded-full border border-white/15 bg-black/30 px-4 py-2 text-sm font-black text-emerald-300 backdrop-blur-xl`}>{p.tag}</div>
+                    <div className={`mt-6 inline-flex rounded-full border border-white/15 bg-black/35 px-5 py-3 text-sm font-black text-white backdrop-blur-xl`}>{p.tag}</div>
                   </div>
                 </div>
               </button>
@@ -474,6 +481,13 @@ export default function LandingPage() {
       </form>
 
       <style jsx global>{`
+        .service-perspective { perspective: 1600px; }
+        .service-card { transform-style: preserve-3d; transform: rotateX(0deg) translateY(0); }
+        .service-card:hover { transform: rotateX(4deg) rotateY(-4deg) translateY(-14px) scale(1.015); }
+        .service-card.is-selected { transform: translateY(-10px) scale(1.018); }
+        .service-card:before { content: ""; position: absolute; inset: 0; border-radius: 42px; padding: 1px; background: linear-gradient(135deg, rgba(255,255,255,.7), rgba(255,255,255,.08), rgba(255,255,255,.32)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; opacity:.55; pointer-events:none; }
+        .service-card:after { content: ""; position:absolute; inset:-80px; background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.18) 50%, transparent 65%); transform: translateX(-70%) rotate(8deg); transition: transform .9s ease; pointer-events:none; }
+        .service-card:hover:after { transform: translateX(70%) rotate(8deg); }
         @keyframes scanMove { 0%,100% { transform: translateY(-130px); opacity:.35 } 50% { transform: translateY(130px); opacity:1 } }
         .scan-line { animation: scanMove 4.5s ease-in-out infinite; }
       `}</style>
