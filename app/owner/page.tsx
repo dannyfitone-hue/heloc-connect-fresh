@@ -186,7 +186,7 @@ export default async function OwnerPage({ searchParams }: { searchParams?: Recor
                           <span className="rounded-full border border-[#f6c15a]/40 bg-[#f6c15a]/10 px-3 py-1 text-xs font-black text-[#f6c15a]">{l.status || "Application Received"}</span>
                         </div>
                         <p className="mt-2 text-sm font-semibold text-white/65">{l.email || "No email"} • {l.phone || "No phone"}</p>
-                        <p className="mt-2 text-sm font-semibold text-white/65">{l.address || "No address"} {l.city ? `• ${l.city}, ${l.state || ""} ${l.zip || ""}` : ""}</p>
+                        <p className="mt-2 text-sm font-semibold text-white/65">{l.property_address || l.address || "No address"} {l.city ? `• ${l.city}, ${l.state || ""} ${l.zip || ""}` : ""}</p>
                         <p className="mt-2 text-xs font-black text-emerald-300">Assigned: {l.assigned_agent || (l.assigned_lender_id ? "Assigned" : "Unassigned")}</p>
                         <a className="mt-4 inline-flex rounded-2xl border border-white/10 px-4 py-2 text-sm font-black text-[#f6c15a]" href={`/status/${l.token}`} target="_blank">
                           Open Client Status Page →
@@ -199,7 +199,7 @@ export default async function OwnerPage({ searchParams }: { searchParams?: Recor
                         <div className="rounded-2xl bg-black/20 p-4"><div className="text-white/45">Requested</div><b>{money(l.requested_amount)}</b></div>
                         <div className="rounded-2xl bg-black/20 p-4"><div className="text-white/45">Equity Room</div><b>{money(l.equity_room)}</b></div>
                         <div className="rounded-2xl bg-black/20 p-4"><div className="text-white/45">Credit</div><b>{l.credit_score || "—"}</b></div>
-                        <div className="rounded-2xl bg-black/20 p-4"><div className="text-white/45">Income</div><b>{money(l.income)}</b></div>
+                        <div className="rounded-2xl bg-black/20 p-4"><div className="text-white/45">Income</div><b>{money(l.monthly_income || l.income)}</b></div>
                       </div>
 
                       <div className="grid gap-3">

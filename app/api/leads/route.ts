@@ -60,6 +60,17 @@ export async function POST(req: Request) {
 
   const clientToken = makeToken();
 
+  const extraNotes = [
+    `Selected product: ${clean(body.selected_product, 80)}`,
+    `Main goal: ${clean(body.main_goal, 160)}`,
+    `Use of funds: ${clean(body.cash_use, 160)}`,
+    `Credit card payment history: ${clean(body.credit_card_payments, 240)}`,
+    `Bankruptcy last 10 years: ${clean(body.bankruptcy_10_years, 120)}`,
+    `SMS consent: ${clean(body.sms_consent, 40) || "not selected"}`,
+    `Current interest rate: ${clean(body.current_interest_rate, 40)}`,
+    body.co_first_name || body.co_last_name ? `Co-owner: ${clean(body.co_first_name, 80)} ${clean(body.co_last_name, 80)} | ${clean(body.co_phone, 80)} | ${clean(body.co_email, 160)} | credit: ${clean(body.co_credit_score, 80)} | bankruptcy: ${clean(body.co_bankruptcy_10_years, 120)} | card payments: ${clean(body.co_credit_card_payments, 180)}` : "Co-owner: not added"
+  ].join("\n");
+
   const lead = {
     tracking_id: trackingId(),
     client_token: clientToken,
@@ -81,7 +92,7 @@ export async function POST(req: Request) {
     monthly_income: num(body.monthly_income),
     mortgage_standing: clean(body.mortgage_good_standing, 120),
     status: "Application Received",
-    notes: "Submitted from HELOC CONNECT smart calculator"
+    notes: cleanLong(`Submitted from HELOC CONNECT smart calculator\n${extraNotes}`)
   };
 
   try {
