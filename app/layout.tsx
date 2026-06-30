@@ -1,5 +1,7 @@
 import "./globals.css";
 
+export const viewport = { width: "device-width", initialScale: 1, maximumScale: 1 };
+
 export const metadata = {
   title: "HELOC CONNECT | Home Equity Connection Platform",
   description: "HELOC CONNECT helps homeowners connect with carefully selected mortgage companies.",
