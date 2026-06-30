@@ -662,6 +662,293 @@ export default function LandingPage() {
 
           button[type='submit'], form button:not([type]) { min-height: 58px !important; border-radius: 20px !important; }
         }
+
+
+        /* V20 MOBILE-FIRST PREMIUM REPAIR */
+        * { box-sizing: border-box; }
+        @media (max-width: 900px) {
+          html, body { width: 100% !important; max-width: 100% !important; overflow-x: hidden !important; }
+          body { -webkit-text-size-adjust: 100%; }
+          main { width: 100% !important; max-width: 100vw !important; overflow-x: hidden !important; }
+          img { max-width: 100%; }
+
+          /* global containers */
+          .mx-auto { width: 100% !important; max-width: 100% !important; }
+          section, form { width: 100% !important; max-width: 100vw !important; padding-left: 14px !important; padding-right: 14px !important; }
+          form { padding-bottom: 44px !important; }
+          .max-w-\[1560px\] { max-width: 100% !important; }
+
+          /* stack layouts safely */
+          .grid { display: grid !important; grid-template-columns: 1fr !important; gap: 16px !important; }
+          .grid > * { min-width: 0 !important; max-width: 100% !important; }
+          .flex { min-width: 0 !important; }
+          .flex-wrap { flex-wrap: wrap !important; }
+
+          /* nav */
+          nav .mx-auto { padding: 12px 14px !important; }
+          nav a:first-child { min-width: 0 !important; gap: 9px !important; }
+          nav a:first-child > div:first-child { height: 42px !important; width: 42px !important; border-radius: 14px !important; }
+          nav a:first-child > div:last-child > div:first-child { font-size: 18px !important; line-height: 1 !important; }
+          nav a:first-child > div:last-child > div:last-child { font-size: 10px !important; letter-spacing: .22em !important; }
+          nav .hidden { display: none !important; }
+
+          /* trust bar */
+          section:first-of-type .grid { border-radius: 24px !important; padding: 12px !important; }
+          section:first-of-type .flex { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; padding: 16px !important; }
+          section:first-of-type .h-10 { display: none !important; }
+          section:first-of-type .text-3xl { font-size: 30px !important; line-height: .95 !important; }
+
+          /* hero */
+          h1 { font-size: clamp(38px, 12.7vw, 58px) !important; line-height: .92 !important; letter-spacing: -.07em !important; }
+          h2 { font-size: clamp(30px, 9vw, 42px) !important; line-height: 1.02 !important; letter-spacing: -.055em !important; }
+          h3 { font-size: clamp(25px, 8vw, 36px) !important; line-height: 1.03 !important; }
+          p { font-size: 15px !important; line-height: 1.55 !important; }
+          .text-xl { font-size: 16px !important; line-height: 1.55 !important; }
+          .text-lg { font-size: 15px !important; line-height: 1.45 !important; }
+          .text-7xl, .xl\:text-\[86px\] { font-size: clamp(38px, 12.7vw, 58px) !important; }
+
+          /* hero image becomes clean phone card */
+          .min-h-\[420px\], .lg\:min-h-\[540px\] { min-height: 300px !important; height: 300px !important; }
+          .h-\[310px\] { height: 220px !important; }
+
+          /* services - premium phone cards */
+          .service-perspective { grid-template-columns: 1fr !important; gap: 18px !important; perspective: none !important; margin-top: 24px !important; }
+          .service-card { min-height: 0 !important; width: 100% !important; border-radius: 28px !important; transform: none !important; box-shadow: 0 22px 70px rgba(0,0,0,.42) !important; }
+          .service-card:hover, .service-card.is-selected { transform: none !important; }
+          .service-card:before { border-radius: 28px !important; }
+          .service-card > div.relative { padding: 22px !important; }
+          .service-card h3 { font-size: 34px !important; line-height: .98 !important; margin-top: 16px !important; }
+          .service-card p { font-size: 14px !important; line-height: 1.5 !important; }
+          .service-card .mt-8, .service-card .mt-7, .service-card .mt-6 { margin-top: 16px !important; }
+
+          /* rounded cards */
+          [class*='rounded-[44px]'], [class*='rounded-[42px]'], [class*='rounded-[40px]'], [class*='rounded-[38px]'] { border-radius: 28px !important; }
+          [class*='rounded-[34px]'], [class*='rounded-[30px]'], [class*='rounded-[28px]'], [class*='rounded-[26px]'] { border-radius: 22px !important; }
+
+          /* spacing */
+          .p-8, .sm\:p-8, .p-7 { padding: 20px !important; }
+          .p-6, .sm\:p-6 { padding: 18px !important; }
+          .p-5 { padding: 16px !important; }
+          .px-8 { padding-left: 18px !important; padding-right: 18px !important; }
+          .py-8, .lg\:py-10 { padding-top: 24px !important; padding-bottom: 24px !important; }
+          .mt-12 { margin-top: 30px !important; }
+          .mt-8 { margin-top: 24px !important; }
+          .mt-7 { margin-top: 22px !important; }
+          .mt-6 { margin-top: 18px !important; }
+          .gap-8, .gap-7, .gap-6 { gap: 18px !important; }
+
+          /* calculator: make inputs obvious and results readable */
+          #smart-calculator, #calculator { scroll-margin-top: 80px; }
+          input, select, textarea, button { font-size: 16px !important; max-width: 100% !important; }
+          input:not([type='range']), select, textarea { min-height: 56px !important; width: 100% !important; border-radius: 18px !important; padding: 15px 16px !important; }
+          input[type='range'] { width: 100% !important; min-height: 48px !important; }
+          .text-5xl { font-size: 34px !important; line-height: 1.05 !important; }
+          .text-4xl { font-size: 30px !important; line-height: 1.08 !important; }
+          .text-3xl { font-size: 25px !important; line-height: 1.1 !important; }
+          .text-2xl { font-size: 21px !important; }
+          .tracking-\[\.42em\], .tracking-\[\.38em\], .tracking-\[\.35em\], .tracking-\[\.34em\], .tracking-\[\.28em\], .tracking-\[\.25em\] { letter-spacing: .14em !important; }
+
+          /* prevent any two-column leftovers */
+          [class*='grid-cols-'], [class*='lg:grid-cols-'], [class*='xl:grid-cols-'], [class*='md:grid-cols-'], [class*='sm:grid-cols-'] { grid-template-columns: 1fr !important; }
+          [class*='col-span-'] { grid-column: auto !important; }
+
+          /* CTA buttons */
+          button[type='submit'], form button:not([type]), a[href^='tel'] { min-height: 58px !important; border-radius: 20px !important; width: 100%; justify-content: center; }
+        }
+
+        @media (max-width: 430px) {
+          section, form { padding-left: 12px !important; padding-right: 12px !important; }
+          h1 { font-size: 42px !important; }
+          .service-card h3 { font-size: 31px !important; }
+          .min-h-\[420px\], .lg\:min-h-\[540px\] { min-height: 260px !important; height: 260px !important; }
+          .grid { gap: 14px !important; }
+          .p-8, .sm\:p-8, .p-7, .p-6, .sm\:p-6, .p-5 { padding: 16px !important; }
+        }
+
+
+        /* V21 TRUE MOBILE PREMIUM REDESIGN - keep desktop unchanged */
+        @media (max-width: 768px) {
+          html, body, main { overflow-x: hidden !important; width: 100% !important; max-width: 100vw !important; }
+          body { background: #050914 !important; -webkit-text-size-adjust: 100%; }
+
+          /* phone safe canvas */
+          nav { position: sticky !important; top: 0 !important; }
+          nav .mx-auto { padding: 14px 18px !important; min-height: 82px !important; }
+          nav a:first-child { transform: scale(.92); transform-origin: left center; }
+
+          /* Do not waste first phone screen on giant trust blocks */
+          main > section:first-of-type {
+            padding: 10px 16px 0 !important;
+          }
+          main > section:first-of-type > .grid {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+            padding: 12px !important;
+            border-radius: 22px !important;
+            background: rgba(7,17,31,.62) !important;
+          }
+          main > section:first-of-type > .grid > .flex {
+            min-height: 54px !important;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 10px !important;
+            padding: 12px 14px !important;
+            border-radius: 18px !important;
+          }
+          main > section:first-of-type .text-xs { font-size: 9px !important; letter-spacing: .2em !important; line-height: 1.15 !important; }
+          main > section:first-of-type .text-3xl,
+          main > section:first-of-type .text-4xl { font-size: 24px !important; line-height: .88 !important; white-space: nowrap !important; }
+          main > section:first-of-type .h-10 { height: 34px !important; display:block !important; }
+          main > section:first-of-type .sm\:grid-cols-2,
+          main > section:first-of-type .lg\:grid-cols-4 {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 8px !important;
+          }
+          main > section:first-of-type .sm\:grid-cols-2 > div,
+          main > section:first-of-type .lg\:grid-cols-4 > div {
+            padding: 10px !important;
+            border-radius: 16px !important;
+            min-height: 62px !important;
+            gap: 8px !important;
+          }
+          main > section:first-of-type .sm\:grid-cols-2 > div > div:first-child,
+          main > section:first-of-type .lg\:grid-cols-4 > div > div:first-child {
+            width: 32px !important; height: 32px !important; min-width: 32px !important; border-radius: 12px !important; font-size: 15px !important;
+          }
+          main > section:first-of-type .sm\:grid-cols-2 .text-sm,
+          main > section:first-of-type .lg\:grid-cols-4 .text-sm { font-size: 11px !important; line-height: 1.1 !important; }
+          main > section:first-of-type .sm\:grid-cols-2 .text-xs,
+          main > section:first-of-type .lg\:grid-cols-4 .text-xs { font-size: 9px !important; line-height: 1.2 !important; letter-spacing: 0 !important; }
+
+          /* Hero must be first meaningful story, compact and readable */
+          main > section:nth-of-type(2) {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 18px !important;
+            padding: 22px 16px 18px !important;
+          }
+          main > section:nth-of-type(2) h1 {
+            font-size: clamp(34px, 10.8vw, 46px) !important;
+            line-height: .94 !important;
+            letter-spacing: -.06em !important;
+            margin-top: 14px !important;
+          }
+          main > section:nth-of-type(2) p {
+            font-size: 15px !important;
+            line-height: 1.45 !important;
+            margin-top: 14px !important;
+          }
+          main > section:nth-of-type(2) .inline-flex { font-size: 9px !important; letter-spacing: .26em !important; padding: 8px 12px !important; }
+          main > section:nth-of-type(2) .grid.max-w-4xl {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+            margin-top: 16px !important;
+          }
+          main > section:nth-of-type(2) .grid.max-w-4xl > div {
+            padding: 14px !important;
+            border-radius: 18px !important;
+          }
+          main > section:nth-of-type(2) .grid.max-w-4xl .text-2xl { font-size: 18px !important; line-height: 1.15 !important; }
+          main > section:nth-of-type(2) .flex.flex-wrap { gap: 8px !important; margin-top: 14px !important; }
+          main > section:nth-of-type(2) .flex.flex-wrap span { font-size: 11px !important; padding: 8px 10px !important; }
+          main > section:nth-of-type(2) .relative.min-h-\[420px\] { min-height: 220px !important; height: 220px !important; border-radius: 24px !important; }
+          main > section:nth-of-type(2) .absolute.bottom-6 { left: 14px !important; right: 14px !important; bottom: 14px !important; padding: 14px !important; border-radius: 18px !important; }
+          main > section:nth-of-type(2) .absolute.bottom-6 .text-2xl { font-size: 18px !important; }
+
+          /* Service selection: phone = clean tappable compact premium cards */
+          section[aria-label='service-selection'], .service-section { padding-left: 16px !important; padding-right: 16px !important; }
+          .service-perspective {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+            perspective: none !important;
+            margin-top: 18px !important;
+          }
+          .service-card {
+            min-height: 184px !important;
+            height: auto !important;
+            width: 100% !important;
+            border-radius: 24px !important;
+            transform: none !important;
+            overflow: hidden !important;
+            box-shadow: 0 18px 48px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.08) !important;
+          }
+          .service-card:hover, .service-card.is-selected { transform: none !important; }
+          .service-card > div.relative { padding: 18px !important; min-height: 184px !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; }
+          .service-card img, .service-card .absolute.inset-0 { opacity: .18 !important; }
+          .service-card h3 {
+            font-size: 28px !important;
+            line-height: .98 !important;
+            margin-top: 8px !important;
+            letter-spacing: -.04em !important;
+          }
+          .service-card p { font-size: 13px !important; line-height: 1.35 !important; margin-top: 8px !important; display: -webkit-box !important; -webkit-line-clamp: 2 !important; -webkit-box-orient: vertical !important; overflow: hidden !important; }
+          .service-card .mt-8 { margin-top: 10px !important; }
+          .service-card .mt-8 > div:nth-child(n+3) { display: none !important; }
+          .service-card .h-16, .service-card .w-16 { width: 46px !important; height: 46px !important; }
+          .service-card [class*='tracking-'] { letter-spacing: .16em !important; }
+          .service-card .rounded-full { padding: 8px 12px !important; font-size: 11px !important; }
+
+          /* Step cards and calculator must not look like giant posters */
+          #smart-calculator { scroll-margin-top: 90px !important; }
+          #smart-calculator.grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+          #smart-calculator > div { padding: 18px !important; border-radius: 26px !important; }
+          #smart-calculator h2 { font-size: 31px !important; line-height: 1.02 !important; }
+          #smart-calculator label.block { padding: 16px !important; border-radius: 20px !important; }
+          #smart-calculator label.block span { font-size: 18px !important; line-height: 1.15 !important; }
+          #smart-calculator .h-\[310px\] { height: 210px !important; border-radius: 22px !important; }
+          #smart-calculator input, #smart-calculator select { font-size: 16px !important; min-height: 54px !important; }
+
+          /* Smart calculator lower area */
+          section.rounded-\[40px\] {
+            margin-left: 16px !important;
+            margin-right: 16px !important;
+            padding: 18px !important;
+            border-radius: 26px !important;
+          }
+          section.rounded-\[40px\] h2 { font-size: 30px !important; line-height: 1.05 !important; }
+          section.rounded-\[40px\] .grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+          section.rounded-\[40px\] .text-5xl { font-size: 34px !important; }
+          section.rounded-\[40px\] .text-4xl { font-size: 29px !important; }
+          section.rounded-\[40px\] .text-3xl { font-size: 25px !important; }
+          section.rounded-\[40px\] [class*='rounded-[34px]'],
+          section.rounded-\[40px\] [class*='rounded-[28px]'],
+          section.rounded-\[40px\] [class*='rounded-[26px]'] { border-radius: 20px !important; padding: 16px !important; }
+          section.rounded-\[40px\] [class*='tracking-'] { letter-spacing: .13em !important; }
+
+          /* Final form */
+          section.rounded-\[38px\] {
+            margin-left: 16px !important;
+            margin-right: 16px !important;
+            padding: 18px !important;
+            border-radius: 26px !important;
+          }
+          section.rounded-\[38px\] h2 { font-size: 32px !important; }
+          section.rounded-\[38px\] .grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+
+          input:not([type='checkbox']):not([type='radio']):not([type='range']), select, textarea {
+            width: 100% !important;
+            min-height: 54px !important;
+            border-radius: 16px !important;
+            padding: 14px 15px !important;
+            font-size: 16px !important;
+          }
+          button[type='submit'], a[href^='tel'] { min-height: 56px !important; border-radius: 18px !important; width: 100% !important; justify-content: center !important; }
+        }
+
+        @media (max-width: 430px) {
+          main > section:first-of-type .sm\:grid-cols-2,
+          main > section:first-of-type .lg\:grid-cols-4 { grid-template-columns: 1fr !important; }
+          main > section:nth-of-type(2) h1 { font-size: 39px !important; }
+          .service-card h3 { font-size: 26px !important; }
+          .service-card > div.relative { min-height: 176px !important; }
+          section.rounded-\[40px\], section.rounded-\[38px\] { margin-left: 12px !important; margin-right: 12px !important; }
+        }
+
       `}</style>
     </main>
   );
