@@ -488,24 +488,67 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-[38px] border border-emerald-300/25 bg-[#07111f]/92 p-6 shadow-2xl sm:p-8">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between"><div><div className="text-xs font-black uppercase tracking-[.35em] text-cyan-300">Smart Qualifying Calculator</div><h2 className="mt-3 text-4xl font-black tracking-[-.05em]">{calculatorHeadline}</h2></div><div className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-5 py-3 text-sm font-black text-emerald-200">Estimated in seconds</div></div>
-
-          {product === "purchase" && <label className="mt-5 flex cursor-pointer items-center gap-3 rounded-3xl border border-white/15 bg-white/[.04] p-5 text-lg font-black"><input type="checkbox" checked={purchaseTargetMode} onChange={(e) => setPurchaseTargetMode(e.target.checked)} className="h-5 w-5"/> I haven't found the right home yet</label>}
-
-          <div className="mt-6 grid gap-5 lg:grid-cols-3">
-            {product !== "purchase" && <><div className="rounded-3xl border border-white/10 bg-black/20 p-5"><label className="text-white/60">Current mortgage balance</label><input name="mortgage_balance" value={moneyDisplay(mortgageBalanceInput)} onChange={(e) => setMortgageBalanceInput(e.target.value)} placeholder="$350,000" className="mt-3 w-full bg-transparent text-4xl font-black outline-none"/></div><div className="rounded-3xl border border-white/10 bg-black/20 p-5"><label className="text-white/60">Cash amount requested</label><input name="requested_cash" value={moneyDisplay(requestedCashInput)} onChange={(e) => setRequestedCashInput(e.target.value)} placeholder="$100,000" className="mt-3 w-full bg-transparent text-4xl font-black text-emerald-300 outline-none"/></div></>}
-            {product === "refinance" && <div className="rounded-3xl border border-white/10 bg-black/20 p-5"><label className="text-white/60">Current loan interest rate</label><input name="current_interest_rate" value={currentRateInput} onChange={(e) => setCurrentRateInput(e.target.value)} placeholder="7.25" className="mt-3 w-full bg-transparent text-4xl font-black outline-none"/><p className="text-xs font-bold text-white/45">Used only to estimate what you may be paying now.</p></div>}
-            {product === "purchase" && <div className="rounded-3xl border border-white/10 bg-black/20 p-5 lg:col-span-3"><label className="text-2xl font-black">How much would you like to borrow for the purchase?</label><input type="range" min="100000" max="2000000" step="25000" value={purchaseLoan} onChange={(e) => setPurchaseLoanInput(e.target.value)} className="mt-8 w-full accent-emerald-300"/><input type="hidden" name="requested_cash" value={purchaseLoan}/><input type="hidden" name="mortgage_balance" value="0"/></div>}
+        <section className="mt-8 rounded-[40px] border border-emerald-300/25 bg-[#06101d]/95 p-5 shadow-[0_40px_130px_rgba(0,0,0,.55)] sm:p-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="text-xs font-black uppercase tracking-[.38em] text-cyan-300">Smart Qualifying Calculator</div>
+              <h2 className="mt-3 text-4xl font-black tracking-[-.055em] sm:text-5xl">{calculatorHeadline}</h2>
+              <p className="mt-3 max-w-3xl text-base font-semibold leading-relaxed text-white/62">
+                First enter the numbers we need. Then the calculator separates your personal inputs from the estimated results so it is easy to understand what you typed and what HELOC CONNECT calculated.
+              </p>
+            </div>
+            <div className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-5 py-3 text-sm font-black text-emerald-200 shadow-[0_0_28px_rgba(16,185,129,.18)]">Estimated in seconds</div>
           </div>
 
-          <div className="mt-6 grid gap-5 lg:grid-cols-4">
-            <ResultCard title={product === "purchase" ? "Selected Purchase Loan Amount" : "Property Value"} value={product === "purchase" ? formatMoney(purchaseLoan) : homeValue ? formatMoney(homeValue) : "—"} />
-            <ResultCard title={product === "refinance" ? "Estimated Current Payment" : product === "purchase" ? "Estimated Monthly Payment" : "Maximum Possible Equity"} value={product === "refinance" ? `${formatMoney(currentMortgagePayment)}/mo` : product === "purchase" ? `${formatMoney(purchasePayment)}/mo` : maxEquity ? formatMoney(maxEquity) : "—"} />
-            <ResultCard title={product === "refinance" ? "New Payment With Cash-Out" : product === "purchase" ? "Estimated Home Price Range" : "Requested Amount Payment"} value={product === "refinance" ? `${formatMoney(refinancePayment)}/mo` : product === "purchase" ? `${formatMoney(Math.round(purchaseLoan * 1.2))} - ${formatMoney(Math.round(purchaseLoan * 1.35))}` : `${formatMoney(helocPayment)}/mo`} />
-            <ResultCard title={product === "refinance" ? "Cash-Out Requested" : product === "purchase" ? "Estimated Down Payment Needed" : "Cash Requested"} value={product === "refinance" ? formatMoney(boundedCash) : product === "purchase" ? formatMoney(Math.round(purchaseLoan * .25)) : formatMoney(boundedCash || requestedCash)} />
+          {product === "purchase" && <label className="mt-6 flex cursor-pointer items-center gap-4 rounded-[26px] border border-white/15 bg-white/[.045] p-5 text-lg font-black transition hover:border-emerald-300/50"><input type="checkbox" checked={purchaseTargetMode} onChange={(e) => setPurchaseTargetMode(e.target.checked)} className="h-5 w-5 accent-emerald-300"/> I haven't found the right home yet</label>}
+
+          <div className="mt-7 grid gap-6 xl:grid-cols-[.92fr_1.08fr]">
+            <div className="rounded-[34px] border border-cyan-300/22 bg-gradient-to-br from-cyan-300/10 via-white/[.035] to-transparent p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.08)] sm:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-[11px] font-black uppercase tracking-[.34em] text-cyan-200">You Enter</div>
+                  <h3 className="mt-2 text-2xl font-black tracking-[-.035em]">Information needed from you</h3>
+                </div>
+                <div className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-xs font-black text-cyan-100">Editable fields</div>
+              </div>
+
+              {product !== "purchase" && <div className="mt-6 grid gap-4">
+                <InputMoneyCard label="Current mortgage balance" name="mortgage_balance" value={moneyDisplay(mortgageBalanceInput)} onChange={(e) => setMortgageBalanceInput(e.target.value)} placeholder="$350,000" helper="Type the approximate balance remaining on your current mortgage." />
+                <InputMoneyCard label={product === "refinance" ? "Cash-out amount requested" : "Cash amount requested"} name="requested_cash" value={moneyDisplay(requestedCashInput)} onChange={(e) => setRequestedCashInput(e.target.value)} placeholder="$100,000" helper="Type the amount of cash you would like reviewed." accent="emerald" />
+                {product === "refinance" && <div className="rounded-[26px] border border-violet-300/24 bg-violet-300/[.055] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.08)]">
+                  <div className="flex items-center justify-between gap-3"><label className="text-sm font-black uppercase tracking-[.18em] text-violet-200">Current loan interest rate</label><span className="rounded-full bg-violet-300/12 px-3 py-1 text-[10px] font-black uppercase tracking-[.18em] text-violet-100">You enter</span></div>
+                  <div className="mt-4 flex items-end gap-3"><input name="current_interest_rate" value={currentRateInput} onChange={(e) => setCurrentRateInput(e.target.value)} placeholder="7.25" className="w-full bg-transparent text-5xl font-black text-white outline-none"/><span className="pb-2 text-3xl font-black text-violet-200">%</span></div>
+                  <p className="mt-2 text-sm font-bold leading-relaxed text-white/50">Used only to estimate what you may be paying now, so the refinance comparison can show current payment vs. new payment.</p>
+                </div>}
+              </div>}
+
+              {product === "purchase" && <div className="mt-6 rounded-[28px] border border-emerald-300/25 bg-emerald-300/[.055] p-5">
+                <div className="flex items-center justify-between gap-4"><div><div className="text-[11px] font-black uppercase tracking-[.3em] text-emerald-200">Amount Selector</div><label className="mt-2 block text-2xl font-black tracking-[-.035em]">How much would you like to borrow?</label></div><div className="rounded-full bg-emerald-300/12 px-4 py-2 text-xs font-black text-emerald-100">You control this</div></div>
+                <input type="range" min="100000" max="2000000" step="25000" value={purchaseLoan} onChange={(e) => setPurchaseLoanInput(e.target.value)} className="mt-8 w-full accent-emerald-300"/>
+                <div className="mt-3 flex justify-between text-sm font-black text-white/55"><span>$100k minimum</span><span>Up to $2,000,000 preview</span></div>
+                <input type="hidden" name="requested_cash" value={purchaseLoan}/><input type="hidden" name="mortgage_balance" value="0"/>
+              </div>}
+            </div>
+
+            <div className="rounded-[34px] border border-emerald-300/25 bg-gradient-to-br from-emerald-300/10 via-white/[.035] to-transparent p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.08)] sm:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-[11px] font-black uppercase tracking-[.34em] text-emerald-200">We Calculate</div>
+                  <h3 className="mt-2 text-2xl font-black tracking-[-.035em]">Your estimated preview</h3>
+                </div>
+                <div className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-4 py-2 text-xs font-black text-emerald-100">Results update live</div>
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <CalcCard title={product === "purchase" ? "Selected purchase loan" : "Property value"} value={product === "purchase" ? formatMoney(purchaseLoan) : homeValue ? formatMoney(homeValue) : "Waiting for address"} note={product === "purchase" ? "Based on your selected amount" : "Auto-filled from address or your estimate"} highlight />
+                <CalcCard title={product === "refinance" ? "Estimated current payment" : product === "purchase" ? "Estimated monthly payment" : "Maximum possible equity"} value={product === "refinance" ? `${formatMoney(currentMortgagePayment)}/mo` : product === "purchase" ? `${formatMoney(purchasePayment)}/mo` : maxEquity ? formatMoney(maxEquity) : "—"} note={product === "refinance" ? "Based on your current balance and rate" : product === "purchase" ? "Estimated payment preview" : "Based on property value and mortgage balance"} />
+                <CalcCard title={product === "refinance" ? "New payment with cash-out" : product === "purchase" ? "Estimated home price range" : "Requested amount payment"} value={product === "refinance" ? `${formatMoney(refinancePayment)}/mo` : product === "purchase" ? `${formatMoney(Math.round(purchaseLoan * 1.2))} - ${formatMoney(Math.round(purchaseLoan * 1.35))}` : `${formatMoney(helocPayment)}/mo`} note={product === "refinance" ? "Includes current payoff plus requested cash" : product === "purchase" ? "Approximate buying power range" : "Estimated payment on the cash requested"} />
+                <CalcCard title={product === "refinance" ? "Cash-out requested" : product === "purchase" ? "Estimated down payment needed" : "Cash requested"} value={product === "refinance" ? formatMoney(boundedCash) : product === "purchase" ? formatMoney(Math.round(purchaseLoan * .25)) : formatMoney(boundedCash || requestedCash)} note={product === "purchase" ? "Approx. 20–25% planning preview" : "Amount being reviewed"} />
+              </div>
+            </div>
           </div>
-          {product === "refinance" && <div className="mt-5 rounded-3xl border border-cyan-300/25 bg-cyan-300/8 p-5 text-lg font-black text-cyan-100">Refinance selected: compare what you may be paying now with a new estimated payment that includes your current mortgage payoff plus requested cash-out.</div>}
+
+          {product === "refinance" && <div className="mt-6 rounded-[28px] border border-cyan-300/25 bg-cyan-300/8 p-5 text-lg font-black text-cyan-100">Refinance selected: the current rate you enter estimates what you may be paying now. HELOC CONNECT then previews a new combined payment using your current mortgage payoff plus the cash-out amount requested.</div>}
           <input type="hidden" name="selected_product" value={product} />
           <input type="hidden" name="possible_equity_room" value={product === "purchase" ? purchaseLoan : maxEquity} />
           <input type="hidden" name="estimated_monthly_payment" value={estimatedPayment} />
@@ -551,4 +594,33 @@ export default function LandingPage() {
 
 function ResultCard({ title, value }: { title: string; value: string }) {
   return <div className="rounded-3xl border border-white/10 bg-black/25 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.06)]"><div className="text-sm font-bold text-white/58">{title}</div><div className="mt-3 text-3xl font-black text-emerald-300">{value}</div></div>;
+}
+
+function InputMoneyCard({ label, name, value, onChange, placeholder, helper, accent = "cyan" }: { label: string; name: string; value: string; onChange: (e: any) => void; placeholder: string; helper: string; accent?: "cyan" | "emerald" }) {
+  const accentClasses = accent === "emerald"
+    ? "border-emerald-300/24 bg-emerald-300/[.055] text-emerald-200"
+    : "border-cyan-300/24 bg-cyan-300/[.055] text-cyan-200";
+  return (
+    <div className={`rounded-[26px] border p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.08)] ${accentClasses}`}>
+      <div className="flex items-center justify-between gap-3">
+        <label className="text-sm font-black uppercase tracking-[.18em]">{label}</label>
+        <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[.18em] text-white/80">You type</span>
+      </div>
+      <input name={name} value={value} onChange={onChange} placeholder={placeholder} className="mt-4 w-full bg-transparent text-5xl font-black text-white outline-none placeholder:text-white/24" />
+      <p className="mt-2 text-sm font-bold leading-relaxed text-white/50">{helper}</p>
+    </div>
+  );
+}
+
+function CalcCard({ title, value, note, highlight = false }: { title: string; value: string; note: string; highlight?: boolean }) {
+  return (
+    <div className={`${highlight ? "border-emerald-300/35 bg-emerald-300/[.075]" : "border-white/10 bg-black/24"} rounded-[26px] border p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.07)]`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-sm font-black uppercase tracking-[.16em] text-white/58">{title}</div>
+        <span className="rounded-full bg-black/30 px-3 py-1 text-[10px] font-black uppercase tracking-[.16em] text-emerald-200">Calculated</span>
+      </div>
+      <div className="mt-4 text-3xl font-black tracking-[-.04em] text-emerald-300 sm:text-4xl">{value}</div>
+      <p className="mt-2 text-sm font-bold leading-relaxed text-white/50">{note}</p>
+    </div>
+  );
 }
