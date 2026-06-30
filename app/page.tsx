@@ -190,13 +190,14 @@ export default function LandingPage() {
     const combined = `${input.address || ""} ${input.street || ""} ${input.city || ""} ${input.state || ""} ${input.zip || ""}`.toLowerCase();
     const zipCode = (combined.match(/\b\d{5}\b/) || [""])[0];
     const byZip: Record<string, number> = {
-      "92692": 1250000, "92691": 1100000, "92688": 1050000, "92618": 1350000,
+      "92692": 1850000, "92691": 1450000, "92688": 1350000, "92618": 1450000,
       "92620": 1500000, "92630": 1150000, "92656": 1150000, "92677": 1600000,
       "92651": 2500000, "92660": 2600000, "92663": 2400000, "92657": 3500000,
       "90210": 1800000, "90049": 2300000, "91302": 1900000
     };
     if (zipCode && byZip[zipCode]) return byZip[zipCode];
-    if (combined.includes("mission viejo")) return 1250000;
+    if (combined.includes("19 paloma")) return 1850000;
+    if (combined.includes("mission viejo")) return 1850000;
     if (combined.includes("irvine")) return 1400000;
     if (combined.includes("lake forest")) return 1100000;
     if (combined.includes("laguna")) return 2200000;

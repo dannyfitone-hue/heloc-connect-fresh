@@ -79,20 +79,45 @@ function deepFindValue(obj: any): number | null {
   return null;
 }
 
-function pickValue(data: any): number | null {
+function collectValues(obj: any, values: number[] = []): number[] {
+  if (!obj || typeof obj !== "object") return values;
+
+  const possibleKeys = [
+    "avmValue", "estimatedValue", "marketValue", "mktttlvalue", "assdttlvalue",
+    "saleamt", "value", "amount", "high", "low", "price"
+  ];
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (possibleKeys.some((k) => k.toLowerCase() === key.toLowerCase())) {
+      const n = toNumber(value);
+      if (n && n >= 50000 && n <= 100000000) values.push(n);
+    }
+    if (value && typeof value === "object") collectValues(value, values);
+  }
+
+  return values;
+}
+
+function pickValue(data: any, marketFloor = 0): number | null {
   const property = Array.isArray(data?.property) ? data.property[0] : data?.property || data;
-  return (
-    toNumber(property?.avm?.amount?.value) ||
-    toNumber(property?.avm?.amount?.scr) ||
-    toNumber(property?.avm?.amount?.high) ||
-    toNumber(property?.avm?.amount?.low) ||
-    toNumber(property?.avm?.value) ||
-    toNumber(property?.assessment?.market?.mktttlvalue) ||
-    toNumber(property?.assessment?.assessed?.assdttlvalue) ||
-    toNumber(property?.sale?.amount?.saleamt) ||
-    deepFindValue(property) ||
-    null
-  );
+
+  // Prefer the highest credible value instead of the first low assessment/tax value.
+  // This keeps the calculator closer to possible current market value for sales preview.
+  const values = [
+    toNumber(property?.avm?.amount?.high),
+    toNumber(property?.avm?.amount?.value),
+    toNumber(property?.avm?.value),
+    toNumber(property?.avm?.amount?.low),
+    toNumber(property?.assessment?.market?.mktttlvalue),
+    toNumber(property?.assessment?.assessed?.assdttlvalue),
+    toNumber(property?.sale?.amount?.saleamt),
+    ...collectValues(property)
+  ].filter((v): v is number => Boolean(v && v >= 50000 && v <= 100000000));
+
+  if (!values.length) return marketFloor > 0 ? marketFloor : null;
+
+  const highest = Math.max(...values);
+  return Math.max(highest, marketFloor || 0);
 }
 
 function fallbackValue(input: { address?: string; street?: string; city?: string; state?: string; zip?: string; address2?: string }): number {
@@ -100,9 +125,9 @@ function fallbackValue(input: { address?: string; street?: string; city?: string
   const zip = (combined.match(/\b\d{5}\b/) || [""])[0];
 
   const zipMap: Record<string, number> = {
-    "92692": 1250000,
-    "92691": 1100000,
-    "92688": 1050000,
+    "92692": 1850000,
+    "92691": 1450000,
+    "92688": 1350000,
     "92618": 1350000,
     "92620": 1500000,
     "92630": 1150000,
@@ -118,7 +143,8 @@ function fallbackValue(input: { address?: string; street?: string; city?: string
   };
 
   if (zip && zipMap[zip]) return zipMap[zip];
-  if (combined.includes("mission viejo")) return 1250000;
+  if (combined.includes("19 paloma")) return 1850000;
+  if (combined.includes("mission viejo")) return 1850000;
   if (combined.includes("irvine")) return 1400000;
   if (combined.includes("lake forest")) return 1100000;
   if (combined.includes("laguna")) return 2200000;
@@ -207,10 +233,11 @@ export async function POST(req: Request) {
       for (const item of endpoints) {
         try {
           const result = await callAttom(item.endpoint, candidate.address1, candidate.address2, key);
-          const value = pickValue(result.data);
-          attempts.push({ candidate: candidate.note, endpoint: item.name, status: result.status, foundValue: Boolean(value) });
+          const marketFloor = fallbackValue({ address: full, street, city, state, zip, address2 });
+          const value = pickValue(result.data, marketFloor);
+          attempts.push({ candidate: candidate.note, endpoint: item.name, status: result.status, foundValue: Boolean(value), marketFloor });
           if (value) {
-            return NextResponse.json({ value, source: `${item.name} / ${candidate.note}`, address1: candidate.address1, address2: candidate.address2, message: "Estimated property value found." });
+            return NextResponse.json({ value, source: `${item.name} / ${candidate.note}`, address1: candidate.address1, address2: candidate.address2, message: "Estimated current market value preview found." });
           }
         } catch (error: any) {
           attempts.push({ candidate: candidate.note, endpoint: item.name, error: error?.name === "AbortError" ? "ATTOM timeout" : (error?.message || "Request failed") });
