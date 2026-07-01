@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type ProductKey = "heloc" | "refinance" | "equity_card" | "purchase";
@@ -89,43 +89,103 @@ export default function LandingPage() {
   const [hasCoOwner, setHasCoOwner] = useState(false);
   const [loading, setLoading] = useState(false);
   const [voicePlayed, setVoicePlayed] = useState(false);
+  const welcomeAudioRef = useRef<HTMLAudioElement | null>(null);
 
   function speakWelcome(force = false) {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    if (!force && window.sessionStorage.getItem("heloc_welcome_voice_played") === "1") return;
+    if (typeof window === "undefined") return false;
+    if (!force && window.sessionStorage.getItem("heloc_welcome_voice_played") === "1") return true;
+
+    const markPlayed = () => {
+      setVoicePlayed(true);
+      window.sessionStorage.setItem("heloc_welcome_voice_played", "1");
+    };
+
+    // First choice: use the warmer pre-recorded welcome audio so the site does not rely on robotic browser text-to-speech.
+    try {
+      if (!welcomeAudioRef.current) {
+        welcomeAudioRef.current = new Audio("/audio/welcome-voice.wav");
+        welcomeAudioRef.current.preload = "auto";
+        welcomeAudioRef.current.volume = 0.92;
+      }
+      const audio = welcomeAudioRef.current;
+      audio.currentTime = 0;
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.then === "function") {
+        playPromise.then(markPlayed).catch(() => {
+          // Browser blocked audible autoplay. Fall back to speech synthesis on replay/first tap only.
+          if (force) playSpeechFallback(true);
+        });
+      } else {
+        markPlayed();
+      }
+      return true;
+    } catch {
+      return playSpeechFallback(force);
+    }
+  }
+
+  function playSpeechFallback(force = false) {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
+    if (!force && window.sessionStorage.getItem("heloc_welcome_voice_played") === "1") return true;
 
     const synth = window.speechSynthesis;
-    synth.cancel();
+    try { synth.cancel(); } catch {}
 
     const utterance = new SpeechSynthesisUtterance(WELCOME_VOICE_TEXT);
     const voices = synth.getVoices();
-    const preferredVoice = voices.find((voice) => /samantha|victoria|female|google us english|zira/i.test(`${voice.name} ${voice.voiceURI}`)) || voices.find((voice) => voice.lang?.toLowerCase().startsWith("en"));
+    const preferredVoice =
+      voices.find((voice) => /jenny|aria|samantha|victoria|karen|ava|allison|serena|moira|google us english female|google uk english female|microsoft.*female/i.test(`${voice.name} ${voice.voiceURI}`)) ||
+      voices.find((voice) => /female/i.test(`${voice.name} ${voice.voiceURI}`)) ||
+      voices.find((voice) => voice.lang?.toLowerCase().startsWith("en-us")) ||
+      voices.find((voice) => voice.lang?.toLowerCase().startsWith("en"));
 
     if (preferredVoice) utterance.voice = preferredVoice;
-    utterance.rate = 0.92;
-    utterance.pitch = 1.04;
+    utterance.rate = 0.88;
+    utterance.pitch = 1.08;
     utterance.volume = 0.88;
-    utterance.onstart = () => setVoicePlayed(true);
-    utterance.onend = () => setVoicePlayed(true);
 
-    synth.speak(utterance);
-    window.sessionStorage.setItem("heloc_welcome_voice_played", "1");
+    utterance.onstart = () => {
+      setVoicePlayed(true);
+      window.sessionStorage.setItem("heloc_welcome_voice_played", "1");
+    };
+    utterance.onend = () => setVoicePlayed(true);
+    utterance.onerror = () => {
+      if (force) window.sessionStorage.removeItem("heloc_welcome_voice_played");
+    };
+
+    try {
+      synth.speak(utterance);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
-    const timer = window.setTimeout(() => speakWelcome(false), 850);
-    const replayOnFirstTap = () => speakWelcome(false);
+    // Best possible autoplay attempt: browsers may still block audible speech on first page load,
+    // but we now retry on load, focus, visibility, voice loading, and first touch/click without falsely marking it played.
+    const attempts = [350, 900, 1600, 2600].map((delay) => window.setTimeout(() => speakWelcome(false), delay));
+    const playOnReady = () => speakWelcome(false);
+    const playWhenVisible = () => { if (!document.hidden) speakWelcome(false); };
 
-    window.addEventListener("pointerdown", replayOnFirstTap, { once: true });
-    window.speechSynthesis.onvoiceschanged = () => {
-      if (!window.sessionStorage.getItem("heloc_welcome_voice_played")) speakWelcome(false);
-    };
+    window.addEventListener("load", playOnReady, { once: true });
+    window.addEventListener("focus", playOnReady, { once: true });
+    document.addEventListener("visibilitychange", playWhenVisible);
+    window.addEventListener("pointerdown", playOnReady, { once: true });
+    window.addEventListener("touchstart", playOnReady, { once: true, passive: true });
+    window.addEventListener("click", playOnReady, { once: true });
+    window.speechSynthesis.onvoiceschanged = playOnReady;
 
     return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener("pointerdown", replayOnFirstTap);
+      attempts.forEach((timer) => window.clearTimeout(timer));
+      window.removeEventListener("load", playOnReady);
+      window.removeEventListener("focus", playOnReady);
+      document.removeEventListener("visibilitychange", playWhenVisible);
+      window.removeEventListener("pointerdown", playOnReady);
+      window.removeEventListener("touchstart", playOnReady);
+      window.removeEventListener("click", playOnReady);
       window.speechSynthesis.onvoiceschanged = null;
     };
   }, []);
