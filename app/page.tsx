@@ -201,11 +201,81 @@ export default function LandingPage() {
             </div>
             <button type="button" onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth", block: "start" })} className="mt-6 rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-400 px-6 py-4 text-base font-black shadow-[0_0_40px_rgba(34,211,238,.25)] sm:w-fit">Start My Free Review →</button>
           </div>
-          <div className="mt-6 overflow-hidden rounded-[26px] border border-white/10 bg-[#07111f] p-3 shadow-2xl lg:mt-0">
-            <div className="relative min-h-[300px] overflow-hidden rounded-[22px] bg-gradient-to-br from-[#0e2236] via-[#0c1725] to-[#080b12] sm:min-h-[420px]">
-              <div className="absolute inset-0 opacity-70 [background:linear-gradient(135deg,rgba(34,211,238,.24),transparent_36%),radial-gradient(circle_at_80%_15%,rgba(16,185,129,.18),transparent_32%)]" />
-              <div className="scan-line absolute left-0 right-0 top-1/2 h-[3px] bg-gradient-to-r from-transparent via-emerald-300 to-transparent shadow-[0_0_35px_rgba(110,231,183,.95)]" />
-              <div className="absolute bottom-4 left-4 right-4 rounded-2xl border border-white/10 bg-black/45 p-4 backdrop-blur-xl"><div className="text-[10px] font-black uppercase tracking-[.35em] text-cyan-200">Property Intelligence</div><div className="mt-1 text-2xl font-black">Smart review starts with your goal and property.</div></div>
+          <div className="mt-6 overflow-hidden rounded-[26px] border border-cyan-300/20 bg-[#07111f] p-3 shadow-[0_0_70px_rgba(34,211,238,.12)] lg:mt-0">
+            <div className="relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[#061421] via-[#07111f] to-[#02050b] p-4 sm:p-5">
+              <div className="absolute inset-0 opacity-70 [background:radial-gradient(circle_at_68%_8%,rgba(34,211,238,.22),transparent_30%),radial-gradient(circle_at_88%_70%,rgba(139,92,246,.16),transparent_28%),linear-gradient(180deg,rgba(255,255,255,.06),transparent)]" />
+
+              <div className="relative rounded-2xl border border-cyan-300/25 bg-black/25 p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] font-black uppercase tracking-[.34em] text-cyan-200">As featured on</div>
+                    <div className="mt-1 text-2xl font-black tracking-[-.04em] text-white sm:text-3xl">yahoo! <span className="block text-xl sm:inline sm:text-2xl">finance</span></div>
+                  </div>
+                  <div className="rounded-2xl border border-emerald-300/25 bg-emerald-300/10 px-3 py-2 text-right text-[10px] font-black uppercase tracking-[.16em] text-emerald-100">Homeowners<br/>Pay $0</div>
+                </div>
+              </div>
+
+              <div className="relative mt-4 grid gap-4 lg:grid-cols-[.92fr_1.08fr] lg:items-center">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-[.34em] text-cyan-200">Smart. Fast. Targeted.</div>
+                  <h3 className="mt-3 text-3xl font-black leading-[.96] tracking-[-.045em] sm:text-4xl">How HELOC CONNECT Works for You</h3>
+                  <p className="mt-3 text-sm font-semibold leading-relaxed text-white/68">Our system helps match you with the right mortgage company so you can review options, avoid wasting time, and move toward funding with a clearer route.</p>
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[10px] font-black text-white/72">
+                    <div className="rounded-2xl border border-cyan-300/20 bg-cyan-300/8 p-2">100% Free</div>
+                    <div className="rounded-2xl border border-emerald-300/20 bg-emerald-300/8 p-2">Fast Review</div>
+                    <div className="rounded-2xl border border-violet-300/20 bg-violet-300/8 p-2">Secure</div>
+                  </div>
+                </div>
+
+                <div className="relative min-h-[210px] rounded-[24px] border border-cyan-300/20 bg-[#06101c] p-4 shadow-[inset_0_0_40px_rgba(34,211,238,.06)] sm:min-h-[260px]">
+                  <div className="absolute inset-0 rounded-[24px] opacity-70 [background:radial-gradient(circle_at_50%_50%,rgba(34,211,238,.18),transparent_52%)]" />
+                  <div className="house-orbit absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-[26px] border border-cyan-300/30 bg-gradient-to-br from-cyan-300/18 to-blue-500/5 shadow-[0_0_45px_rgba(34,211,238,.22)] sm:h-36 sm:w-36">
+                    <div className="absolute inset-0 grid place-items-center text-5xl sm:text-6xl">🏠</div>
+                  </div>
+                  <div className="float-card absolute right-3 top-4 rounded-2xl border border-cyan-300/25 bg-black/50 px-3 py-2 text-right backdrop-blur-xl">
+                    <div className="text-[9px] font-black uppercase tracking-[.18em] text-cyan-200">Est. Home Value</div>
+                    <div className="text-lg font-black text-emerald-300">$1,850,000</div>
+                  </div>
+                  <div className="float-card delay-1 absolute bottom-12 right-4 rounded-2xl border border-emerald-300/25 bg-black/50 px-3 py-2 text-right backdrop-blur-xl">
+                    <div className="text-[9px] font-black uppercase tracking-[.18em] text-emerald-200">Cash You Can Get</div>
+                    <div className="text-lg font-black text-emerald-300">$350,000</div>
+                  </div>
+                  <div className="float-card delay-2 absolute bottom-4 left-4 rounded-2xl border border-violet-300/25 bg-black/50 px-3 py-2 backdrop-blur-xl">
+                    <div className="text-[9px] font-black uppercase tracking-[.18em] text-violet-200">Est. Payment</div>
+                    <div className="text-lg font-black text-violet-200">$2,381/mo</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative mt-4 space-y-3">
+                {[
+                  ["1", "Input Your Home Address", "Enter your address in the smart calculator so the system can identify your property.", "123 Main St, Irvine, CA"],
+                  ["2", "See Your Value & Options", "View home value, estimated cash access, and payment previews instantly.", "Value • Cash • Payment"],
+                  ["3", "Tell Us About Yourself", "Add basic info so we can direct you to the right mortgage company faster.", "Secure & Private"],
+                  ["4", "Track Every Step Live", "Follow your status bar as we match you with a premium mortgage company in our network.", "Received → Matching → Matched"],
+                ].map(([n,t,d,b]) => (
+                  <div key={n} className="relative rounded-2xl border border-cyan-300/18 bg-white/[.035] p-4 sm:flex sm:items-center sm:gap-4">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-cyan-300/40 bg-cyan-300/10 text-lg font-black text-cyan-100 shadow-[0_0_25px_rgba(34,211,238,.18)]">{n}</div>
+                    <div className="mt-3 sm:mt-0 sm:flex-1">
+                      <div className="text-base font-black text-white">{t}</div>
+                      <div className="mt-1 text-sm font-semibold leading-relaxed text-white/58">{d}</div>
+                    </div>
+                    <div className="mt-3 rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-xs font-black text-cyan-100 sm:mt-0">{b}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="relative mt-4 rounded-2xl border border-emerald-300/20 bg-emerald-300/[.055] p-4">
+                <div className="text-[10px] font-black uppercase tracking-[.34em] text-emerald-200">Why choose HELOC CONNECT?</div>
+                <div className="mt-2 text-2xl font-black tracking-[-.03em]">Hassle-Free. Risk-Free. Results-Driven.</div>
+                <div className="mt-4 grid grid-cols-2 gap-3 text-sm font-bold sm:grid-cols-4">
+                  <div><div className="text-2xl">📅</div><div>Only 3 Months Bank Statements</div></div>
+                  <div><div className="text-2xl">⏱️</div><div>Save Time</div></div>
+                  <div><div className="text-2xl">🛡️</div><div>Low Credit? No Problem</div></div>
+                  <div><div className="text-2xl">🏆</div><div>Best Possible Payments & Terms</div></div>
+                </div>
+                <div className="mt-4 rounded-full border border-cyan-300/20 bg-black/35 px-4 py-3 text-center text-sm font-black text-white/80">Homeowners Pay <span className="text-emerald-300">$0</span> <span className="mx-2 text-cyan-300">|</span> Mortgage Companies Pay Us</div>
+              </div>
             </div>
           </div>
         </section>
@@ -289,7 +359,7 @@ export default function LandingPage() {
           <button disabled={loading} className="mt-6 w-full rounded-2xl bg-gradient-to-r from-violet-600 via-blue-600 to-cyan-400 p-5 text-lg font-black shadow-[0_0_40px_rgba(59,130,246,.28)]">{loading ? "Submitting..." : "Match Me With The Right Mortgage Company"}</button>
         </section>
       </form>
-      <style jsx global>{`.field{border-radius:16px;border:1px solid rgba(255,255,255,.12);background:#050914;padding:16px;font-weight:800;outline:none;width:100%}@keyframes scan{0%,100%{transform:translateY(-120px);opacity:.35}50%{transform:translateY(120px);opacity:1}}.scan-line{animation:scan 4s ease-in-out infinite}html{scroll-behavior:smooth}`}</style>
+      <style jsx global>{`.field{border-radius:16px;border:1px solid rgba(255,255,255,.12);background:#050914;padding:16px;font-weight:800;outline:none;width:100%}@keyframes scan{0%,100%{transform:translateY(-120px);opacity:.35}50%{transform:translateY(120px);opacity:1}}.scan-line{animation:scan 4s ease-in-out infinite}@keyframes softFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@keyframes slowPulse{0%,100%{box-shadow:0 0 35px rgba(34,211,238,.18)}50%{box-shadow:0 0 60px rgba(34,211,238,.36)}}.float-card{animation:softFloat 4s ease-in-out infinite}.float-card.delay-1{animation-delay:.7s}.float-card.delay-2{animation-delay:1.4s}.house-orbit{animation:softFloat 5s ease-in-out infinite,slowPulse 4s ease-in-out infinite}html{scroll-behavior:smooth}`}</style>
     </main>
   );
 }
