@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   let body: any = {};
   try { body = await req.json(); } catch {}
   const to = body.to || body.phone;
-  const message = body.message || "HELOC CONNECT test SMS. Your Telnyx integration is connected.";
+  const message = body.message || "Hi! This is an HC test message. We received your request successfully. Reply STOP to opt out.";
   const result = await sendSms(to, message);
   console.log("HELOC_MANUAL_SMS_TEST_RESULT", JSON.stringify(result));
   return NextResponse.json(result, { status: (result as any)?.ok ? 200 : 500 });

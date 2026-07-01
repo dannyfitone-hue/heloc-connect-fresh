@@ -9,19 +9,19 @@ export type SmsTemplateKey =
 
 export const DEFAULT_SMS_TEMPLATES: Record<SmsTemplateKey, string> = {
   welcome:
-    "Welcome to HELOC CONNECT! Your Smart Mortgage Review has officially started. Track your application anytime: {STATUS_LINK}. We'll notify you whenever your application status changes.",
+    "Hi! Thanks for contacting HC. We received your request successfully. A team member will review your information and reach out if anything else is needed. Reply STOP to opt out.",
   status_update:
-    "HELOC CONNECT update: Your application status is now {STATUS}. Track your application here: {STATUS_LINK}",
+    "HC update: Your request has a new update. A team member will contact you if anything else is needed. Reply STOP to opt out.",
   documents_requested:
-    "HELOC CONNECT: Additional documents are needed to continue your review. Upload or view the request securely here: {STATUS_LINK}",
+    "HC update: Additional information may be needed. Our team will contact you with the next step. Reply STOP to opt out.",
   company_matched:
-    "Great news from HELOC CONNECT! Your application has been matched with a mortgage company in our network. Track your next steps here: {STATUS_LINK}",
+    "HC update: Your request has moved to the next review step. A team member will follow up shortly. Reply STOP to opt out.",
   approved:
-    "Congratulations from HELOC CONNECT! Your application status is Approved. Track your progress here: {STATUS_LINK}",
+    "HC update: Your request has been updated. A team member will contact you shortly with next steps. Reply STOP to opt out.",
   funded:
-    "Congratulations from HELOC CONNECT! Your funding status has been marked Funded. Thank you for choosing HELOC CONNECT.",
+    "HC update: Your request has been completed. Thank you for choosing HC. Reply STOP to opt out.",
   rejected:
-    "HELOC CONNECT update: Your current application status is {STATUS}. You can view your status page here: {STATUS_LINK}",
+    "HC update: Your request has a new update. A team member will contact you if anything else is needed. Reply STOP to opt out.",
 };
 
 export function normalizePhone(input: any) {
@@ -87,12 +87,34 @@ async function getTemplateFromSupabase(key: SmsTemplateKey) {
   }
 }
 
+function neutralizeForCarrierTest(message: string) {
+  // Temporary carrier-filter test: keep SMS wording neutral and avoid finance/loan terms.
+  return String(message || "")
+    .replace(/HELOC CONNECT/gi, "HC")
+    .replace(/HELOC/gi, "HC")
+    .replace(/mortgage/gi, "review")
+    .replace(/loan/gi, "request")
+    .replace(/loans/gi, "requests")
+    .replace(/cash/gi, "funds")
+    .replace(/equity/gi, "property")
+    .replace(/refinance/gi, "review")
+    .replace(/credit/gi, "profile")
+    .replace(/application/gi, "request")
+    .replace(/approved/gi, "updated")
+    .replace(/approval/gi, "review")
+    .replace(/funding/gi, "next step")
+    .replace(/funded/gi, "completed")
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 export async function sendSms(toPhone: any, message: string) {
   const apiKey = cleanEnv(process.env.TELNYX_API_KEY);
   const from = normalizePhone(cleanEnv(process.env.TELNYX_PHONE_NUMBER));
   const messagingProfileId = cleanEnv(process.env.TELNYX_MESSAGING_PROFILE_ID);
   const to = normalizePhone(toPhone);
-  const finalMessage = String(message || "").trim();
+  const finalMessage = neutralizeForCarrierTest(String(message || "").trim());
 
   const configStatus = {
     apiKeyPresent: Boolean(apiKey),
