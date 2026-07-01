@@ -92,11 +92,9 @@ export default function LandingPage() {
 
   function speakWelcome(force = false) {
     if (typeof window === "undefined") return false;
-    if (!force && window.sessionStorage.getItem("heloc_welcome_voice_played") === "1") return true;
 
     const markPlayed = () => {
       setVoicePlayed(true);
-      window.sessionStorage.setItem("heloc_welcome_voice_played", "1");
     };
 
     try {
@@ -116,7 +114,6 @@ export default function LandingPage() {
           // Browsers, especially iPhone Safari, may block audible autoplay until the first tap.
           // We intentionally do NOT fall back to robotic text-to-speech. The speaker button and first tap retry the real ElevenLabs voice file.
           console.warn("Welcome voice autoplay blocked until user interaction", error);
-          if (force) window.sessionStorage.removeItem("heloc_welcome_voice_played");
         });
       } else {
         markPlayed();
@@ -136,7 +133,8 @@ export default function LandingPage() {
     // so we retry on load, focus, visibility, and the first user action.
     const preloadAudio = () => {
       if (!welcomeAudioRef.current) {
-        const audio = new Audio("/audio/welcome-voice.mp3");
+        const existing = document.getElementById("hc-welcome-autoplay") as HTMLAudioElement | null;
+        const audio = existing || new Audio("/audio/welcome-voice.mp3");
         audio.preload = "auto";
         audio.volume = 0.95;
         welcomeAudioRef.current = audio;
@@ -265,6 +263,7 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#030912] text-white">
+      <audio id="hc-welcome-autoplay" src="/audio/welcome-voice.mp3" preload="auto" autoPlay playsInline className="hidden" />
       <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_8%_0%,rgba(29,91,255,.25),transparent_30%),radial-gradient(circle_at_100%_20%,rgba(0,255,178,.13),transparent_28%),linear-gradient(180deg,#020712,#06111e)]" />
 
       <header className="sticky top-0 z-50 border-b border-cyan-200/10 bg-[#030912]/95 backdrop-blur-xl">
