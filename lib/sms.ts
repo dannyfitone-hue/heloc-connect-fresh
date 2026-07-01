@@ -42,6 +42,11 @@ export function statusLink(token: any) {
   return `${baseUrl()}/status/${encodeURIComponent(String(token || ""))}`;
 }
 
+function cleanEnv(value: any) {
+  // Vercel copy/paste can sometimes introduce spaces/newlines. Telnyx keys must be exact.
+  return String(value || "").replace(/[\r\n\t ]/g, "").trim();
+}
+
 function fillTemplate(template: string, values: Record<string, any>) {
   return String(template || "")
     .replace(/\{FIRST_NAME\}/gi, String(values.firstName || values.first_name || ""))
@@ -83,39 +88,65 @@ async function getTemplateFromSupabase(key: SmsTemplateKey) {
 }
 
 export async function sendSms(toPhone: any, message: string) {
-  const apiKey = process.env.TELNYX_API_KEY || "";
-  const from = normalizePhone(process.env.TELNYX_PHONE_NUMBER || "");
-  const messagingProfileId = process.env.TELNYX_MESSAGING_PROFILE_ID || "";
+  const apiKey = cleanEnv(process.env.TELNYX_API_KEY);
+  const from = normalizePhone(cleanEnv(process.env.TELNYX_PHONE_NUMBER));
+  const messagingProfileId = cleanEnv(process.env.TELNYX_MESSAGING_PROFILE_ID);
   const to = normalizePhone(toPhone);
+  const finalMessage = String(message || "").trim();
 
-  if (!apiKey || !from || !to || !message) {
-    return { skipped: true, reason: "Missing TELNYX_API_KEY, TELNYX_PHONE_NUMBER, recipient phone, or message." };
+  const configStatus = {
+    apiKeyPresent: Boolean(apiKey),
+    apiKeyPrefix: apiKey ? apiKey.slice(0, 6) : "missing",
+    from,
+    to,
+    messagingProfileIdPresent: Boolean(messagingProfileId),
+  };
+
+  if (!apiKey || !from || !to || !finalMessage) {
+    const result = { skipped: true, reason: "Missing TELNYX_API_KEY, TELNYX_PHONE_NUMBER, recipient phone, or message.", configStatus };
+    console.error("HELOC_SMS_SKIPPED", JSON.stringify(result));
+    return result;
   }
 
   const payload: Record<string, any> = {
     from,
     to,
-    text: message.slice(0, 1500),
+    text: finalMessage.slice(0, 1500),
   };
+
+  // Keep this attached because the number is assigned to HELOC CONNECT SMS profile in Telnyx.
   if (messagingProfileId) payload.messaging_profile_id = messagingProfileId;
 
-  const res = await fetch("https://api.telnyx.com/v2/messages", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  console.log("HELOC_SMS_ATTEMPT", JSON.stringify({ ...configStatus, textPreview: payload.text.slice(0, 80) }));
 
-  const text = await res.text();
-  let json: any = null;
-  try { json = text ? JSON.parse(text) : null; } catch { json = null; }
+  try {
+    const res = await fetch("https://api.telnyx.com/v2/messages", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
 
-  if (!res.ok) {
-    return { ok: false, error: json || text, status: res.status };
+    const text = await res.text();
+    let json: any = null;
+    try { json = text ? JSON.parse(text) : null; } catch { json = null; }
+
+    if (!res.ok) {
+      const result = { ok: false, error: json || text, status: res.status, configStatus };
+      console.error("HELOC_SMS_TELNYX_ERROR", JSON.stringify(result));
+      return result;
+    }
+
+    const result = { ok: true, response: json || text, configStatus };
+    console.log("HELOC_SMS_SENT", JSON.stringify({ status: res.status, to, from, messageId: json?.data?.id || null }));
+    return result;
+  } catch (error: any) {
+    const result = { ok: false, error: error?.message || String(error), status: "fetch_failed", configStatus };
+    console.error("HELOC_SMS_FETCH_ERROR", JSON.stringify(result));
+    return result;
   }
-  return { ok: true, response: json || text };
 }
 
 export async function sendApplicationSms(key: SmsTemplateKey, lead: any, extra: Record<string, any> = {}) {

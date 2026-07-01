@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendWelcomeSms } from "@/lib/sms";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 const FALLBACK_SUPABASE_URL = "https://cpljanwlpclyhshrsfzv.supabase.co";
 
 function makeToken() {
@@ -120,7 +123,9 @@ export async function POST(req: Request) {
       }, { status: 500 });
     }
 
+    console.log("HELOC_LEAD_SAVED_BEFORE_SMS", JSON.stringify({ id: data?.id, phone: lead.phone, tracking_id: data?.tracking_id || lead.tracking_id }));
     const smsResult = await sendWelcomeSms({ ...lead, id: data?.id, client_token: data?.client_token || clientToken, tracking_id: data?.tracking_id || lead.tracking_id });
+    console.log("HELOC_WELCOME_SMS_RESULT", JSON.stringify(smsResult));
     try {
       await supabase.from("lead_notes").insert({
         lead_id: data?.id,
