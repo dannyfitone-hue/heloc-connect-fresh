@@ -8,7 +8,6 @@ type AddressResult = { label: string; street?: string; city?: string; state?: st
 
 const OFFER_RATE = 0.065;
 const TERM_MONTHS = 360;
-const WELCOME_VOICE_TEXT = "Welcome to HELOC CONNECT. Let's find the mortgage company that gives you the best opportunity for approval, with competitive rates and premium terms.";
 
 const products: Array<{
   key: ProductKey;
@@ -100,73 +99,54 @@ export default function LandingPage() {
       window.sessionStorage.setItem("heloc_welcome_voice_played", "1");
     };
 
-    // First choice: use the warmer pre-recorded welcome audio so the site does not rely on robotic browser text-to-speech.
     try {
       if (!welcomeAudioRef.current) {
-        welcomeAudioRef.current = new Audio("/audio/welcome-voice.wav");
-        welcomeAudioRef.current.preload = "auto";
-        welcomeAudioRef.current.volume = 0.92;
+        const audio = new Audio("/audio/welcome-voice.mp3");
+        audio.preload = "auto";
+        audio.volume = 0.95;
+        welcomeAudioRef.current = audio;
       }
+
       const audio = welcomeAudioRef.current;
       audio.currentTime = 0;
       const playPromise = audio.play();
+
       if (playPromise && typeof playPromise.then === "function") {
-        playPromise.then(markPlayed).catch(() => {
-          // Browser blocked audible autoplay. Fall back to speech synthesis on replay/first tap only.
-          if (force) playSpeechFallback(true);
+        playPromise.then(markPlayed).catch((error) => {
+          // Browsers, especially iPhone Safari, may block audible autoplay until the first tap.
+          // We intentionally do NOT fall back to robotic text-to-speech. The speaker button and first tap retry the real ElevenLabs voice file.
+          console.warn("Welcome voice autoplay blocked until user interaction", error);
+          if (force) window.sessionStorage.removeItem("heloc_welcome_voice_played");
         });
       } else {
         markPlayed();
       }
+
       return true;
-    } catch {
-      return playSpeechFallback(force);
-    }
-  }
-
-  function playSpeechFallback(force = false) {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
-    if (!force && window.sessionStorage.getItem("heloc_welcome_voice_played") === "1") return true;
-
-    const synth = window.speechSynthesis;
-    try { synth.cancel(); } catch {}
-
-    const utterance = new SpeechSynthesisUtterance(WELCOME_VOICE_TEXT);
-    const voices = synth.getVoices();
-    const preferredVoice =
-      voices.find((voice) => /jenny|aria|samantha|victoria|karen|ava|allison|serena|moira|google us english female|google uk english female|microsoft.*female/i.test(`${voice.name} ${voice.voiceURI}`)) ||
-      voices.find((voice) => /female/i.test(`${voice.name} ${voice.voiceURI}`)) ||
-      voices.find((voice) => voice.lang?.toLowerCase().startsWith("en-us")) ||
-      voices.find((voice) => voice.lang?.toLowerCase().startsWith("en"));
-
-    if (preferredVoice) utterance.voice = preferredVoice;
-    utterance.rate = 0.88;
-    utterance.pitch = 1.08;
-    utterance.volume = 0.88;
-
-    utterance.onstart = () => {
-      setVoicePlayed(true);
-      window.sessionStorage.setItem("heloc_welcome_voice_played", "1");
-    };
-    utterance.onend = () => setVoicePlayed(true);
-    utterance.onerror = () => {
-      if (force) window.sessionStorage.removeItem("heloc_welcome_voice_played");
-    };
-
-    try {
-      synth.speak(utterance);
-      return true;
-    } catch {
+    } catch (error) {
+      console.warn("Welcome voice failed to initialize", error);
       return false;
     }
   }
 
   useEffect(() => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (typeof window === "undefined") return;
 
-    // Best possible autoplay attempt: browsers may still block audible speech on first page load,
-    // but we now retry on load, focus, visibility, voice loading, and first touch/click without falsely marking it played.
-    const attempts = [350, 900, 1600, 2600].map((delay) => window.setTimeout(() => speakWelcome(false), delay));
+    // Best possible autoplay attempt using the real ElevenLabs MP3. Browsers may still require a tap,
+    // so we retry on load, focus, visibility, and the first user action.
+    const preloadAudio = () => {
+      if (!welcomeAudioRef.current) {
+        const audio = new Audio("/audio/welcome-voice.mp3");
+        audio.preload = "auto";
+        audio.volume = 0.95;
+        welcomeAudioRef.current = audio;
+        try { audio.load(); } catch {}
+      }
+    };
+
+    preloadAudio();
+
+    const attempts = [250, 700, 1300, 2200, 3500].map((delay) => window.setTimeout(() => speakWelcome(false), delay));
     const playOnReady = () => speakWelcome(false);
     const playWhenVisible = () => { if (!document.hidden) speakWelcome(false); };
 
@@ -176,7 +156,6 @@ export default function LandingPage() {
     window.addEventListener("pointerdown", playOnReady, { once: true });
     window.addEventListener("touchstart", playOnReady, { once: true, passive: true });
     window.addEventListener("click", playOnReady, { once: true });
-    window.speechSynthesis.onvoiceschanged = playOnReady;
 
     return () => {
       attempts.forEach((timer) => window.clearTimeout(timer));
@@ -186,7 +165,6 @@ export default function LandingPage() {
       window.removeEventListener("pointerdown", playOnReady);
       window.removeEventListener("touchstart", playOnReady);
       window.removeEventListener("click", playOnReady);
-      window.speechSynthesis.onvoiceschanged = null;
     };
   }, []);
 

@@ -23,6 +23,8 @@ async function getLeads() {
   const leads = data || [];
   const ids = leads.map((l: any) => l.id).filter(Boolean);
   let documents: any[] = [];
+  let notes: any[] = [];
+  let smsLogs: any[] = [];
 
   if (ids.length) {
     const docs = await supabaseAdmin
@@ -32,11 +34,30 @@ async function getLeads() {
       .order("created_at", { ascending: false });
 
     if (!docs.error) documents = docs.data || [];
+
+    const leadNotes = await supabaseAdmin
+      .from("lead_notes")
+      .select("*")
+      .in("lead_id", ids)
+      .order("created_at", { ascending: false });
+
+    if (!leadNotes.error) notes = leadNotes.data || [];
+
+    try {
+      const logs = await supabaseAdmin
+        .from("sms_logs")
+        .select("*")
+        .in("lead_id", ids)
+        .order("created_at", { ascending: false });
+      if (!logs.error) smsLogs = logs.data || [];
+    } catch {}
   }
 
   return leads.map((lead: any) => ({
     ...lead,
-    documents: documents.filter((d: any) => d.lead_id === lead.id)
+    documents: documents.filter((d: any) => d.lead_id === lead.id),
+    notes: notes.filter((n: any) => n.lead_id === lead.id),
+    smsLogs: smsLogs.filter((n: any) => n.lead_id === lead.id),
   }));
 }
 
@@ -108,6 +129,12 @@ export default async function OwnerPage({ searchParams }: { searchParams?: Recor
           </div>
         )}
 
+        {searchParams?.instant_sms && (
+          <div className={`mb-5 rounded-2xl border p-4 text-sm font-black ${searchParams.instant_sms === "sent" ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200" : "border-red-400/30 bg-red-500/10 text-red-200"}`}>
+            {searchParams.instant_sms === "sent" ? "Instant SMS sent." : "Instant SMS failed or is pending carrier delivery. Check Telnyx message reports for final delivery status."}
+          </div>
+        )}
+
         {searchParams?.created_lender && (
           <div className="mb-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm font-black text-emerald-200">
             Lender user saved{searchParams?.lender_email ? `: ${searchParams.lender_email}` : ""}.
@@ -169,6 +196,30 @@ export default async function OwnerPage({ searchParams }: { searchParams?: Recor
             </div>
             <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm font-black text-emerald-200">
               Telnyx Ready: {process.env.TELNYX_API_KEY && process.env.TELNYX_PHONE_NUMBER ? "Connected" : "Env Needed"}
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 xl:grid-cols-[.85fr_1.15fr]">
+            <div className="rounded-3xl border border-[#f6c15a]/25 bg-gradient-to-br from-[#10243b] to-[#071421] p-5 shadow-xl">
+              <div className="text-xs font-black uppercase tracking-[.3em] text-[#f6c15a]">Instant SMS</div>
+              <h3 className="mt-2 text-2xl font-black tracking-[-.03em]">Send a Manual Text</h3>
+              <p className="mt-2 text-sm font-semibold text-white/55">Type any approved number and message, then send directly from the Owner Dashboard. This uses the same Telnyx number as the automated texts.</p>
+              <form action="/api/owner/instant-sms" method="post" className="mt-5 grid gap-3">
+                <input name="phone" placeholder="Client phone number" className="rounded-2xl border border-white/10 bg-[#06101d] p-4 font-bold text-white outline-none focus:border-[#f6c15a]/60" />
+                <textarea name="message" rows={5} maxLength={1500} placeholder="Type SMS message here" className="rounded-2xl border border-white/10 bg-[#06101d] p-4 font-semibold leading-relaxed text-white outline-none focus:border-[#f6c15a]/60" />
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-xs font-bold text-white/45">Recommended while registration is pending: keep wording neutral and include Reply STOP to opt out.</div>
+                <button className="rounded-2xl bg-[#f6c15a] p-4 font-black text-[#06111f]">Send Instant SMS</button>
+              </form>
+            </div>
+            <div className="rounded-3xl border border-white/10 bg-[#091a2f] p-5">
+              <div className="text-xs font-black uppercase tracking-[.3em] text-cyan-200">SMS Visibility</div>
+              <h3 className="mt-2 text-2xl font-black tracking-[-.03em]">Client SMS Timeline</h3>
+              <p className="mt-2 text-sm font-semibold text-white/55">Each lead card now includes a timeline showing automatic texts, manual texts, failed attempts, and future reminder placeholders so you can see what the client has received from HC.</p>
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
+                <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4"><b className="text-emerald-200">Received</b><p className="mt-1 text-xs text-white/50">Logged after system/manual send attempt.</p></div>
+                <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4"><b className="text-amber-200">Pending</b><p className="mt-1 text-xs text-white/50">Scheduled reminders can appear here later.</p></div>
+                <div className="rounded-2xl border border-red-400/20 bg-red-400/10 p-4"><b className="text-red-200">Failed</b><p className="mt-1 text-xs text-white/50">Failed Telnyx attempts stay visible.</p></div>
+              </div>
             </div>
           </div>
 
@@ -308,6 +359,53 @@ export default async function OwnerPage({ searchParams }: { searchParams?: Recor
                                 {doc.file_path ? <a className="mt-2 inline-flex rounded-lg border border-emerald-300/30 px-3 py-1 font-black text-emerald-300" href={`/api/documents/download?path=${encodeURIComponent(doc.file_path)}`} target="_blank">Download</a> : null}
                               </div>
                             ))}
+                          </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-cyan-300/15 bg-[#06101d] p-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <label className="text-xs font-black uppercase tracking-[.2em] text-cyan-200">SMS Timeline</label>
+                              <p className="mt-1 text-xs font-bold text-white/45">What this client has received, failed attempts, and manual texts.</p>
+                            </div>
+                            <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-[10px] font-black uppercase tracking-[.18em] text-cyan-100">Live Log</span>
+                          </div>
+
+                          <form action="/api/owner/instant-sms" method="post" className="mt-4 grid gap-2">
+                            <input type="hidden" name="leadId" value={l.id} />
+                            <input type="hidden" name="phone" value={l.phone || ""} />
+                            <input type="hidden" name="returnTo" value="/owner" />
+                            <textarea name="message" rows={3} maxLength={1500} placeholder={`Send manual SMS to ${l.phone || "this client"}`} className="w-full rounded-2xl border border-white/10 bg-[#091a2f] p-3 text-sm font-semibold text-white outline-none focus:border-cyan-300/60" />
+                            <button className="rounded-2xl bg-cyan-300 p-3 text-sm font-black text-[#06111f]">Send Manual SMS To This Lead</button>
+                          </form>
+
+                          <div className="mt-4 grid gap-2">
+                            {((l.smsLogs || []).length || (l.notes || []).filter((n: any) => String(n.note || "").toLowerCase().includes("sms")).length) ? (
+                              <>
+                                {(l.smsLogs || []).slice(0, 4).map((log: any) => (
+                                  <div key={`sms-${log.id}`} className="rounded-xl border border-white/10 bg-black/20 p-3 text-xs">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                      <b className={String(log.delivery_status || "").toLowerCase().includes("fail") ? "text-red-300" : "text-emerald-300"}>{log.delivery_status || "sent"}</b>
+                                      <span className="text-white/40">{log.created_at ? new Date(log.created_at).toLocaleString() : ""}</span>
+                                    </div>
+                                    <div className="mt-1 text-white/50">{log.message_type || "SMS"} • {log.triggered_by || "System"}</div>
+                                    <div className="mt-2 whitespace-pre-wrap text-white/75">{log.message_body || "—"}</div>
+                                  </div>
+                                ))}
+                                {(l.notes || []).filter((n: any) => String(n.note || "").toLowerCase().includes("sms")).slice(0, 5).map((note: any) => (
+                                  <div key={`note-${note.id}`} className="rounded-xl border border-white/10 bg-black/20 p-3 text-xs">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                      <b className={String(note.note || "").toLowerCase().includes("not sent") || String(note.note || "").toLowerCase().includes("failed") ? "text-red-300" : "text-emerald-300"}>SMS Event</b>
+                                      <span className="text-white/40">{note.created_at ? new Date(note.created_at).toLocaleString() : ""}</span>
+                                    </div>
+                                    <div className="mt-2 text-white/75">{note.note}</div>
+                                  </div>
+                                ))}
+                              </>
+                            ) : (
+                              <div className="rounded-xl border border-dashed border-white/15 p-3 text-xs font-bold text-white/45">No SMS events logged yet for this lead.</div>
+                            )}
+                            <div className="rounded-xl border border-amber-300/20 bg-amber-300/10 p-3 text-xs font-bold text-amber-100">Future scheduled reminders: none active yet.</div>
                           </div>
                         </div>
 
