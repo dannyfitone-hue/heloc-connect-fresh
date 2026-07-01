@@ -2,73 +2,189 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>HELOC CONNECT — Process Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>HELOC CONNECT — Smart Review</title>
   <style>
     :root{
-      --bg:#030912; --panel:#071525; --panel2:#0a1c2e; --line:rgba(70,230,255,.28);
-      --cyan:#41f2ff; --blue:#1a9dff; --green:#60ff9a; --purple:#a66cff; --gold:#ffd05c;
-      --text:#f5f8ff; --muted:#a9b8ca; --soft:#d6e6f8;
+      --bg:#030912;--panel:#071525;--panel2:#0a1c2e;--line:rgba(70,230,255,.28);
+      --cyan:#41f2ff;--blue:#1a9dff;--green:#60ff9a;--purple:#a66cff;--gold:#ffd05c;
+      --red:#ff5572;--text:#f5f8ff;--muted:#a9b8ca;--soft:#d6e6f8;--dark:#020712;
     }
     *{box-sizing:border-box}
-    body{margin:0;background:radial-gradient(circle at 10% -10%,rgba(29,91,255,.22),transparent 30%),radial-gradient(circle at 100% 20%,rgba(0,255,178,.13),transparent 28%),linear-gradient(180deg,#020712,#06111e);color:var(--text);font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;}
-    .page{min-height:100vh;padding:28px 18px;display:grid;place-items:center;}
-    .process-shell{width:min(1120px,100%);border:1px solid rgba(65,242,255,.35);border-radius:34px;background:linear-gradient(180deg,rgba(6,22,38,.96),rgba(3,12,22,.98));box-shadow:0 30px 90px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.04);padding:28px;position:relative;overflow:hidden;}
-    .process-shell:before{content:"";position:absolute;inset:-1px;background:radial-gradient(circle at 76% 7%,rgba(65,242,255,.18),transparent 22%),radial-gradient(circle at 6% 90%,rgba(93,255,170,.12),transparent 22%);pointer-events:none}.inner{position:relative;z-index:1}
-    .topbar{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:26px}.logo{display:flex;align-items:center;gap:12px;font-weight:950;letter-spacing:.2em}.mark{width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#101e34,#0e3c4b);border:1px solid rgba(65,242,255,.46);display:grid;place-items:center;box-shadow:0 0 30px rgba(65,242,255,.18)}.mark:after{content:"⌂";font-size:25px;color:var(--cyan)}.yahoo{display:flex;align-items:center;gap:16px;padding:12px 18px;border-radius:20px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 1px rgba(255,255,255,.08)}.yahoo small{font-size:10px;letter-spacing:.26em;color:#aeefff;font-weight:900}.yahoo b{font-size:30px;line-height:.85;letter-spacing:-.08em}.yahoo span{font-weight:850;font-size:18px;display:block;margin-top:2px}.hero{display:grid;grid-template-columns:1.02fr .98fr;gap:30px;align-items:center;margin-bottom:26px}.eyebrow{color:var(--cyan);letter-spacing:.28em;font-weight:950;font-size:14px;margin-bottom:14px}.headline{font-size:clamp(38px,5.6vw,68px);line-height:.94;letter-spacing:-.06em;margin:0 0 18px;font-weight:1000}.headline strong{color:var(--cyan);text-shadow:0 0 24px rgba(65,242,255,.25)}.sub{font-size:clamp(17px,1.6vw,22px);line-height:1.52;color:#dce9f7;max-width:520px;margin:0}.trust-mini{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}.mini{display:flex;align-items:center;gap:10px;border:1px solid rgba(65,242,255,.22);border-radius:18px;padding:12px 14px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));font-weight:850}.mini i{font-style:normal;color:var(--green)}
-    .visual{min-height:330px;border-radius:30px;background:radial-gradient(circle at 50% 58%,rgba(65,242,255,.23),transparent 26%),linear-gradient(180deg,rgba(10,29,49,.98),rgba(3,10,19,.96));border:1px solid rgba(65,242,255,.22);position:relative;overflow:hidden;box-shadow:inset 0 0 50px rgba(65,242,255,.07)}.gridlines{position:absolute;inset:0;background-image:linear-gradient(rgba(65,242,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(65,242,255,.05) 1px,transparent 1px);background-size:26px 26px;mask-image:linear-gradient(to bottom,transparent,#000 20%,#000 80%,transparent)}.scan{position:absolute;left:8%;right:8%;height:3px;top:28%;background:linear-gradient(90deg,transparent,var(--cyan),var(--green),transparent);box-shadow:0 0 22px var(--cyan);animation:scan 3.2s ease-in-out infinite alternate}.orb{position:absolute;left:34%;right:24%;bottom:54px;height:96px;border-radius:50%;border:3px solid rgba(65,242,255,.72);box-shadow:0 0 30px rgba(65,242,255,.4), inset 0 0 20px rgba(65,242,255,.18);transform:perspective(500px) rotateX(67deg)}.house{position:absolute;left:42%;top:105px;width:150px;height:112px;filter:drop-shadow(0 22px 34px rgba(0,0,0,.55));animation:float 4s ease-in-out infinite}.roof{position:absolute;left:2px;top:0;width:146px;height:55px;background:linear-gradient(135deg,#1f405b,#050913);clip-path:polygon(50% 0,100% 100%,0 100%);border-bottom:3px solid rgba(65,242,255,.35)}.base{position:absolute;left:18px;top:45px;width:116px;height:67px;border-radius:8px;background:linear-gradient(135deg,#132e44,#07111e);border:1px solid rgba(65,242,255,.35)}.win{position:absolute;background:#ffd968;box-shadow:0 0 18px #ffd968;border-radius:3px}.w1{left:36px;top:62px;width:22px;height:19px}.w2{left:88px;top:62px;width:22px;height:19px}.door{position:absolute;left:64px;top:76px;width:22px;height:36px;background:#030912;border-radius:8px 8px 0 0}.float-card{position:absolute;padding:13px 16px;border-radius:16px;background:rgba(2,11,22,.86);border:1px solid rgba(65,242,255,.42);box-shadow:0 0 28px rgba(65,242,255,.18);font-weight:950}.float-card small{display:block;color:#b7c7d9;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.float-card b{font-size:24px;color:var(--green)}.v1{right:40px;top:45px;transform:rotate(4deg)}.v2{right:24px;top:145px;transform:rotate(-4deg)}.v3{right:64px;bottom:42px;transform:rotate(2deg)}
-    @keyframes scan{from{top:20%}to{top:78%}}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:radial-gradient(circle at 10% -10%,rgba(29,91,255,.22),transparent 30%),radial-gradient(circle at 100% 20%,rgba(0,255,178,.13),transparent 28%),linear-gradient(180deg,#020712,#06111e);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;overflow-x:hidden}
+    button,input,select{font:inherit}
+    a{color:inherit;text-decoration:none}
+    .sticky-brand{position:sticky;top:0;z-index:50;background:rgba(2,7,18,.76);backdrop-filter:blur(18px);border-bottom:1px solid rgba(65,242,255,.12);padding:10px 14px}
+    .nav-inner{max-width:1120px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{display:flex;align-items:center;gap:10px;font-weight:950;letter-spacing:.14em}.mark{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#101e34,#0e3c4b);border:1px solid rgba(65,242,255,.46);display:grid;place-items:center;box-shadow:0 0 30px rgba(65,242,255,.18)}.mark:after{content:"⌂";font-size:23px;color:var(--cyan)}.brand small{display:block;color:var(--cyan);letter-spacing:.18em}.featured{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);box-shadow:inset 0 1px rgba(255,255,255,.08);white-space:nowrap}.featured span{font-size:9px;letter-spacing:.18em;color:#aeefff;font-weight:900}.featured b{font-size:18px;letter-spacing:-.06em}.featured em{font-style:normal;font-size:12px;color:#d9ecff;font-weight:800}
+    .page{min-height:100vh;padding:22px 18px 46px;display:grid;gap:22px;place-items:center}.shell{width:min(1120px,100%);border:1px solid rgba(65,242,255,.35);border-radius:34px;background:linear-gradient(180deg,rgba(6,22,38,.96),rgba(3,12,22,.98));box-shadow:0 30px 90px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.04);padding:28px;position:relative;overflow:hidden}.shell:before{content:"";position:absolute;inset:-1px;background:radial-gradient(circle at 76% 7%,rgba(65,242,255,.18),transparent 22%),radial-gradient(circle at 6% 90%,rgba(93,255,170,.12),transparent 22%);pointer-events:none}.inner{position:relative;z-index:1}
+    .hero{display:grid;grid-template-columns:1.02fr .98fr;gap:30px;align-items:center;margin-bottom:24px}.eyebrow{color:var(--cyan);letter-spacing:.28em;font-weight:950;font-size:13px;margin-bottom:14px}.headline{font-size:clamp(38px,5.6vw,68px);line-height:.94;letter-spacing:-.06em;margin:0 0 18px;font-weight:1000}.headline strong{color:var(--cyan);text-shadow:0 0 24px rgba(65,242,255,.25)}.sub{font-size:clamp(17px,1.6vw,22px);line-height:1.52;color:#dce9f7;max-width:560px;margin:0}.trust-mini{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}.mini{display:flex;align-items:center;gap:10px;border:1px solid rgba(65,242,255,.22);border-radius:18px;padding:12px 14px;background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));font-weight:850}.mini i{font-style:normal;color:var(--green)}.hero-cta{margin-top:22px;display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;border-radius:18px;background:linear-gradient(135deg,var(--cyan),var(--green));color:#001018;font-weight:1000;padding:14px 18px;box-shadow:0 16px 40px rgba(65,242,255,.22);cursor:pointer}
+    .visual{min-height:330px;border-radius:30px;background:radial-gradient(circle at 50% 58%,rgba(65,242,255,.23),transparent 26%),linear-gradient(180deg,rgba(10,29,49,.98),rgba(3,10,19,.96));border:1px solid rgba(65,242,255,.22);position:relative;overflow:hidden;box-shadow:inset 0 0 50px rgba(65,242,255,.07)}.gridlines{position:absolute;inset:0;background-image:linear-gradient(rgba(65,242,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(65,242,255,.05) 1px,transparent 1px);background-size:26px 26px;mask-image:linear-gradient(to bottom,transparent,#000 20%,#000 80%,transparent)}.scan{position:absolute;left:8%;right:8%;height:3px;top:28%;background:linear-gradient(90deg,transparent,var(--cyan),var(--green),transparent);box-shadow:0 0 22px var(--cyan);animation:scan 3.2s ease-in-out infinite alternate}.orb{position:absolute;left:34%;right:24%;bottom:54px;height:96px;border-radius:50%;border:3px solid rgba(65,242,255,.72);box-shadow:0 0 30px rgba(65,242,255,.4),inset 0 0 20px rgba(65,242,255,.18);transform:perspective(500px) rotateX(67deg)}.house{position:absolute;left:42%;top:105px;width:150px;height:112px;filter:drop-shadow(0 22px 34px rgba(0,0,0,.55));animation:float 4s ease-in-out infinite}.roof{position:absolute;left:2px;top:0;width:146px;height:55px;background:linear-gradient(135deg,#1f405b,#050913);clip-path:polygon(50% 0,100% 100%,0 100%);border-bottom:3px solid rgba(65,242,255,.35)}.base{position:absolute;left:18px;top:45px;width:116px;height:67px;border-radius:8px;background:linear-gradient(135deg,#132e44,#07111e);border:1px solid rgba(65,242,255,.35)}.win{position:absolute;background:#ffd968;box-shadow:0 0 18px #ffd968;border-radius:3px}.w1{left:36px;top:62px;width:22px;height:19px}.w2{left:88px;top:62px;width:22px;height:19px}.door{position:absolute;left:64px;top:76px;width:22px;height:36px;background:#030912;border-radius:8px 8px 0 0}.float-card{position:absolute;padding:13px 16px;border-radius:16px;background:rgba(2,11,22,.86);border:1px solid rgba(65,242,255,.42);box-shadow:0 0 28px rgba(65,242,255,.18);font-weight:950}.float-card small{display:block;color:#b7c7d9;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.float-card b{font-size:24px;color:var(--green)}.v1{right:40px;top:45px;transform:rotate(4deg)}.v2{right:24px;top:145px;transform:rotate(-4deg)}.v3{right:64px;bottom:42px;transform:rotate(2deg)}@keyframes scan{from{top:20%}to{top:78%}}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
     .steps{display:grid;gap:16px;margin-top:4px}.step{display:grid;grid-template-columns:72px 1fr minmax(260px,390px);gap:18px;align-items:center;border:1px solid rgba(65,242,255,.22);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.025));border-radius:22px;padding:18px;position:relative;overflow:hidden}.num{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-weight:1000;font-size:24px;background:rgba(65,242,255,.08);border:2px solid var(--cyan);box-shadow:0 0 20px rgba(65,242,255,.22)}.step h3{font-size:21px;margin:0 0 7px;letter-spacing:-.02em}.step p{margin:0;color:#c8d7e8;line-height:1.45}.mock{border:1px solid rgba(65,242,255,.30);background:#040b15;border-radius:18px;padding:14px;min-height:74px;display:flex;align-items:center;justify-content:center;gap:12px}.address{justify-content:space-between;color:#fff;padding-inline:18px}.address span{color:#9cb4c9}.search-icon{color:var(--cyan);font-size:22px}.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{border:1px solid rgba(65,242,255,.22);border-radius:14px;padding:10px;text-align:center}.stat small{display:block;font-size:10px;color:#a9b8ca;text-transform:uppercase}.stat b{display:block;color:var(--green);font-size:18px;margin-top:3px}.checks{display:grid;gap:8px}.checks div{display:flex;justify-content:space-between;gap:12px;color:#eaf4ff}.checks i{font-style:normal;color:var(--green)}.status{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;position:relative}.status:before{content:"";position:absolute;left:12%;right:12%;top:26px;height:3px;background:linear-gradient(90deg,var(--blue),var(--cyan),var(--green));box-shadow:0 0 18px var(--cyan)}.dot{position:relative;text-align:center;font-size:10px;color:#d9eaff;font-weight:900;text-transform:uppercase;padding-top:42px}.dot:before{content:"";position:absolute;top:17px;left:50%;margin-left:-10px;width:20px;height:20px;border-radius:50%;background:var(--cyan);box-shadow:0 0 20px rgba(65,242,255,.6)}.dot:last-child:before{background:var(--green)}
     .why{margin-top:24px;border:1px solid rgba(96,255,154,.24);border-radius:24px;background:linear-gradient(180deg,rgba(18,58,54,.45),rgba(7,17,29,.92));padding:24px}.why-title{display:flex;align-items:center;gap:14px;margin-bottom:18px}.shield{width:58px;height:58px;border-radius:18px;background:rgba(96,255,154,.08);border:1px solid rgba(96,255,154,.35);display:grid;place-items:center;color:var(--green);font-size:34px;box-shadow:0 0 28px rgba(96,255,154,.18)}.why h2{font-size:clamp(28px,4vw,44px);margin:0;letter-spacing:-.05em}.why small{display:block;color:var(--cyan);letter-spacing:.24em;font-weight:950;margin-bottom:5px}.benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.benefit{border-left:1px solid rgba(65,242,255,.25);padding:12px 14px}.benefit:first-child{border-left:0}.benefit b{display:block;font-size:16px;margin-bottom:5px}.benefit p{margin:0;color:#bcd0e2;line-height:1.35}.freebar{margin:22px auto 0;max-width:680px;border:1px solid rgba(65,242,255,.30);border-radius:999px;padding:13px 20px;text-align:center;background:rgba(0,0,0,.28);font-weight:900}.freebar span{color:var(--green)}
-    @media(max-width:760px){.page{padding:14px}.process-shell{border-radius:24px;padding:16px}.topbar{align-items:flex-start}.logo{font-size:12px}.mark{width:40px;height:40px}.yahoo{padding:10px 12px;gap:9px}.yahoo b{font-size:22px}.yahoo span{font-size:14px}.hero{display:block}.visual{min-height:280px;margin-top:22px}.headline{font-size:40px}.sub{font-size:16px}.trust-mini{display:grid;grid-template-columns:1fr 1fr}.mini{font-size:13px}.step{grid-template-columns:48px 1fr;gap:12px}.step .mock{grid-column:1 / -1}.num{width:42px;height:42px;font-size:20px}.statgrid{grid-template-columns:1fr}.benefits{grid-template-columns:1fr 1fr}.benefit{border-left:0;border-top:1px solid rgba(65,242,255,.20)}.benefit:nth-child(-n+2){border-top:0}.float-card b{font-size:19px}.v1{right:18px}.v2{right:10px}.v3{right:28px}.house{left:34%;transform:scale(.88)}}
+    .section-head{text-align:center;max-width:760px;margin:0 auto 22px}.label{display:inline-flex;color:var(--cyan);font-weight:1000;letter-spacing:.18em;font-size:12px;margin-bottom:10px}.section-head h2{font-size:clamp(30px,4vw,48px);margin:0 0 10px;letter-spacing:-.045em}.section-head p{margin:0;color:#bfd0e2;line-height:1.45}.calculator-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}.card{border:1px solid rgba(65,242,255,.24);border-radius:26px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025));box-shadow:0 20px 60px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.07);padding:22px}.product-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.product{border:1px solid rgba(65,242,255,.18);border-radius:20px;background:linear-gradient(180deg,rgba(9,29,49,.96),rgba(2,9,18,.98));padding:14px;text-align:left;cursor:pointer;min-height:116px;position:relative;overflow:hidden;box-shadow:0 15px 40px rgba(0,0,0,.22);transition:.22s}.product:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 0,rgba(65,242,255,.18),transparent 38%);opacity:.45}.product:hover,.product.active{transform:translateY(-3px);border-color:rgba(96,255,154,.6);box-shadow:0 18px 54px rgba(65,242,255,.16)}.product.active:after{content:"✓";position:absolute;right:12px;top:12px;width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:var(--green);color:#001018;font-weight:1000}.product .top{position:relative;font-size:11px;font-weight:1000;letter-spacing:.12em;color:#8eefff;text-transform:uppercase}.product b{position:relative;display:block;font-size:18px;line-height:1.02;margin:8px 0 5px;color:#fff}.product small{position:relative;color:#b5c7d8;line-height:1.35;display:block}
+    .input-panel h3,.result-panel h3{margin:0 0 16px;font-size:22px;letter-spacing:-.02em}.field{display:block;margin-bottom:13px;position:relative}.field span{display:flex;align-items:center;justify-content:space-between;color:#bed0e2;font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:900;margin-bottom:8px}.field input,.field select{width:100%;border:1px solid rgba(65,242,255,.22);background:#040b15;color:#f5f8ff;border-radius:16px;padding:15px 14px;font-weight:850;outline:none}.field input:focus,.field select:focus{border-color:rgba(96,255,154,.65);box-shadow:0 0 0 4px rgba(96,255,154,.08)}.hint{font-size:12px;color:#8fa5b9;margin-top:-5px;margin-bottom:12px}.value-found{display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(96,255,154,.28);background:rgba(96,255,154,.07);border-radius:18px;padding:13px 14px;margin:4px 0 13px}.value-found small{color:#a5b8ca;text-transform:uppercase;letter-spacing:.08em;font-weight:900}.value-found b{font-size:24px;color:var(--green)}.range-row{display:grid;gap:8px;margin:16px 0}.range-row input{accent-color:var(--cyan);width:100%}.amount-line{display:flex;justify-content:space-between;gap:12px;align-items:flex-end}.amount-line small{color:#9fb1c4;text-transform:uppercase;font-weight:900;letter-spacing:.08em}.amount-line b{font-size:28px;color:#fff}.result-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}.result{border:1px solid rgba(65,242,255,.2);border-radius:18px;padding:15px;background:rgba(1,9,18,.78)}.result small{display:block;color:#a9bacd;font-weight:900;text-transform:uppercase;letter-spacing:.08em;font-size:10px}.result b{display:block;font-size:24px;margin-top:6px;color:#fff}.result.green b{color:var(--green)}.result.cyan b{color:var(--cyan)}.compare{margin-top:12px;border-radius:18px;border:1px solid rgba(96,255,154,.25);padding:16px;background:linear-gradient(135deg,rgba(96,255,154,.08),rgba(65,242,255,.04))}.compare h4{margin:0 0 8px}.compare p{margin:0;color:#c9d8e8;line-height:1.4}.lead-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.full{grid-column:1/-1}.smsbox{display:flex;gap:10px;align-items:flex-start;border:1px solid rgba(65,242,255,.18);border-radius:16px;padding:12px;background:#040b15;color:#ccdff0}.smsbox input{margin-top:3px}.owner-extra{display:none;margin-top:12px;border-top:1px solid rgba(65,242,255,.14);padding-top:16px}.owner-extra.show{display:block}.cta{width:100%;margin-top:16px;border:0;border-radius:18px;background:linear-gradient(135deg,var(--cyan),var(--green));color:#001018;font-weight:1000;padding:16px 18px;box-shadow:0 16px 40px rgba(65,242,255,.22);cursor:pointer}.subtle{font-size:12px;color:#93a9bc;text-align:center;margin-top:10px}.stage-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.stage-title .badge{border:1px solid rgba(65,242,255,.28);border-radius:999px;padding:8px 11px;color:var(--cyan);font-size:11px;font-weight:1000;letter-spacing:.14em}.stage-title h3{margin:0;font-size:24px;letter-spacing:-.03em}
+    @media(max-width:920px){.calculator-grid{grid-template-columns:1fr}.product-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:760px){.sticky-brand{padding:8px 10px}.brand{font-size:11px;letter-spacing:.1em}.mark{width:36px;height:36px}.featured{padding:8px 10px}.featured span{display:none}.featured b{font-size:16px}.featured em{font-size:11px}.page{padding:12px 10px 36px;gap:14px}.shell{border-radius:22px;padding:14px}.hero{display:block}.headline{font-size:36px;line-height:.96;letter-spacing:-.055em}.sub{font-size:15px;line-height:1.43}.eyebrow{font-size:11px;letter-spacing:.2em}.visual{min-height:242px;margin-top:18px;border-radius:22px}.trust-mini{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mini{font-size:12px;padding:10px 11px;border-radius:14px}.step{grid-template-columns:42px 1fr;gap:10px;padding:12px;border-radius:18px}.step .mock{grid-column:1/-1}.num{width:38px;height:38px;font-size:18px}.step h3{font-size:17px}.step p{font-size:13px}.statgrid{grid-template-columns:1fr}.benefits{grid-template-columns:1fr}.benefit{border-left:0;border-top:1px solid rgba(65,242,255,.20);padding:12px 4px}.benefit:first-child{border-top:0}.why{padding:16px;border-radius:20px}.why-title{align-items:flex-start}.why h2{font-size:27px}.shield{width:44px;height:44px;border-radius:14px;font-size:25px}.freebar{border-radius:18px;font-size:13px}.float-card{padding:10px 12px}.float-card b{font-size:17px}.v1{right:8px;top:35px}.v2{right:7px;top:124px}.v3{right:16px;bottom:24px}.house{left:27%;top:88px;transform:scale(.82)}.product-grid{grid-template-columns:repeat(2,1fr);gap:8px}.product{min-height:96px;padding:11px;border-radius:16px}.product b{font-size:15px}.product small{font-size:11px}.section-head h2{font-size:28px}.section-head p{font-size:14px}.card{padding:15px;border-radius:22px}.lead-grid{grid-template-columns:1fr;gap:10px}.result-cards{grid-template-columns:1fr 1fr;gap:8px}.result{padding:12px}.result b{font-size:19px}.stage-title{display:block}.stage-title h3{font-size:20px;margin-top:8px}.value-found b{font-size:20px}.amount-line b{font-size:24px}}
   </style>
 </head>
 <body>
+  <header class="sticky-brand">
+    <div class="nav-inner">
+      <div class="brand"><div class="mark"></div><div>HELOC <small>CONNECT</small></div></div>
+      <div class="featured"><span>AS FEATURED ON</span><b>yahoo!</b><em>finance</em></div>
+    </div>
+  </header>
   <main class="page">
-    <section class="process-shell" aria-label="How HELOC CONNECT works">
+    <section class="shell" aria-label="How HELOC CONNECT works">
       <div class="inner">
-        <div class="topbar">
-          <div class="logo"><div class="mark"></div><div>HELOC<br><span style="color:var(--cyan)">CONNECT</span></div></div>
-          <div class="yahoo"><small>AS FEATURED ON</small><div><b>yahoo!</b><span>finance</span></div></div>
-        </div>
         <section class="hero">
           <div>
             <div class="eyebrow">SMART. FAST. TARGETED.</div>
             <h1 class="headline">How <strong>HELOC CONNECT</strong><br>Works for You</h1>
             <p class="sub">Our intelligent system matches you with the right mortgage company so you can avoid wasting time with the wrong fit — fast, secure, and 100% free for homeowners.</p>
             <div class="trust-mini">
-              <div class="mini"><i>✓</i> Homeowners Pay $0</div>
-              <div class="mini"><i>✓</i> No SSN to Start</div>
-              <div class="mini"><i>✓</i> Secure Review</div>
-              <div class="mini"><i>✓</i> Premium Network</div>
+              <div class="mini"><i>✓</i> Homeowners Pay $0</div><div class="mini"><i>✓</i> No SSN to Start</div><div class="mini"><i>✓</i> Secure Review</div><div class="mini"><i>✓</i> Premium Network</div>
             </div>
+            <button class="hero-cta" onclick="document.getElementById('smart-review').scrollIntoView({behavior:'smooth'})">Start My Smart Review →</button>
           </div>
           <div class="visual">
             <div class="gridlines"></div><div class="scan"></div><div class="orb"></div>
             <div class="house"><div class="roof"></div><div class="base"></div><div class="win w1"></div><div class="win w2"></div><div class="door"></div></div>
-            <div class="float-card v1"><small>Est. Home Value</small><b>$1,850,000</b></div>
-            <div class="float-card v2"><small>Cash You Can Get</small><b>$350,000</b></div>
-            <div class="float-card v3"><small>Est. Payment</small><b>$2,381/mo</b></div>
+            <div class="float-card v1"><small>Est. Home Value</small><b>$1,850,000</b></div><div class="float-card v2"><small>Cash You Can Get</small><b>$350,000</b></div><div class="float-card v3"><small>Est. Payment</small><b>$2,381/mo</b></div>
           </div>
         </section>
         <div class="steps">
-          <article class="step"><div class="num">1</div><div><h3>Input Your Home Address</h3><p>Enter your address in the smart calculator. Our system uses property data to identify your home.</p></div><div class="mock address"><span>123 Main St, Irvine, CA</span><b class="search-icon">⌕</b></div></article>
-          <article class="step"><div class="num">2</div><div><h3>See Your Value & Options</h3><p>Instantly preview your home value, available cash, and estimated payment options.</p></div><div class="mock statgrid"><div class="stat"><small>Home Value</small><b>$1.85M</b></div><div class="stat"><small>Cash Access</small><b>$350K</b></div><div class="stat"><small>Payment</small><b>$2,381/mo</b></div></div></article>
-          <article class="step"><div class="num">3</div><div><h3>Tell Us About Yourself</h3><p>Share a few basic details so we can direct you to the mortgage company that best fits your situation.</p></div><div class="mock checks"><div>Basic Information <i>✓</i></div><div>Financial Overview <i>✓</i></div><div>Credit Profile <i>✓</i></div></div></article>
+          <article class="step"><div class="num">1</div><div><h3>Smart Calculator First</h3><p>Input your property address and numbers so our system can show your home value, cash access and payment preview.</p></div><div class="mock address"><span>Start with address</span><b class="search-icon">⌕</b></div></article>
+          <article class="step"><div class="num">2</div><div><h3>See Your Value & Options</h3><p>Preview your home value, available cash, and estimated payment options before sending your review.</p></div><div class="mock statgrid"><div class="stat"><small>Home Value</small><b>$1.85M</b></div><div class="stat"><small>Cash Access</small><b>$350K</b></div><div class="stat"><small>Payment</small><b>$2,381/mo</b></div></div></article>
+          <article class="step"><div class="num">3</div><div><h3>Tell Us About Yourself</h3><p>Share basic contact and credit history details so we can route you toward the right mortgage company.</p></div><div class="mock checks"><div>Contact Info <i>✓</i></div><div>Credit Overview <i>✓</i></div><div>Co-owner Option <i>✓</i></div></div></article>
           <article class="step"><div class="num">4</div><div><h3>Track Every Step Live</h3><p>Watch your status bar as we match you with one of our premium mortgage companies in our network.</p></div><div class="mock status"><div class="dot">Received</div><div class="dot">Matching</div><div class="dot">Matched</div><div class="dot">Approved</div></div></article>
         </div>
         <section class="why">
           <div class="why-title"><div class="shield">✓</div><div><small>WHY CHOOSE HELOC CONNECT?</small><h2>Hassle-Free. Risk-Free. Results-Driven.</h2></div></div>
           <div class="benefits">
-            <div class="benefit"><b>Only 3 Months Bank Statements</b><p>Simple review with no extra tax documents needed to start.</p></div>
-            <div class="benefit"><b>Save Time</b><p>We do the hard work and match you faster.</p></div>
-            <div class="benefit"><b>Low Credit? No Problem</b><p>We work with companies that help more homeowner situations.</p></div>
-            <div class="benefit"><b>Best Possible Payments & Terms</b><p>We help route you toward strong available options.</p></div>
+            <div class="benefit"><b>Only 3 Months Bank Statements</b><p>Simple review with no extra tax documents needed to start.</p></div><div class="benefit"><b>Save Time</b><p>We do the hard work and match you faster.</p></div><div class="benefit"><b>Low Credit? No Problem</b><p>We work with companies that help more homeowner situations.</p></div><div class="benefit"><b>Best Possible Payments & Terms</b><p>We help route you toward strong available options.</p></div>
           </div>
           <div class="freebar">Homeowners Pay <span>$0</span> &nbsp; | &nbsp; Mortgage Companies Pay Us</div>
         </section>
       </div>
     </section>
+
+    <section class="shell" id="smart-review" aria-label="Smart qualifying calculator and client information">
+      <div class="inner">
+        <div class="section-head">
+          <span class="label">STEP 1 • SMART CALCULATOR</span>
+          <h2>First, see your numbers.</h2>
+          <p>Choose your goal, enter your property and payment details, then preview your estimated value, cash access and payment scenario before moving to your information.</p>
+        </div>
+        <div class="product-grid" role="tablist" aria-label="Select service">
+          <button class="product active" data-product="heloc"><span class="top">Access to Cash</span><b>HELOC</b><small>Keep your mortgage and access equity.</small></button>
+          <button class="product" data-product="refi"><span class="top">Refinance</span><b>Cash + Lower Payment</b><small>Combine old loan and new cash into one loan.</small></button>
+          <button class="product" data-product="card"><span class="top">Equity Credit Line</span><b>Your Equity. Your Limit.</b><small>Flexible credit line access as needed.</small></button>
+          <button class="product" data-product="purchase"><span class="top">Buying</span><b>A New Home</b><small>Purchase financing through premium companies.</small></button>
+        </div>
+        <div class="calculator-grid">
+          <div class="card input-panel">
+            <div class="stage-title"><span class="badge">YOU ENTER</span><h3 id="inputTitle">Property & Loan Details</h3></div>
+            <label class="field"><span id="addressLabel">Property address</span><input id="address" placeholder="Start typing your home address" autocomplete="street-address"></label>
+            <div class="hint" id="addressHint">Example: 19 Paloma Dr, Mission Viejo, CA</div>
+            <div class="value-found"><div><small>Estimated home value</small><b id="homeValue">$1,850,000</b></div><span style="color:var(--green);font-weight:1000">FOUND</span></div>
+            <label class="field" id="mortgageField"><span>Current mortgage balance</span><input id="mortgage" value="420000" inputmode="numeric"></label>
+            <label class="field" id="rateField"><span>Your current mortgage interest rate</span><input id="currentRate" value="7.25" inputmode="decimal"></label>
+            <div class="range-row"><div class="amount-line"><small id="requestLabel">Cash amount requested</small><b id="cashLabel">$250,000</b></div><input id="cash" type="range" min="25000" max="750000" step="5000" value="250000"></div>
+          </div>
+          <div class="card result-panel">
+            <div class="stage-title"><span class="badge">WE CALCULATE</span><h3 id="resultTitle">Your HELOC Preview</h3></div>
+            <div class="result-cards">
+              <div class="result green"><small>Available equity preview</small><b id="equityOut">$1,060,000</b></div>
+              <div class="result cyan"><small id="paymentTitle">Estimated new payment</small><b id="paymentOut">$1,580/mo</b></div>
+              <div class="result"><small id="totalTitle">Requested cash</small><b id="cashOut">$250,000</b></div>
+              <div class="result"><small id="noteTitle">Current payment</small><b id="currentPaymentOut">$2,865/mo</b></div>
+            </div>
+            <div class="compare"><h4 id="compareTitle">What this means</h4><p id="compareText">With a HELOC, your existing mortgage stays in place and your equity line is a separate payment based on the amount you access.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell" aria-label="Client information">
+      <div class="inner">
+        <div class="section-head">
+          <span class="label">STEP 2 • CLIENT INFORMATION</span>
+          <h2>Next, tell us where to send your match.</h2>
+          <p>We use this information to route your review toward the mortgage company that best fits your situation.</p>
+        </div>
+        <div class="card">
+          <div class="lead-grid">
+            <label class="field"><span>First name</span><input placeholder="First name"></label>
+            <label class="field"><span>Last name</span><input placeholder="Last name"></label>
+            <label class="field"><span>Phone number</span><input placeholder="(555) 555-5555" inputmode="tel"></label>
+            <label class="field"><span>Email address</span><input placeholder="you@email.com" inputmode="email"></label>
+            <label class="smsbox full"><input type="checkbox"> <span>Yes, it is okay to receive SMS updates on this phone number for my application status and review updates.</span></label>
+            <label class="field"><span>Credit card payment history</span><select><option>I am current and never missed a payment</option><option>I am current now but had a few missed payments in the past</option><option>I have stopped making payments completely</option></select></label>
+            <label class="field"><span>Credit score range</span><select><option>720+</option><option>680 - 719</option><option>620 - 679</option><option>580 - 619</option><option>Below 580</option><option>Not sure</option></select></label>
+            <label class="field"><span>Bankruptcy in last 10 years?</span><select><option>No</option><option>Yes, discharged</option><option>Yes, still open</option><option>Not sure</option></select></label>
+            <label class="field"><span>Monthly income range</span><select><option>$5,000 - $7,500</option><option>$7,500 - $10,000</option><option>$10,000 - $15,000</option><option>$15,000+</option></select></label>
+            <label class="smsbox full"><input id="addOwner" type="checkbox"> <span>There is another owner on the property. Add their information.</span></label>
+          </div>
+          <div class="owner-extra" id="ownerBox">
+            <div class="lead-grid">
+              <label class="field"><span>Co-owner first name</span><input placeholder="First name"></label>
+              <label class="field"><span>Co-owner last name</span><input placeholder="Last name"></label>
+              <label class="field"><span>Co-owner phone</span><input placeholder="(555) 555-5555"></label>
+              <label class="field"><span>Co-owner email</span><input placeholder="email@example.com"></label>
+              <label class="field"><span>Co-owner credit score range</span><select><option>720+</option><option>680 - 719</option><option>620 - 679</option><option>580 - 619</option><option>Below 580</option><option>Not sure</option></select></label>
+              <label class="field"><span>Co-owner bankruptcy in last 10 years?</span><select><option>No</option><option>Yes, discharged</option><option>Yes, still open</option><option>Not sure</option></select></label>
+            </div>
+          </div>
+          <button class="cta">Find My Right Match</button>
+          <div class="subtle">Secure review • Homeowners pay $0 • Mortgage companies pay us</div>
+        </div>
+      </div>
+    </section>
   </main>
+  <script>
+    const $ = (id)=>document.getElementById(id);
+    const fmt = n => '$' + Math.round(n).toLocaleString();
+    const pmt = (principal, apr=6.5, years=30) => { const r=apr/100/12, n=years*12; return principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1); };
+    let product='heloc';
+    function parseNum(v){ return Number(String(v).replace(/[^0-9.]/g,'')) || 0; }
+    function valueFromAddress(address){ const a=address.toLowerCase(); if(a.includes('paloma')||a.includes('mission viejo')) return 1850000; if(a.includes('irvine')) return 1650000; if(a.includes('newport')) return 2450000; if(a.includes('laguna')) return 2100000; return 1250000; }
+    function update(){
+      const home=valueFromAddress($('address').value||'19 Paloma Dr, Mission Viejo, CA');
+      const mortgage=parseNum($('mortgage').value)||420000;
+      const currentRate=parseFloat($('currentRate').value)||7.25;
+      const cash=parseNum($('cash').value)||250000;
+      $('homeValue').textContent=fmt(home); $('cashLabel').textContent=fmt(cash);
+      const equity=Math.max(0, home*0.80-mortgage);
+      const currentPayment=pmt(mortgage,currentRate,30);
+      $('equityOut').textContent=fmt(equity); $('cashOut').textContent=fmt(cash); $('currentPaymentOut').textContent=fmt(currentPayment)+'/mo';
+      if(product==='refi'){
+        $('resultTitle').textContent='Your Refinance Preview'; $('paymentTitle').textContent='New combined payment'; $('totalTitle').textContent='New loan amount'; $('noteTitle').textContent='Current payment';
+        const newLoan=mortgage+cash; $('cashOut').textContent=fmt(newLoan); $('paymentOut').textContent=fmt(pmt(newLoan,6.5,30))+'/mo';
+        $('compareTitle').textContent='One new loan with cash out'; $('compareText').textContent='Refinance pays off the old mortgage and combines the cash you want into one new mortgage payment preview.';
+        $('requestLabel').textContent='Cash-out amount requested'; $('mortgageField').style.display='block'; $('rateField').style.display='block'; $('addressLabel').textContent='Property address'; $('addressHint').textContent='We use the property value to estimate refinance and cash-out room.';
+      } else if(product==='purchase'){
+        $('resultTitle').textContent='Your Purchase Mortgage Preview'; $('paymentTitle').textContent='Estimated purchase payment'; $('totalTitle').textContent='Target loan amount'; $('noteTitle').textContent='Purchase path';
+        $('equityOut').textContent=fmt(home); $('cashOut').textContent=fmt(cash); $('paymentOut').textContent=fmt(pmt(cash,6.5,30))+'/mo'; $('currentPaymentOut').textContent='New Home';
+        $('compareTitle').textContent='Purchase financing path'; $('compareText').textContent='Enter a purchase property address or use the slider to preview the loan amount you want for a new home.';
+        $('requestLabel').textContent='Desired purchase loan amount'; $('addressLabel').textContent='Property purchasing address'; $('addressHint').textContent='If you have not found the right home yet, use the slider for the amount you wish to borrow.';
+      } else if(product==='card'){
+        $('resultTitle').textContent='Your Home Equity Credit Line Preview'; $('paymentTitle').textContent='Interest-only preview'; $('totalTitle').textContent='Credit line requested'; $('noteTitle').textContent='Current mortgage stays';
+        $('paymentOut').textContent=fmt(cash*0.065/12)+'/mo'; $('currentPaymentOut').textContent='In Place';
+        $('compareTitle').textContent='Your equity becomes flexible spending power'; $('compareText').textContent='Your home equity credit line can be used as needed while keeping your current mortgage in place.';
+        $('requestLabel').textContent='Desired credit line amount'; $('mortgageField').style.display='block'; $('rateField').style.display='none'; $('addressLabel').textContent='Property address'; $('addressHint').textContent='We use the property value to estimate available equity-backed credit line room.';
+      } else {
+        $('resultTitle').textContent='Your HELOC Preview'; $('paymentTitle').textContent='Estimated HELOC payment'; $('totalTitle').textContent='Requested cash'; $('noteTitle').textContent='Current mortgage stays';
+        $('paymentOut').textContent=fmt(cash*0.065/12)+'/mo'; $('currentPaymentOut').textContent='In Place';
+        $('compareTitle').textContent='Separate equity access'; $('compareText').textContent='With a HELOC, your existing mortgage stays in place and your equity line is a separate payment based on the amount you access.';
+        $('requestLabel').textContent='Cash amount requested'; $('mortgageField').style.display='block'; $('rateField').style.display='none'; $('addressLabel').textContent='Property address'; $('addressHint').textContent='Start typing your address. The live version will use autocomplete and property valuation APIs.';
+      }
+    }
+    document.querySelectorAll('.product').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.product').forEach(b=>b.classList.remove('active'));btn.classList.add('active');product=btn.dataset.product;document.getElementById('smart-review').scrollIntoView({behavior:'smooth',block:'start'});update();}));
+    ['address','mortgage','currentRate','cash'].forEach(id=>$(id).addEventListener('input',update));
+    $('addOwner').addEventListener('change',e=>$('ownerBox').classList.toggle('show',e.target.checked));
+    update();
+  </script>
 </body>
 </html>
