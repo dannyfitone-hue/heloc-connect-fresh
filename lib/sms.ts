@@ -88,24 +88,33 @@ async function getTemplateFromSupabase(key: SmsTemplateKey) {
 }
 
 function neutralizeForCarrierTest(message: string) {
-  // Temporary carrier-filter test: keep SMS wording neutral and avoid finance/loan terms.
+  // Strict SMS-safe mode. This prevents sensitive industry wording from going out
+  // even if an admin template accidentally includes it.
   return String(message || "")
-    .replace(/HELOC CONNECT/gi, "HC")
-    .replace(/HELOC/gi, "HC")
-    .replace(/mortgage/gi, "review")
-    .replace(/loan/gi, "request")
-    .replace(/loans/gi, "requests")
-    .replace(/cash/gi, "funds")
-    .replace(/equity/gi, "property")
-    .replace(/refinance/gi, "review")
-    .replace(/credit/gi, "profile")
-    .replace(/application/gi, "request")
-    .replace(/approved/gi, "updated")
-    .replace(/approval/gi, "review")
-    .replace(/funding/gi, "next step")
-    .replace(/funded/gi, "completed")
+    // Remove any URL that could include restricted brand/domain wording.
     .replace(/https?:\/\/\S+/gi, "")
+    .replace(/www\.\S+/gi, "")
+    // Brand and industry terms to keep out of SMS carrier tests.
+    .replace(/HELOC CONNECT/gi, "HC")
+    .replace(/helocconnect\.com/gi, "")
+    .replace(/HELOC/gi, "HC")
+    .replace(/mortgages?/gi, "review")
+    .replace(/refinanc(e|ing)/gi, "review")
+    .replace(/financ(e|ing|ial)/gi, "review")
+    .replace(/credits?/gi, "profile")
+    .replace(/loans?/gi, "request")
+    .replace(/equity/gi, "property")
+    .replace(/cash/gi, "options")
+    .replace(/debts?/gi, "balances")
+    .replace(/APR/gi, "rate")
+    .replace(/rates?/gi, "terms")
+    .replace(/applications?/gi, "request")
+    .replace(/approv(e|ed|al|als|ing)/gi, "update")
+    .replace(/fund(ing|ed|s)?/gi, "next step")
+    .replace(/bank statements?/gi, "documents")
+    .replace(/payments?/gi, "options")
     .replace(/\s{2,}/g, " ")
+    .replace(/\s+([.!?,])/g, "$1")
     .trim();
 }
 
