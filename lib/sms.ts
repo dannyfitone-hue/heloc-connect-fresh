@@ -130,16 +130,30 @@ export async function sendSms(toPhone: any, message: string) {
     return result;
   }
 
+  // V38 carrier-delivery isolation test:
+  // Default to sending with the purchased sender number only. The number is already
+  // assigned to the HELOC CONNECT SMS profile inside Telnyx, and sending both
+  // `from` and `messaging_profile_id` can make troubleshooting harder.
+  // Optional Vercel env TELNYX_SEND_MODE can be set to:
+  //   from_only   -> { from, to, text }  (default)
+  //   profile_only -> { messaging_profile_id, to, text }
+  //   both        -> { from, messaging_profile_id, to, text }
+  const sendMode = cleanEnv(process.env.TELNYX_SEND_MODE || "from_only").toLowerCase();
   const payload: Record<string, any> = {
-    from,
     to,
     text: finalMessage.slice(0, 1500),
   };
 
-  // Keep this attached because the number is assigned to HELOC CONNECT SMS profile in Telnyx.
-  if (messagingProfileId) payload.messaging_profile_id = messagingProfileId;
+  if (sendMode === "profile_only" && messagingProfileId) {
+    payload.messaging_profile_id = messagingProfileId;
+  } else if (sendMode === "both" && messagingProfileId) {
+    payload.from = from;
+    payload.messaging_profile_id = messagingProfileId;
+  } else {
+    payload.from = from;
+  }
 
-  console.log("HELOC_SMS_ATTEMPT", JSON.stringify({ ...configStatus, textPreview: payload.text.slice(0, 80) }));
+  console.log("HELOC_SMS_ATTEMPT", JSON.stringify({ ...configStatus, sendMode, payloadKeys: Object.keys(payload), textPreview: payload.text.slice(0, 120) }));
 
   try {
     const res = await fetch("https://api.telnyx.com/v2/messages", {
