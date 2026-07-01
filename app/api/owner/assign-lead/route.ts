@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
   if (lenderId && updatedLead?.phone) {
     const smsResult = await sendApplicationSms("company_matched", updatedLead, { status: "Company Matched", companyName: assigned_company });
-    try { await supabaseAdmin.from("lead_notes").insert({ lead_id: leadId, note: smsResult?.ok ? "Company matched SMS sent automatically." : `Company matched SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}` }); } catch {}
+    try { await supabaseAdmin.from("lead_notes").insert({ lead_id: leadId, note: (smsResult as any)?.ok ? "Company matched SMS sent automatically." : `Company matched SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}` }); } catch {}
   }
 
   return NextResponse.redirect(new URL("/owner?assigned=1", req.url), 303);

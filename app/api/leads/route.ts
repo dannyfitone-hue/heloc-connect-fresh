@@ -129,7 +129,7 @@ export async function POST(req: Request) {
     try {
       await supabase.from("lead_notes").insert({
         lead_id: data?.id,
-        note: smsResult?.ok ? "Welcome SMS sent automatically." : `Welcome SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}`
+        note: (smsResult as any)?.ok ? "Welcome SMS sent automatically." : `Welcome SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}`
       });
     } catch {}
 

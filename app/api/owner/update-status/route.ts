@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   if (status && lead?.phone) {
     const smsResult = await sendStatusSms(lead.phone, lead.tracking_id, status, lead.client_token);
     try {
-      await supabaseAdmin.from("lead_notes").insert({ lead_id: leadId, note: smsResult?.ok ? `Status SMS sent: ${status}` : `Status SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}` });
+      await supabaseAdmin.from("lead_notes").insert({ lead_id: leadId, note: (smsResult as any)?.ok ? `Status SMS sent: ${status}` : `Status SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}` });
     } catch {}
   }
   return NextResponse.redirect(new URL(req.headers.get("referer") || "/owner", req.url), 303);

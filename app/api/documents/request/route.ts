@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
   await s.from("lead_notes").insert({ lead_id: payload.leadId, note: `Document requested: ${documentType}${note ? " - " + note : ""}` });
   if (lead?.phone) {
     const smsResult = await sendApplicationSms("documents_requested", lead, { status: "Documents Requested" });
-    try { await s.from("lead_notes").insert({ lead_id: payload.leadId, note: smsResult?.ok ? "Documents requested SMS sent automatically." : `Documents requested SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}` }); } catch {}
+    try { await s.from("lead_notes").insert({ lead_id: payload.leadId, note: (smsResult as any)?.ok ? "Documents requested SMS sent automatically." : `Documents requested SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}` }); } catch {}
   }
 
   if (isForm) return NextResponse.redirect(new URL(`${returnTo}${returnTo.includes("?") ? "&" : "?"}requested_doc=1`, req.url), 303);
