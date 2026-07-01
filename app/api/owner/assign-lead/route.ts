@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { sendApplicationSms } from "@/lib/sms";
 
 export async function POST(req: Request) {
   const form = await req.formData();
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
     assigned_agent = lender?.lender_name || "";
   }
 
-  await supabaseAdmin
+  const { data: updatedLead } = await supabaseAdmin
     .from("leads")
     .update({
       assigned_lender_id: lenderId || null,
@@ -26,7 +27,14 @@ export async function POST(req: Request) {
       status: lenderId ? "Company Matched" : "Application Received",
       updated_at: new Date().toISOString()
     })
-    .eq("id", leadId);
+    .eq("id", leadId)
+    .select("id, phone, tracking_id, client_token, first_name, last_name, status, assigned_company")
+    .single();
+
+  if (lenderId && updatedLead?.phone) {
+    const smsResult = await sendApplicationSms("company_matched", updatedLead, { status: "Company Matched", companyName: assigned_company });
+    try { await supabaseAdmin.from("lead_notes").insert({ lead_id: leadId, note: smsResult?.ok ? "Company matched SMS sent automatically." : `Company matched SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}` }); } catch {}
+  }
 
   return NextResponse.redirect(new URL("/owner?assigned=1", req.url), 303);
 }

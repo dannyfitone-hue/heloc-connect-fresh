@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import { CLIENT_STATUSES, DOCUMENT_TYPES, money } from "@/lib/statuses";
+import { DEFAULT_SMS_TEMPLATES } from "@/lib/sms";
 import DeleteLeadForm from "./DeleteLeadForm";
 import DeleteLenderForm from "./DeleteLenderForm";
 
@@ -55,6 +56,21 @@ async function getLenders() {
   return data || [];
 }
 
+async function getSmsTemplates() {
+  const defaults = Object.entries(DEFAULT_SMS_TEMPLATES).map(([template_key, message]) => ({ template_key, message, enabled: true }));
+  if (!supabaseAdmin) return defaults;
+  try {
+    const { data, error } = await supabaseAdmin.from("sms_templates").select("template_key,message,enabled");
+    if (error || !data) return defaults;
+    return defaults.map((d) => {
+      const saved = (data as any[]).find((r) => r.template_key === d.template_key);
+      return saved ? { ...d, message: saved.message || d.message, enabled: saved.enabled !== false } : d;
+    });
+  } catch {
+    return defaults;
+  }
+}
+
 function statCount(leads: any[], status: string) {
   return leads.filter((l) => String(l.status || "").toLowerCase().includes(status.toLowerCase())).length;
 }
@@ -62,6 +78,7 @@ function statCount(leads: any[], status: string) {
 export default async function OwnerPage({ searchParams }: { searchParams?: Record<string, string | undefined> }) {
   const leads: any[] = await getLeads();
   const lenders: any[] = await getLenders();
+  const smsTemplates: any[] = await getSmsTemplates();
   const totalRequested = leads.reduce((sum, l) => sum + Number(l.requested_amount || 0), 0);
   const funded = leads.reduce((sum, l) => sum + Number(l.funded_amount || 0), 0);
 
@@ -84,6 +101,12 @@ export default async function OwnerPage({ searchParams }: { searchParams?: Recor
       </header>
 
       <section className="mx-auto max-w-[1500px] px-4 py-8 sm:px-6 lg:px-8">
+
+        {searchParams?.sms_templates_saved && (
+          <div className="mb-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm font-black text-emerald-200">
+            SMS automation templates saved. Future automatic texts will use the updated wording.
+          </div>
+        )}
 
         {searchParams?.created_lender && (
           <div className="mb-5 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm font-black text-emerald-200">
@@ -131,6 +154,43 @@ export default async function OwnerPage({ searchParams }: { searchParams?: Recor
             <div className="rounded-3xl border border-white/10 bg-[#08182b] p-5"><div className="text-sm font-black text-white/50">Requested Funding</div><div className="mt-2 text-3xl font-black">{money(totalRequested)}</div></div>
             <div className="rounded-3xl border border-white/10 bg-[#08182b] p-5"><div className="text-sm font-black text-white/50">Funded Volume</div><div className="mt-2 text-3xl font-black text-emerald-300">{money(funded)}</div></div>
           </div>
+        </div>
+
+
+
+        <div className="mt-6 rounded-[34px] border border-cyan-300/15 bg-[#071421] p-5 shadow-2xl sm:p-6">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="text-xs font-black uppercase tracking-[.35em] text-cyan-200">Automation Center</div>
+              <h2 className="mt-2 text-3xl font-black tracking-[-.04em]">SMS Automation</h2>
+              <p className="mt-2 max-w-3xl text-sm font-semibold text-white/60">
+                Edit the automatic text messages HELOC CONNECT sends after form submission, status changes, document requests, approvals, and funding. Telnyx only delivers the message — this dashboard controls the wording.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm font-black text-emerald-200">
+              Telnyx Ready: {process.env.TELNYX_API_KEY && process.env.TELNYX_PHONE_NUMBER ? "Connected" : "Env Needed"}
+            </div>
+          </div>
+
+          <form action="/api/owner/sms-templates" method="post" className="mt-6 grid gap-4">
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-xs font-bold text-white/55">
+              Available placeholders: <span className="text-cyan-200">{"{FIRST_NAME}"}</span>, <span className="text-cyan-200">{"{STATUS_LINK}"}</span>, <span className="text-cyan-200">{"{STATUS}"}</span>, <span className="text-cyan-200">{"{TRACKING_ID}"}</span>, <span className="text-cyan-200">{"{COMPANY_NAME}"}</span>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {smsTemplates.map((tpl) => (
+                <div key={tpl.template_key} className="rounded-3xl border border-white/10 bg-[#091a2f] p-4">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <label className="text-sm font-black uppercase tracking-[.18em] text-[#f6c15a]">{String(tpl.template_key).replace(/_/g, " ")}</label>
+                    <label className="flex items-center gap-2 text-xs font-black text-white/60">
+                      <input type="checkbox" name={`${tpl.template_key}_enabled`} defaultChecked={tpl.enabled !== false} value="on" /> Enabled
+                    </label>
+                  </div>
+                  <textarea name={tpl.template_key} defaultValue={tpl.message} rows={5} className="w-full rounded-2xl border border-white/10 bg-[#06101d] p-4 text-sm font-semibold leading-relaxed text-white outline-none focus:border-cyan-300/60" />
+                </div>
+              ))}
+            </div>
+            <button className="rounded-2xl bg-cyan-300 p-4 font-black text-[#06111f]">Save SMS Automation Templates</button>
+          </form>
         </div>
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[.75fr_1.25fr]">

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { sendApplicationSms } from "@/lib/sms";
 
 export const dynamic = "force-dynamic";
 
@@ -57,8 +58,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  await s.from("leads").update({ status: "Documents Requested", updated_at: new Date().toISOString() }).eq("id", payload.leadId);
+  const { data: lead } = await s.from("leads").update({ status: "Documents Requested", updated_at: new Date().toISOString() }).eq("id", payload.leadId).select("id, phone, tracking_id, client_token, first_name, last_name, status").single();
   await s.from("lead_notes").insert({ lead_id: payload.leadId, note: `Document requested: ${documentType}${note ? " - " + note : ""}` });
+  if (lead?.phone) {
+    const smsResult = await sendApplicationSms("documents_requested", lead, { status: "Documents Requested" });
+    try { await s.from("lead_notes").insert({ lead_id: payload.leadId, note: smsResult?.ok ? "Documents requested SMS sent automatically." : `Documents requested SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}` }); } catch {}
+  }
 
   if (isForm) return NextResponse.redirect(new URL(`${returnTo}${returnTo.includes("?") ? "&" : "?"}requested_doc=1`, req.url), 303);
   return NextResponse.json({ ok: true });

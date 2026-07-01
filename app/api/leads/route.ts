@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { sendWelcomeSms } from "@/lib/sms";
 
 const FALLBACK_SUPABASE_URL = "https://cpljanwlpclyhshrsfzv.supabase.co";
 
@@ -119,12 +120,21 @@ export async function POST(req: Request) {
       }, { status: 500 });
     }
 
+    const smsResult = await sendWelcomeSms({ ...lead, id: data?.id, client_token: data?.client_token || clientToken, tracking_id: data?.tracking_id || lead.tracking_id });
+    try {
+      await supabase.from("lead_notes").insert({
+        lead_id: data?.id,
+        note: smsResult?.ok ? "Welcome SMS sent automatically." : `Welcome SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}`
+      });
+    } catch {}
+
     return NextResponse.json({
       saved: true,
       id: data?.id || null,
       token: data?.client_token || clientToken,
       client_token: data?.client_token || clientToken,
-      tracking_id: data?.tracking_id || lead.tracking_id
+      tracking_id: data?.tracking_id || lead.tracking_id,
+      sms: smsResult
     });
   } catch (error: any) {
     return NextResponse.json({
