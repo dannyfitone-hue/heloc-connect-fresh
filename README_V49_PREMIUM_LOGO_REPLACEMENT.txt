@@ -1,0 +1,1 @@
+V49: Replaced generic HC/text logo with uploaded premium black/gold HELOC CONNECT logo across public homepage, mobile header, owner dashboard, lender portal, client status pages, login pages, favicon/app icon. Build compiled successfully locally.

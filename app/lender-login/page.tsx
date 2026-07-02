@@ -4,9 +4,8 @@ export default function LenderLoginPage({ searchParams }: { searchParams?: { err
       <div className="mx-auto flex min-h-[80vh] max-w-xl items-center justify-center">
         <form method="post" action="/api/auth/lender-login" className="w-full rounded-[34px] border border-white/10 bg-[#11100b] p-8 shadow-2xl">
           <a href="/" className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl border border-[#d9a94e]/70 bg-[#14110a] text-[#d4af37]">⌂</div>
+            <img src="/heloc-connect-logo.png" alt="HELOC CONNECT" className="h-14 w-auto max-w-[156px] object-contain drop-shadow-[0_0_18px_rgba(212,175,55,.22)]" />
             <div>
-              <div className="text-2xl font-black tracking-[-.04em]">HELOC CONNECT</div>
               <div className="text-xs font-black uppercase tracking-[.35em] text-[#d4af37]">Mortgage Company Portal</div>
             </div>
           </a>
