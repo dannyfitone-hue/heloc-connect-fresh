@@ -4,7 +4,7 @@ export default function LoginPage({ searchParams }: { searchParams?: { error?: s
       <div className="mx-auto flex min-h-[80vh] max-w-xl items-center justify-center">
         <form method="post" action="/api/auth/owner-login" className="w-full rounded-[34px] border border-white/10 bg-[#11100b] p-8 shadow-2xl">
           <a href="/" className="flex items-center gap-3">
-            <img src="/heloc-connect-logo.png" alt="HELOC CONNECT" className="h-14 w-auto max-w-[156px] object-contain drop-shadow-[0_0_18px_rgba(212,175,55,.22)]" />
+            <img src="/heloc-connect-premium-logo-v2.png?v=2" alt="HELOC CONNECT" className="h-14 w-auto max-w-[156px] object-contain drop-shadow-[0_0_18px_rgba(212,175,55,.22)]" />
             <div>
               <div className="text-xs font-black uppercase tracking-[.35em] text-[#d4af37]">Owner Command Center</div>
             </div>

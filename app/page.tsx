@@ -314,7 +314,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-amber-200/10 bg-[#050505]/95 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <a href="/" className="flex items-center gap-3" aria-label="HELOC CONNECT home">
-            <img src="/heloc-connect-logo.png" alt="HELOC CONNECT" className="h-12 w-auto max-w-[142px] object-contain drop-shadow-[0_0_18px_rgba(212,175,55,.25)] sm:h-14 sm:max-w-[170px]" />
+            <img src="/heloc-connect-premium-logo-v2.png?v=2" alt="HELOC CONNECT" className="h-12 w-auto max-w-[142px] object-contain drop-shadow-[0_0_18px_rgba(212,175,55,.25)] sm:h-14 sm:max-w-[170px]" />
           </a>
           <div className="flex items-center gap-2">
             <div className="rounded-full border border-amber-300/25 bg-amber-300/8 px-3 py-2 text-[10px] font-black uppercase tracking-[.16em] text-amber-100 sm:px-4">Yahoo Finance</div>
@@ -338,7 +338,7 @@ export default function LandingPage() {
 
         <section className="process-shell">
           <div className="topbar2">
-            <div className="brandline"><img src="/heloc-connect-logo.png" alt="HELOC CONNECT" className="hc-brand-logo" /></div>
+            <div className="brandline"><img src="/heloc-connect-premium-logo-v2.png?v=2" alt="HELOC CONNECT" className="hc-brand-logo" /></div>
             <div className="yahoo-premium"><small>AS FEATURED ON</small><b>yahoo! <em>finance</em></b></div>
           </div>
           <div className="hero-grid">
