@@ -28,22 +28,22 @@ export default async function StatusPage({ params }: { params: { token: string }
   const address = lead?.property_address || lead?.address || "—";
 
   return (
-    <main className="min-h-screen bg-[#06111f] text-white">
-      <header className="border-b border-white/10 bg-[#06101d]/95 px-5 py-5">
+    <main className="min-h-screen bg-[#0b0a07] text-white">
+      <header className="border-b border-white/10 bg-[#0f0e0a]/95 px-5 py-5">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between">
           <a href="/" className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl border border-[#d9a94e]/70 bg-[#091827] text-[#f6c15a]">⌂</div>
+            <div className="grid h-12 w-12 place-items-center rounded-2xl border border-[#d9a94e]/70 bg-[#14110a] text-[#d4af37]">⌂</div>
             <div>
               <div className="text-2xl font-black tracking-[-.04em]">HELOC CONNECT</div>
-              <div className="text-xs font-black uppercase tracking-[.35em] text-[#f6c15a]">Private Client Status</div>
+              <div className="text-xs font-black uppercase tracking-[.35em] text-[#d4af37]">Private Client Status</div>
             </div>
           </a>
         </div>
       </header>
 
       <section className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="rounded-[34px] border border-white/10 bg-gradient-to-br from-[#0b1b2e] to-[#06111f] p-6 shadow-2xl">
-          <div className="text-xs font-black uppercase tracking-[.35em] text-[#f6c15a]">Application Status</div>
+        <div className="rounded-[34px] border border-white/10 bg-gradient-to-br from-[#18140c] to-[#0b0a07] p-6 shadow-2xl">
+          <div className="text-xs font-black uppercase tracking-[.35em] text-[#d4af37]">Application Status</div>
           <h1 className="mt-3 text-4xl font-black tracking-[-.05em] md:text-6xl">
             Welcome, {lead?.first_name || "Client"}
           </h1>
@@ -51,23 +51,23 @@ export default async function StatusPage({ params }: { params: { token: string }
             Your request is being reviewed through HELOC CONNECT. This page updates as your file moves through the matching process.
           </p>
 
-          <div className="mt-6 rounded-3xl border border-[#f6c15a]/35 bg-[#f6c15a]/10 p-5">
-            <div className="text-sm font-black uppercase tracking-[.25em] text-[#f6c15a]">Current Step</div>
+          <div className="mt-6 rounded-3xl border border-[#d4af37]/35 bg-[#d4af37]/10 p-5">
+            <div className="text-sm font-black uppercase tracking-[.25em] text-[#d4af37]">Current Step</div>
             <div className="mt-2 text-3xl font-black">{current}</div>
           </div>
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_.75fr]">
-          <div className="rounded-[34px] border border-white/10 bg-[#071421] p-6 shadow-2xl">
+          <div className="rounded-[34px] border border-white/10 bg-[#11100b] p-6 shadow-2xl">
             <h2 className="text-2xl font-black">Your Progress Timeline</h2>
             <div className="mt-6 space-y-4">
               {CLIENT_STATUSES.slice(0, 6).map((s, i) => {
                 const active = i <= currentIndex;
                 const currentStep = s === current;
                 return (
-                  <div key={s} className={`rounded-3xl border p-5 ${currentStep ? "border-[#f6c15a] bg-[#f6c15a]/10" : active ? "border-emerald-400/35 bg-emerald-400/10" : "border-white/10 bg-white/[.03]"}`}>
+                  <div key={s} className={`rounded-3xl border p-5 ${currentStep ? "border-[#d4af37] bg-[#d4af37]/10" : active ? "border-amber-400/35 bg-amber-400/10" : "border-white/10 bg-white/[.03]"}`}>
                     <div className="flex items-center gap-4">
-                      <div className={`grid h-11 w-11 place-items-center rounded-full font-black ${active ? "bg-emerald-400 text-[#06111f]" : "bg-white/10 text-white/50"}`}>{active ? "✓" : i + 1}</div>
+                      <div className={`grid h-11 w-11 place-items-center rounded-full font-black ${active ? "bg-amber-400 text-[#0b0a07]" : "bg-white/10 text-white/50"}`}>{active ? "✓" : i + 1}</div>
                       <div>
                         <div className="text-lg font-black">{s}</div>
                         <div className="text-sm font-semibold text-white/55">{currentStep ? "Current step" : active ? "Completed" : "Pending"}</div>
@@ -79,7 +79,7 @@ export default async function StatusPage({ params }: { params: { token: string }
             </div>
           </div>
 
-          <div className="rounded-[34px] border border-white/10 bg-[#071421] p-6 shadow-2xl">
+          <div className="rounded-[34px] border border-white/10 bg-[#11100b] p-6 shadow-2xl">
             <h2 className="text-2xl font-black">Application Snapshot</h2>
             <div className="mt-5 grid gap-3">
               <div className="rounded-2xl bg-black/20 p-4"><div className="text-sm text-white/45">Requested Amount</div><b className="text-2xl">{money(lead?.requested_amount)}</b></div>
