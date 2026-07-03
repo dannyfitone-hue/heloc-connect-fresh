@@ -108,7 +108,7 @@ export default async function OwnerPage({ searchParams }: { searchParams?: Recor
       <header className="border-b border-white/10 bg-[#0f0e0a]/95 px-5 py-5">
         <div className="mx-auto flex max-w-[1500px] flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <a href="/" className="flex items-center gap-3" aria-label="HELOC CONNECT home">
-            <img src="/hc-premium-logo-v51.png" alt="HELOC CONNECT" className="h-16 w-auto object-contain" />
+            <img src="/hc-logo-premium-visible-v52.png" alt="HELOC CONNECT" className="h-20 w-auto object-contain drop-shadow-[0_0_14px_rgba(246,193,90,.32)]" />
             <div>
               <div className="sr-only">HELOC CONNECT</div>
               <div className="text-xs font-black uppercase tracking-[.35em] text-[#d4af37]">Owner Command Center</div>
