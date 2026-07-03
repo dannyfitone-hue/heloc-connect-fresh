@@ -42,8 +42,8 @@ export default function ClientStatus({token}:{token:string}){
       <header className="border-b border-[#d4af37]/20 bg-[#0f0e0a]/95">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
           <div className="flex items-center gap-3 font-black">
-            <img src="/heloc-connect-premium-logo-v2.png?v=2" alt="HELOC CONNECT" className="h-12 w-auto max-w-[145px] object-contain drop-shadow-[0_0_18px_rgba(212,175,55,.22)]" />
-            <span>Funding Status</span>
+            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-amber-700 text-white">HC</div>
+            HELOC CONNECT Funding Status
           </div>
           <div className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-black text-amber-700">Private secure link</div>
         </div>
