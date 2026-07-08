@@ -26,7 +26,3 @@ input, select, button { font-family: inherit; }
 .status-line { height: 3px; min-width: 80px; flex: 1; border-radius: 999px; background: rgba(212,175,55,.18); box-shadow: inset 0 1px rgba(255,255,255,.06); }
 .status-line.done { background: linear-gradient(90deg,#8a641c,#d4af37,#f6c15a); box-shadow: 0 0 18px rgba(246,193,90,.22); }
 select option { background: #0b0a07; color: #fff; }
-
-/* HELOC CONNECT premium logo integration */
-.brandline-logo img { height: 84px; width: auto; object-fit: contain; filter: drop-shadow(0 10px 28px rgba(212,175,55,.15)); }
-@media (max-width: 640px) { .brandline-logo img { height: 62px; } }

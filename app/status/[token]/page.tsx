@@ -31,10 +31,10 @@ export default async function StatusPage({ params }: { params: { token: string }
     <main className="min-h-screen bg-[#0b0a07] text-white">
       <header className="border-b border-white/10 bg-[#0f0e0a]/95 px-5 py-5">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between">
-          <a href="/" className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl border border-[#d9a94e]/70 bg-[#14110a] text-[#d4af37]">⌂</div>
+          <a href="/" className="flex items-center gap-3" aria-label="HELOC CONNECT home">
+            <img src="/hc-logo-premium-visible-v52.png" alt="HELOC CONNECT" className="h-20 w-auto object-contain drop-shadow-[0_0_14px_rgba(246,193,90,.32)]" />
             <div>
-              <img src="/heloc-connect-logo-full.png" alt="HELOC CONNECT" className="h-16 w-auto object-contain" />
+              <div className="sr-only">HELOC CONNECT</div>
               <div className="text-xs font-black uppercase tracking-[.35em] text-[#d4af37]">Private Client Status</div>
             </div>
           </a>
