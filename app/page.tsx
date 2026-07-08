@@ -323,16 +323,22 @@ export default function LandingPage() {
 
   function quickSwitchPreview(target: ProductKey) {
     const missing = requiredFieldsForPreview(target);
+
+    // Always switch the preview view first so the compare button immediately flips
+    // to the opposite option. If the new option needs more information, the
+    // required fields will be highlighted and the client will be taken there.
+    setProduct(target);
+    setMainGoal("");
+
     if (missing.length) {
       setMissingPreviewFields(missing);
       setPreviewNotice(`Complete the highlighted fields to preview ${target === "refinance" ? "refinance" : "HELOC"} numbers.`);
       scrollToMissingField(missing);
       return;
     }
+
     setMissingPreviewFields([]);
     setPreviewNotice("");
-    setProduct(target);
-    setMainGoal("");
     setTimeout(() => document.getElementById("step1")?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
   }
 
