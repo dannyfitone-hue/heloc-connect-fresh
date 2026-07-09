@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 type ProductKey = "heloc" | "refinance" | "equity_card" | "purchase";
 type AddressResult = { label: string; street?: string; city?: string; state?: string; zip?: string; place_id?: string };
 
-const OFFER_RATE = 0.065;
+const DEFAULT_OFFER_RATE = 0.055;
+const LOWER_CREDIT_OFFER_RATE = 0.065;
 const TERM_MONTHS = 360;
 
 const products: Array<{
@@ -49,7 +50,7 @@ const goalsByProduct: Record<ProductKey, Array<{ title: string; desc: string }>>
 
 function toNumber(v: string | number) { return Number(String(v || "").replace(/[^0-9.]/g, "")) || 0; }
 function money(v: number) { return v ? v.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }) : "$0"; }
-function monthlyPayment(principal: number, rate = OFFER_RATE, months = TERM_MONTHS) {
+function monthlyPayment(principal: number, rate = DEFAULT_OFFER_RATE, months = TERM_MONTHS) {
   if (!principal) return 0;
   const r = rate / 12;
   return Math.round((principal * r) / (1 - Math.pow(1 + r, -months)));
@@ -84,6 +85,7 @@ export default function LandingPage() {
   const [requestedCashInput, setRequestedCashInput] = useState("");
   const [currentRateInput, setCurrentRateInput] = useState("");
   const [currentPaymentInput, setCurrentPaymentInput] = useState("");
+  const [calculatorCreditRange, setCalculatorCreditRange] = useState("620_679");
   const [purchaseLoanInput, setPurchaseLoanInput] = useState("");
   const [purchaseTargetMode, setPurchaseTargetMode] = useState(false);
   const [hasCoOwner, setHasCoOwner] = useState(false);
@@ -221,17 +223,18 @@ export default function LandingPage() {
   const requestedCash = toNumber(requestedCashInput);
   const purchaseLoan = toNumber(purchaseLoanInput);
   const currentRate = Number(currentRateInput || 0) / 100;
+  const offerRate = calculatorCreditRange === "below_550" ? LOWER_CREDIT_OFFER_RATE : DEFAULT_OFFER_RATE;
   const maxEquity = useMemo(() => product === "purchase" || !homeValue ? 0 : Math.max(0, Math.round(homeValue * 0.85 - mortgageBalance)), [homeValue, mortgageBalance, product]);
   const cashToUse = useMemo(() => product === "purchase" ? 0 : Math.max(0, Math.min(requestedCash || maxEquity, maxEquity || requestedCash)), [requestedCash, maxEquity, product]);
-  const helocPayment = useMemo(() => monthlyPayment(cashToUse), [cashToUse]);
+  const helocPayment = useMemo(() => monthlyPayment(cashToUse, offerRate), [cashToUse, offerRate]);
   const estimatedExistingMortgagePayment = useMemo(() => loanDetails.reduce((sum, loan) => {
     if (loan.rate && loan.rate > 0 && loan.balance > 0) return sum + monthlyPayment(loan.balance, loan.rate);
     return sum;
   }, 0), [mortgageBalanceInput, currentRateInput, extraLoanInputs, extraLoanRateInputs, loanCountInput]);
   const currentMortgagePayment = currentMonthlyPaymentEntered > 0 ? currentMonthlyPaymentEntered : estimatedExistingMortgagePayment;
   const refinanceLoan = mortgageBalance + cashToUse;
-  const refinancePayment = useMemo(() => monthlyPayment(refinanceLoan), [refinanceLoan]);
-  const purchasePayment = useMemo(() => monthlyPayment(purchaseLoan), [purchaseLoan]);
+  const refinancePayment = useMemo(() => monthlyPayment(refinanceLoan, offerRate), [refinanceLoan, offerRate]);
+  const purchasePayment = useMemo(() => monthlyPayment(purchaseLoan, offerRate), [purchaseLoan, offerRate]);
   const estimatedPayment = product === "purchase" ? purchasePayment : product === "refinance" ? refinancePayment : helocPayment;
   const helocTotalMonthlyPayment = currentMortgagePayment + helocPayment;
   const quickCompareTargetLabel = product === "heloc" ? "Refinance" : "HELOC";
@@ -440,6 +443,7 @@ export default function LandingPage() {
         <input type="hidden" name="home_value" value={homeValue} />
         <input type="hidden" name="possible_equity_room" value={maxEquity} />
         <input type="hidden" name="estimated_monthly_payment" value={estimatedPayment} />
+        <input type="hidden" name="calculator_credit_score_range" value={calculatorCreditRange === "below_550" ? "Below 550" : calculatorCreditRange === "550_619" ? "550–619" : calculatorCreditRange === "620_679" ? "620–679" : calculatorCreditRange === "680_719" ? "680–719" : "720+"} />
         <input type="hidden" name="current_interest_rate" value={currentRateInput} />
         <input type="hidden" name="existing_loan_count" value={loanCountInput} />
         <input type="hidden" name="total_existing_loans" value={mortgageBalance} />
@@ -499,6 +503,17 @@ export default function LandingPage() {
                     <option value="4+">4+ existing loans</option>
                   </select>
                   <p className="mt-2 text-sm font-semibold text-white/45">This lets the calculator use your total property payoff, not just the first mortgage.</p>
+                </div>}
+                {product !== "purchase" && <div className="rounded-3xl border border-amber-300/20 bg-amber-300/[.045] p-4">
+                  <label className="text-[11px] font-black uppercase tracking-[.22em] text-amber-200">Credit score range</label>
+                  <select name="calculator_credit_score_range_visible" value={calculatorCreditRange} onChange={(e) => setCalculatorCreditRange(e.target.value)} className="field mt-3">
+                    <option value="below_550">Below 550</option>
+                    <option value="550_619">550–619</option>
+                    <option value="620_679">620–679</option>
+                    <option value="680_719">680–719</option>
+                    <option value="720_plus">720+</option>
+                  </select>
+                  <p className="mt-2 text-sm font-semibold text-white/45">This helps us make the payment preview more accurate.</p>
                 </div>}
                 {product !== "purchase" && (loanCount > 1
                   ? <div id="calc-mortgageBalance" className={wrapperClass("mortgageBalance")}> <LoanAmountRateInput label="Loan 1 / first mortgage" name="mortgage_balance" value={mortgageBalanceInput} onChange={setMortgageBalanceInput} rateName="current_interest_rate_visible" rateValue={currentRateInput} onRateChange={setCurrentRateInput} help="Enter the balance and current interest rate for your first mortgage." /></div>
