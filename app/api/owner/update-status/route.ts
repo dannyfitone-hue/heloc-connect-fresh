@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendStatusSms } from "@/lib/sms";
+import { sendStatusEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   const form = await req.formData();
@@ -16,12 +17,18 @@ export async function POST(req: Request) {
   if (status) update.status = status;
   if (notes) update.notes = notes;
 
-  const { data: lead } = await supabaseAdmin.from("leads").select("id, phone, tracking_id, client_token, status").eq("id", leadId).single();
+  const { data: lead } = await supabaseAdmin.from("leads").select("id, phone, email, first_name, last_name, tracking_id, client_token, status").eq("id", leadId).single();
   await supabaseAdmin.from("leads").update(update).eq("id", leadId);
   if (status && lead?.phone) {
     const smsResult = await sendStatusSms(lead.phone, lead.tracking_id, status, lead.client_token);
     try {
       await supabaseAdmin.from("lead_notes").insert({ lead_id: leadId, note: (smsResult as any)?.ok ? `Status SMS sent: ${status}` : `Status SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}` });
+    } catch {}
+  }
+  if (status && (lead as any)?.email) {
+    const emailResult = await sendStatusEmail(lead, status);
+    try {
+      await supabaseAdmin.from("lead_notes").insert({ lead_id: leadId, note: (emailResult as any)?.ok ? `Status email sent: ${status}` : `Status email not sent: ${JSON.stringify(emailResult).slice(0, 500)}` });
     } catch {}
   }
   return NextResponse.redirect(new URL(req.headers.get("referer") || "/owner", req.url), 303);

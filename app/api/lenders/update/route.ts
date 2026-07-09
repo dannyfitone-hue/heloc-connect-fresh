@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getLenderSession } from "@/lib/lenderAuth";
 import { clientStatuses } from "@/lib/status";
 import { sendStatusSms } from "@/lib/sms";
+import { sendStatusEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   const { data: lead, error: leadError } = await s
     .from("leads")
-    .select("id,tracking_id,assigned_company_id,assigned_user_id,status,phone,client_token")
+    .select("id,tracking_id,assigned_company_id,assigned_user_id,status,phone,email,first_name,last_name,client_token")
     .eq("id", b.leadId)
     .single();
 
@@ -61,7 +62,14 @@ export async function POST(req: NextRequest) {
     note: noteLines.join("\n")
   });
 
-  await sendStatusSms((lead as any).phone,(lead as any).tracking_id,incomingStatus,(lead as any).client_token);
+  const smsResult = await sendStatusSms((lead as any).phone,(lead as any).tracking_id,incomingStatus,(lead as any).client_token);
+  const emailResult = await sendStatusEmail(lead, incomingStatus);
+  try {
+    await s.from("lead_notes").insert([
+      { lead_id: b.leadId, note: (smsResult as any)?.ok ? `Status SMS sent: ${incomingStatus}` : `Status SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}` },
+      { lead_id: b.leadId, note: (emailResult as any)?.ok ? `Status email sent: ${incomingStatus}` : `Status email not sent: ${JSON.stringify(emailResult).slice(0, 500)}` }
+    ]);
+  } catch {}
 
   return NextResponse.json({ ok: true, lead: updatedLead }, { headers: { "Cache-Control": "no-store, max-age=0" } });
 }

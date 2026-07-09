@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendWelcomeSms } from "@/lib/sms";
+import { sendWelcomeEmail, sendAdminLeadEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -124,13 +125,32 @@ export async function POST(req: Request) {
     }
 
     console.log("HELOC_LEAD_SAVED_BEFORE_SMS", JSON.stringify({ id: data?.id, phone: lead.phone, tracking_id: data?.tracking_id || lead.tracking_id }));
-    const smsResult = await sendWelcomeSms({ ...lead, id: data?.id, client_token: data?.client_token || clientToken, tracking_id: data?.tracking_id || lead.tracking_id });
+    const fullLead = { ...lead, id: data?.id, client_token: data?.client_token || clientToken, tracking_id: data?.tracking_id || lead.tracking_id };
+
+    const smsResult = await sendWelcomeSms(fullLead);
     console.log("HELOC_WELCOME_SMS_RESULT", JSON.stringify(smsResult));
+
+    const welcomeEmailResult = await sendWelcomeEmail(fullLead);
+    console.log("HELOC_WELCOME_EMAIL_RESULT", JSON.stringify(welcomeEmailResult));
+
+    const adminEmailResult = await sendAdminLeadEmail(fullLead);
+    console.log("HELOC_ADMIN_LEAD_EMAIL_RESULT", JSON.stringify(adminEmailResult));
+
     try {
-      await supabase.from("lead_notes").insert({
-        lead_id: data?.id,
-        note: (smsResult as any)?.ok ? "Welcome SMS sent automatically." : `Welcome SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}`
-      });
+      await supabase.from("lead_notes").insert([
+        {
+          lead_id: data?.id,
+          note: (smsResult as any)?.ok ? "Welcome SMS sent automatically." : `Welcome SMS not sent: ${JSON.stringify(smsResult).slice(0, 500)}`
+        },
+        {
+          lead_id: data?.id,
+          note: (welcomeEmailResult as any)?.ok ? "Welcome email sent automatically with client portal link." : `Welcome email not sent: ${JSON.stringify(welcomeEmailResult).slice(0, 500)}`
+        },
+        {
+          lead_id: data?.id,
+          note: (adminEmailResult as any)?.ok ? "Admin new-lead email sent automatically." : `Admin new-lead email not sent: ${JSON.stringify(adminEmailResult).slice(0, 500)}`
+        }
+      ]);
     } catch {}
 
     return NextResponse.json({
@@ -139,7 +159,9 @@ export async function POST(req: Request) {
       token: data?.client_token || clientToken,
       client_token: data?.client_token || clientToken,
       tracking_id: data?.tracking_id || lead.tracking_id,
-      sms: smsResult
+      sms: smsResult,
+      welcome_email: welcomeEmailResult,
+      admin_email: adminEmailResult
     });
   } catch (error: any) {
     return NextResponse.json({
