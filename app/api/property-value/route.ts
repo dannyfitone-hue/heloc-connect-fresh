@@ -98,7 +98,7 @@ function collectValues(obj: any, values: number[] = []): number[] {
   return values;
 }
 
-function pickValue(data: any, marketFloor = 0): number | null {
+function pickValue(data: any): number | null {
   const property = Array.isArray(data?.property) ? data.property[0] : data?.property || data;
 
   // Prefer the highest credible value instead of the first low assessment/tax value.
@@ -114,10 +114,12 @@ function pickValue(data: any, marketFloor = 0): number | null {
     ...collectValues(property)
   ].filter((v): v is number => Boolean(v && v >= 50000 && v <= 100000000));
 
-  if (!values.length) return marketFloor > 0 ? marketFloor : null;
+  if (!values.length) return null;
 
-  const highest = Math.max(...values);
-  return Math.max(highest, marketFloor || 0);
+  // Use the highest credible AVM-related result returned by ATTOM.
+  // Do not inject the local fallback here, because that previously caused
+  // the search to stop before later AVM endpoints were checked.
+  return Math.max(...values);
 }
 
 function fallbackValue(input: { address?: string; street?: string; city?: string; state?: string; zip?: string; address2?: string }): number {
@@ -133,6 +135,7 @@ function fallbackValue(input: { address?: string; street?: string; city?: string
     "92630": 1150000,
     "92656": 1150000,
     "92677": 1600000,
+    "92673": 2450000,
     "92651": 2500000,
     "92660": 2600000,
     "92663": 2400000,
@@ -222,20 +225,15 @@ export async function POST(req: Request) {
   if (key && candidates.length) {
     const endpoints = [
       { name: "AVM Detail", endpoint: "avm/detail" },
-      { name: "AVM Snapshot", endpoint: "avm/snapshot" },
-      { name: "Basic Profile", endpoint: "property/basicprofile" },
-      { name: "Assessment Snapshot", endpoint: "assessment/snapshot" },
-      { name: "Assessment Detail", endpoint: "assessment/detail" },
-      { name: "Sale Snapshot", endpoint: "sale/snapshot" }
+      { name: "AVM Snapshot", endpoint: "avm/snapshot" }
     ];
 
     for (const candidate of candidates) {
       for (const item of endpoints) {
         try {
           const result = await callAttom(item.endpoint, candidate.address1, candidate.address2, key);
-          const marketFloor = fallbackValue({ address: full, street, city, state, zip, address2 });
-          const value = pickValue(result.data, marketFloor);
-          attempts.push({ candidate: candidate.note, endpoint: item.name, status: result.status, foundValue: Boolean(value), marketFloor });
+          const value = pickValue(result.data);
+          attempts.push({ candidate: candidate.note, endpoint: item.name, status: result.status, foundValue: Boolean(value) });
           if (value) {
             return NextResponse.json({ value, source: `${item.name} / ${candidate.note}`, address1: candidate.address1, address2: candidate.address2, message: "Estimated current market value preview found." });
           }
