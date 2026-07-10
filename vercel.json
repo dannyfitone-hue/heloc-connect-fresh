@@ -1,5 +1,4 @@
 {
   "framework": "nextjs",
-  "installCommand": "npm install --legacy-peer-deps --no-audit --no-fund --registry=https://registry.npmjs.org/ --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000",
   "buildCommand": "npm run build"
 }
