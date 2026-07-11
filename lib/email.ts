@@ -25,6 +25,14 @@ function emailFrom() {
   return cleanEnv(process.env.EMAIL_FROM) || "HELOC CONNECT <clientservices@helocconnect.com>";
 }
 
+function publicSiteUrl() {
+  return (cleanEnv(process.env.NEXT_PUBLIC_SITE_URL) || "https://helocconnect.com").replace(/\/$/, "");
+}
+
+function emailLogoUrl() {
+  return `${publicSiteUrl()}/hc-logo-premium-visible-v52.png`;
+}
+
 async function sendEmail(to: string, subject: string, html: string): Promise<EmailResult> {
   const apiKey = cleanEnv(process.env.RESEND_API_KEY);
   const from = emailFrom();
@@ -63,8 +71,10 @@ function shell(inner: string) {
   <table width="100%" cellspacing="0" cellpadding="0" style="background:#07111f;padding:32px 12px;">
     <tr><td align="center">
       <table width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;background:#0c1728;border:1px solid #223653;border-radius:24px;overflow:hidden;">
-        <tr><td style="padding:28px 30px;background:linear-gradient(135deg,#081326,#152744);">
-          <div style="font-size:28px;font-weight:900;letter-spacing:.5px;color:#f5c76b;">HELOC CONNECT</div>
+        <tr><td align="center" style="padding:22px 30px 24px;background:linear-gradient(135deg,#081326,#152744);text-align:center;">
+          <a href="${esc(publicSiteUrl())}" style="display:inline-block;text-decoration:none;" target="_blank">
+            <img src="${esc(emailLogoUrl())}" width="150" alt="HELOC CONNECT" style="display:block;width:150px;max-width:100%;height:auto;margin:0 auto;border:0;outline:none;text-decoration:none;" />
+          </a>
           <div style="margin-top:8px;font-size:14px;color:#cbd5e1;">Your Personal Mortgage Connection Platform™</div>
         </td></tr>
         ${inner}

@@ -1,6 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase";
 import { CLIENT_STATUSES, DOCUMENT_TYPES, money } from "@/lib/statuses";
-import { DEFAULT_SMS_TEMPLATES } from "@/lib/sms";
 import DeleteLeadForm from "./DeleteLeadForm";
 import DeleteLenderForm from "./DeleteLenderForm";
 
@@ -77,21 +76,6 @@ async function getLenders() {
   return data || [];
 }
 
-async function getSmsTemplates() {
-  const defaults = Object.entries(DEFAULT_SMS_TEMPLATES).map(([template_key, message]) => ({ template_key, message, enabled: true }));
-  if (!supabaseAdmin) return defaults;
-  try {
-    const { data, error } = await supabaseAdmin.from("sms_templates").select("template_key,message,enabled");
-    if (error || !data) return defaults;
-    return defaults.map((d) => {
-      const saved = (data as any[]).find((r) => r.template_key === d.template_key);
-      return saved ? { ...d, message: saved.message || d.message, enabled: saved.enabled !== false } : d;
-    });
-  } catch {
-    return defaults;
-  }
-}
-
 function statCount(leads: any[], status: string) {
   return leads.filter((l) => String(l.status || "").toLowerCase().includes(status.toLowerCase())).length;
 }
@@ -99,7 +83,6 @@ function statCount(leads: any[], status: string) {
 export default async function OwnerPage({ searchParams }: { searchParams?: Record<string, string | undefined> }) {
   const leads: any[] = await getLeads();
   const lenders: any[] = await getLenders();
-  const smsTemplates: any[] = await getSmsTemplates();
   const totalRequested = leads.reduce((sum, l) => sum + Number(l.requested_amount || 0), 0);
   const funded = leads.reduce((sum, l) => sum + Number(l.funded_amount || 0), 0);
 
@@ -122,12 +105,6 @@ export default async function OwnerPage({ searchParams }: { searchParams?: Recor
       </header>
 
       <section className="mx-auto max-w-[1500px] px-4 py-8 sm:px-6 lg:px-8">
-
-        {searchParams?.sms_templates_saved && (
-          <div className="mb-5 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm font-black text-amber-200">
-            SMS automation templates saved. Future automatic texts will use the updated wording.
-          </div>
-        )}
 
         {searchParams?.instant_sms && (
           <div className={`mb-5 rounded-2xl border p-4 text-sm font-black ${searchParams.instant_sms === "sent" ? "border-amber-400/30 bg-amber-400/10 text-amber-200" : "border-red-400/30 bg-red-500/10 text-red-200"}`}>
@@ -223,25 +200,7 @@ export default async function OwnerPage({ searchParams }: { searchParams?: Recor
             </div>
           </div>
 
-          <form action="/api/owner/sms-templates" method="post" className="mt-6 grid gap-4">
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-xs font-bold text-white/55">
-              Available placeholders: <span className="text-amber-200">{"{FIRST_NAME}"}</span>, <span className="text-amber-200">{"{STATUS_LINK}"}</span>, <span className="text-amber-200">{"{STATUS}"}</span>, <span className="text-amber-200">{"{TRACKING_ID}"}</span>, <span className="text-amber-200">{"{COMPANY_NAME}"}</span>
-            </div>
-            <div className="grid gap-4 lg:grid-cols-2">
-              {smsTemplates.map((tpl) => (
-                <div key={tpl.template_key} className="rounded-3xl border border-white/10 bg-[#13100a] p-4">
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <label className="text-sm font-black uppercase tracking-[.18em] text-[#d4af37]">{String(tpl.template_key).replace(/_/g, " ")}</label>
-                    <label className="flex items-center gap-2 text-xs font-black text-white/60">
-                      <input type="checkbox" name={`${tpl.template_key}_enabled`} defaultChecked={tpl.enabled !== false} value="on" /> Enabled
-                    </label>
-                  </div>
-                  <textarea name={tpl.template_key} defaultValue={tpl.message} rows={5} className="w-full rounded-2xl border border-white/10 bg-[#0f0e0a] p-4 text-sm font-semibold leading-relaxed text-white outline-none focus:border-amber-300/60" />
-                </div>
-              ))}
-            </div>
-            <button className="rounded-2xl bg-amber-300 p-4 font-black text-[#0b0a07]">Save SMS Automation Templates</button>
-          </form>
+
         </div>
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[.75fr_1.25fr]">
