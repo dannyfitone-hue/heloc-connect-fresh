@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ownerSessionValue, rateLimit } from "@/lib/security";
 
 const COOKIE_NAME = "hc_owner_auth";
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(req, "owner-login", 8, 15 * 60 * 1000);
+  if (!rl.allowed) return NextResponse.json({ error: "Too many login attempts. Try again later." }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } });
   const { password } = await req.json();
   const configuredPassword = process.env.OWNER_DASHBOARD_PASSWORD;
 
@@ -18,7 +21,7 @@ export async function POST(req: NextRequest) {
   }
 
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(COOKIE_NAME, configuredPassword, {
+  res.cookies.set(COOKIE_NAME, ownerSessionValue(), {
     httpOnly: true,
     secure: true,
     sameSite: "lax",

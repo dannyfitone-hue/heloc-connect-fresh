@@ -1,0 +1,22 @@
+HELOC CONNECT SECURITY HARDENING
+
+Applied in this build:
+- Removed four exposed debug/environment API routes.
+- Protected owner API routes and owner-only lender-management routes.
+- Replaced the owner password cookie with a one-way SHA-256 session value.
+- Added login rate limiting for owner and lender logins.
+- Added lead-submission rate limiting.
+- Restricted manual SMS sending to an authenticated owner and removed public SMS diagnostics.
+- Limited the client portal API response to only fields needed by the portal; internal notes and full PII are no longer returned.
+- Secured document upload status updates by verifying the client portal token owns the requested document.
+- Protected staff document request/download endpoints.
+- Added baseline browser security headers.
+- Removed package-lock.json to avoid the previous private-registry Vercel install failure.
+
+Account changes still required after deployment:
+1. Rotate the Supabase service-role key and update SUPABASE_SERVICE_ROLE_KEY in Vercel.
+2. Change OWNER_DASHBOARD_PASSWORD in Vercel.
+3. Change any shared lender dashboard password if still used.
+4. Log out and log back in after deployment because existing owner cookies will no longer be valid.
+
+Important: Supabase Storage policies should also be reviewed in the Supabase dashboard. The code now verifies ownership when marking an upload complete, but bucket upload permissions are controlled separately by Supabase Storage policies.

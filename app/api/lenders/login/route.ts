@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hashPassword, LENDER_COOKIE, newSessionToken } from "@/lib/lenderAuth";
+import { rateLimit } from "@/lib/security";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(req, "lender-login", 8, 15 * 60 * 1000);
+  if (!rl.allowed) return NextResponse.json({ error: "Too many login attempts. Try again later." }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } });
   const { email, password } = await req.json();
   if (!email || !password) return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
   const s = supabaseAdmin();

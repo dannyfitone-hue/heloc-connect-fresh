@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendWelcomeSms } from "@/lib/sms";
 import { sendWelcomeEmail, sendAdminLeadEmail } from "@/lib/email";
+import { rateLimit } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -38,11 +39,22 @@ function cleanKey(v: any) {
 }
 
 export async function POST(req: Request) {
+  const rl = rateLimit(req, "lead-submit", 12, 60 * 60 * 1000);
+  if (!rl.allowed) return NextResponse.json({ error: "Too many submissions. Please try again later." }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } });
   let body: any = {};
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
+  }
+
+
+  const requiredPhone = clean(body.phone, 40);
+  const requiredEmail = clean(body.email, 160).toLowerCase();
+  const phoneDigits = requiredPhone.replace(/\D/g, "");
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(requiredEmail);
+  if (phoneDigits.length < 10 || !emailValid) {
+    return NextResponse.json({ error: "A valid phone number and email address are required." }, { status: 400 });
   }
 
   const supabaseUrl = cleanUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
@@ -59,7 +71,7 @@ export async function POST(req: Request) {
   if (!serviceKey.startsWith("sb_secret_")) {
     return NextResponse.json({
       error: "SUPABASE_SERVICE_ROLE_KEY must start with sb_secret_.",
-      currentStartsWith: serviceKey.slice(0, 12)
+      currentStartsWith: "invalid"
     }, { status: 500 });
   }
 
@@ -81,8 +93,8 @@ export async function POST(req: Request) {
     client_token: clientToken,
     first_name: clean(body.first_name, 80),
     last_name: clean(body.last_name, 80),
-    phone: clean(body.phone, 40),
-    email: clean(body.email, 160),
+    phone: requiredPhone,
+    email: requiredEmail,
     property_address: cleanLong(body.property_address || body.street_address || ""),
     city: clean(body.city, 120),
     state: clean(body.state, 40),

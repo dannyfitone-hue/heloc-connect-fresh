@@ -30,7 +30,7 @@ export default function ClientStatus({token}:{token:string}){
     await fetch("/api/documents/uploaded",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({documentId,filePath,fileName:file.name})
+      body:JSON.stringify({documentId,filePath,fileName:file.name,clientToken:token})
     });
     await load();
   }
