@@ -366,18 +366,13 @@ export default function LandingPage() {
             </div>
             <div className="hero-visual mascot-stage" aria-label="HC Hopper, the HELOC CONNECT mascot, waves hello">
               <div className="mascot-glow" aria-hidden="true" />
-              <video
+              <img
                 className="mascot-video"
-                autoPlay
-                muted
-                playsInline
-                preload="auto"
-                disablePictureInPicture
-                aria-label="HC Hopper waves hello"
-              >
-                <source src="/mascot/hc-hopper-wave-transparent.webm" type="video/webm" />
-                <source src="/mascot/hc-hopper-wave.mp4" type="video/mp4" />
-              </video>
+                src="/mascot/hc-hopper-wave-transparent.webp"
+                alt="HC Hopper waves hello"
+                draggable={false}
+                decoding="async"
+              />
             </div>
           </div>
           <div className="process-steps">
