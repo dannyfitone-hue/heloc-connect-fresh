@@ -81,6 +81,10 @@ export async function POST(req: Request) {
     `Selected product: ${clean(body.selected_product, 80)}`,
     `Main goal: ${clean(body.main_goal, 160)}`,
     `Use of funds: ${clean(body.cash_use, 160)}`,
+    `Primary residence: ${clean(body.primary_residence, 40)}`,
+    `Property type: ${clean(body.property_type, 120)}`,
+    `Employment status: ${clean(body.employment_status, 120)}`,
+    `Declined by another lender in last 12 months: ${clean(body.declined_recently, 40)}`,
     `Credit card payment history: ${clean(body.credit_card_payments, 240)}`,
     `Bankruptcy last 10 years: ${clean(body.bankruptcy_10_years, 120)}`,
     `SMS consent: ${clean(body.sms_consent, 40) || "not selected"}`,
@@ -137,7 +141,16 @@ export async function POST(req: Request) {
     }
 
     console.log("HELOC_LEAD_SAVED_BEFORE_SMS", JSON.stringify({ id: data?.id, phone: lead.phone, tracking_id: data?.tracking_id || lead.tracking_id }));
-    const fullLead = { ...lead, id: data?.id, client_token: data?.client_token || clientToken, tracking_id: data?.tracking_id || lead.tracking_id };
+    const fullLead = {
+      ...lead,
+      id: data?.id,
+      client_token: data?.client_token || clientToken,
+      tracking_id: data?.tracking_id || lead.tracking_id,
+      primary_residence: clean(body.primary_residence, 40),
+      property_type: clean(body.property_type, 120),
+      employment_status: clean(body.employment_status, 120),
+      declined_recently: clean(body.declined_recently, 40)
+    };
 
     const smsResult = await sendWelcomeSms(fullLead);
     console.log("HELOC_WELCOME_SMS_RESULT", JSON.stringify(smsResult));

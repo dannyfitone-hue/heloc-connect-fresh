@@ -153,6 +153,10 @@ export async function sendAdminLeadEmail(lead: any) {
         <tr><td><strong style="color:#f5c76b;">Email:</strong> ${esc(lead?.email)}</td></tr>
         <tr><td><strong style="color:#f5c76b;">Property:</strong> ${esc(lead?.property_address)}</td></tr>
         <tr><td><strong style="color:#f5c76b;">Requested Amount:</strong> ${esc(money(lead?.requested_amount))}</td></tr>
+        <tr><td><strong style="color:#f5c76b;">Primary Residence:</strong> ${esc(lead?.primary_residence || "Not provided")}</td></tr>
+        <tr><td><strong style="color:#f5c76b;">Property Type:</strong> ${esc(lead?.property_type || "Not provided")}</td></tr>
+        <tr><td><strong style="color:#f5c76b;">Employment Status:</strong> ${esc(lead?.employment_status || "Not provided")}</td></tr>
+        <tr><td><strong style="color:#f5c76b;">Recently Declined:</strong> ${esc(lead?.declined_recently || "Not provided")}</td></tr>
         <tr><td><strong style="color:#f5c76b;">Tracking ID:</strong> ${esc(lead?.tracking_id)}</td></tr>
       </table>
       <p style="margin-top:20px;"><a href="${esc(portalUrl)}" style="display:inline-block;background:#f5c76b;color:#07111f;text-decoration:none;font-weight:900;padding:14px 24px;border-radius:999px;">Open Client Portal</a></p>
