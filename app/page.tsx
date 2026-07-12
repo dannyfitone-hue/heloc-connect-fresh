@@ -328,7 +328,12 @@ export default function LandingPage() {
       </a>
 
       <header className="sticky top-0 z-50 border-b border-amber-200/10 bg-[#050505]/95 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+        <div className="compliance-topline mx-auto flex max-w-6xl justify-end px-4 pt-2">
+          <nav aria-label="Compliance and company pages" className="compliance-mini-links">
+            <a href="/privacy">Privacy</a><span>•</span><a href="/terms">Terms</a><span>•</span><a href="/about">About</a>
+          </nav>
+        </div>
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 pb-3 pt-1">
           <a href="/" className="flex items-center gap-3" aria-label="HELOC CONNECT home">
             <img src="/hc-logo-premium-visible-v52.png" alt="HELOC CONNECT" className="hc-nav-logo h-20 w-auto object-contain sm:h-24" />
           </a>

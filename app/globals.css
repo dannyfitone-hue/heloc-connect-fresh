@@ -26,3 +26,14 @@ input, select, button { font-family: inherit; }
 .status-line { height: 3px; min-width: 80px; flex: 1; border-radius: 999px; background: rgba(212,175,55,.18); box-shadow: inset 0 1px rgba(255,255,255,.06); }
 .status-line.done { background: linear-gradient(90deg,#8a641c,#d4af37,#f6c15a); box-shadow: 0 0 18px rgba(246,193,90,.22); }
 select option { background: #0b0a07; color: #fff; }
+
+/* Small compliance navigation: intentionally isolated so existing page spacing remains intact. */
+.compliance-mini-links,.legal-compliance-links{display:flex;align-items:center;justify-content:flex-end;gap:8px;color:rgba(255,255,255,.48);font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}.compliance-mini-links a,.legal-compliance-links a{color:inherit;text-decoration:none;transition:color .18s ease}.compliance-mini-links a:hover,.legal-compliance-links a:hover{color:#f7d982}.compliance-mini-links span,.legal-compliance-links span{color:rgba(212,175,55,.52);font-size:8px}.legal-page a{outline-offset:4px}.legal-page a:focus-visible{outline:2px solid #d4af37;border-radius:6px}@media(max-width:640px){.compliance-topline{padding-top:5px!important}.compliance-mini-links{gap:6px;font-size:8px;letter-spacing:.055em}.legal-compliance-links{gap:6px;font-size:8px;letter-spacing:.045em}.legal-header{padding:12px!important}}
+
+/* Legal-page mascot background only. Does not affect the homepage. */
+.legal-mascot-layer{overflow:hidden}
+.legal-mascot-image{position:absolute;right:max(2vw,18px);top:130px;width:min(34vw,430px);height:auto;opacity:.13;filter:saturate(.92) contrast(1.03) drop-shadow(0 0 36px rgba(212,175,55,.17));transform:translateZ(0)}
+.legal-mascot-glow{position:absolute;right:-4vw;top:115px;width:min(44vw,560px);height:min(68vw,760px);border-radius:50%;background:radial-gradient(circle,rgba(218,171,64,.20) 0%,rgba(154,102,20,.08) 34%,transparent 70%);filter:blur(30px);opacity:.75}
+.legal-mascot-fade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,3,3,.99) 0%,rgba(3,3,3,.95) 42%,rgba(3,3,3,.72) 72%,rgba(3,3,3,.88) 100%),linear-gradient(180deg,rgba(3,3,3,.18),rgba(3,3,3,.76) 90%)}
+@media(max-width:900px){.legal-mascot-image{right:-65px;top:180px;width:360px;opacity:.085}.legal-mascot-glow{right:-160px;top:170px;width:480px;height:650px;opacity:.55}.legal-mascot-fade{background:linear-gradient(90deg,rgba(3,3,3,.99) 0%,rgba(3,3,3,.96) 58%,rgba(3,3,3,.82) 100%),linear-gradient(180deg,rgba(3,3,3,.12),rgba(3,3,3,.82) 84%)}}
+@media(max-width:640px){.legal-mascot-image{right:-88px;top:245px;width:285px;opacity:.065}.legal-mascot-glow{right:-150px;top:230px;width:360px;height:520px;opacity:.42}.legal-mascot-fade{background:linear-gradient(90deg,rgba(3,3,3,.995) 0%,rgba(3,3,3,.97) 68%,rgba(3,3,3,.88) 100%),linear-gradient(180deg,rgba(3,3,3,.2),rgba(3,3,3,.9) 80%)}}
