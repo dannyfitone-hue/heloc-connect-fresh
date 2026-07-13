@@ -89,6 +89,10 @@ export async function POST(req: Request) {
     `Bankruptcy last 10 years: ${clean(body.bankruptcy_10_years, 120)}`,
     `SMS consent: ${clean(body.sms_consent, 40) || "not selected"}`,
     `Current interest rate: ${clean(body.current_interest_rate, 40)}`,
+    `Current monthly mortgage payment: ${num(body.current_mortgage_monthly_payment)}`,
+    `Payment check estimated comparable payment: ${num(body.payment_check_estimated_payment)}`,
+    `Payment check monthly difference: ${num(body.payment_check_monthly_difference)}`,
+    `Payment check result: ${clean(body.payment_check_result, 160)}`,
     body.co_first_name || body.co_last_name ? `Co-owner: ${clean(body.co_first_name, 80)} ${clean(body.co_last_name, 80)} | ${clean(body.co_phone, 80)} | ${clean(body.co_email, 160)} | credit: ${clean(body.co_credit_score, 80)} | bankruptcy: ${clean(body.co_bankruptcy_10_years, 120)} | card payments: ${clean(body.co_credit_card_payments, 180)}` : "Co-owner: not added"
   ].join("\n");
 
