@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { CLIENT_STATUSES, DOCUMENT_TYPES, money } from "@/lib/statuses";
 import DeleteLeadForm from "./DeleteLeadForm";
 import DeleteLenderForm from "./DeleteLenderForm";
+import { DEFAULT_NETWORK_RATES, type NetworkRate } from "@/lib/networkRates";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -60,6 +61,20 @@ async function getLeads() {
   }));
 }
 
+async function getNetworkRates(): Promise<NetworkRate[]> {
+  if (!supabaseAdmin) return DEFAULT_NETWORK_RATES;
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("network_rates")
+      .select("rate_key, program, rate, apr, active, sort_order, updated_at")
+      .order("sort_order", { ascending: true });
+    if (error || !data?.length) return DEFAULT_NETWORK_RATES;
+    return data as NetworkRate[];
+  } catch {
+    return DEFAULT_NETWORK_RATES;
+  }
+}
+
 async function getLenders() {
   if (!supabaseAdmin) return [];
   const { data, error } = await supabaseAdmin
@@ -83,6 +98,7 @@ function statCount(leads: any[], status: string) {
 export default async function OwnerPage({ searchParams }: { searchParams?: Record<string, string | undefined> }) {
   const leads: any[] = await getLeads();
   const lenders: any[] = await getLenders();
+  const networkRates = await getNetworkRates();
   const totalRequested = leads.reduce((sum, l) => sum + Number(l.requested_amount || 0), 0);
   const funded = leads.reduce((sum, l) => sum + Number(l.funded_amount || 0), 0);
 
@@ -137,6 +153,9 @@ export default async function OwnerPage({ searchParams }: { searchParams?: Recor
           </div>
         )}
 
+        {searchParams?.rates_saved && <div className="mb-5 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm font-black text-amber-200">Network rates updated successfully.</div>}
+        {searchParams?.rate_error && <div className="mb-5 rounded-2xl border border-red-400/30 bg-red-500/10 p-4 text-sm font-black text-red-200">Rate update failed: {searchParams.rate_error}</div>}
+
         <div className="rounded-[34px] border border-white/10 bg-gradient-to-br from-[#18140c] to-[#0b0a07] p-6 shadow-2xl">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -161,6 +180,32 @@ export default async function OwnerPage({ searchParams }: { searchParams?: Recor
         </div>
 
 
+        <div className="mt-6 overflow-hidden rounded-[34px] border border-[#d4af37]/25 bg-gradient-to-br from-[#191408] to-[#0e0d09] p-5 shadow-2xl sm:p-6">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="text-xs font-black uppercase tracking-[.35em] text-[#d4af37]">Homepage Control</div>
+              <h2 className="mt-2 text-3xl font-black tracking-[-.04em]">Today’s Network Rates</h2>
+              <p className="mt-2 max-w-3xl text-sm font-semibold text-white/55">Update the rate snapshot shown on the homepage. Changes appear immediately after saving.</p>
+            </div>
+            <div className="rounded-full border border-[#d4af37]/30 bg-[#d4af37]/10 px-4 py-2 text-xs font-black uppercase tracking-[.18em] text-[#d4af37]">Updated Daily</div>
+          </div>
+          <form action="/api/owner/network-rates" method="post" className="mt-6">
+            <div className="grid gap-4 lg:grid-cols-3">
+              {networkRates.map((rate) => (
+                <div key={rate.rate_key} className="rounded-3xl border border-white/10 bg-black/20 p-4">
+                  <label className="text-[10px] font-black uppercase tracking-[.22em] text-amber-200">Loan Program</label>
+                  <input name={`${rate.rate_key}_program`} defaultValue={rate.program} className="mt-2 w-full rounded-2xl border border-white/10 bg-[#0f0e0a] p-3 font-black text-white outline-none focus:border-[#d4af37]/60" />
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <label className="text-xs font-black text-white/55">Rate %<input name={`${rate.rate_key}_rate`} type="number" step="0.001" min="0" max="30" defaultValue={Number(rate.rate).toFixed(3)} className="mt-2 w-full rounded-2xl border border-white/10 bg-[#0f0e0a] p-3 text-lg font-black text-[#d4af37] outline-none focus:border-[#d4af37]/60" /></label>
+                    <label className="text-xs font-black text-white/55">APR %<input name={`${rate.rate_key}_apr`} type="number" step="0.001" min="0" max="30" defaultValue={Number(rate.apr).toFixed(3)} className="mt-2 w-full rounded-2xl border border-white/10 bg-[#0f0e0a] p-3 text-lg font-black text-white outline-none focus:border-[#d4af37]/60" /></label>
+                  </div>
+                  <label className="mt-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.03] p-3 text-sm font-black"><input name={`${rate.rate_key}_active`} type="checkbox" defaultChecked={rate.active !== false} className="h-5 w-5 accent-[#d4af37]" /> Show on homepage</label>
+                </div>
+              ))}
+            </div>
+            <button className="mt-5 w-full rounded-2xl bg-[#d4af37] p-4 font-black text-[#0b0a07] shadow-[0_12px_35px_rgba(212,175,55,.2)] sm:w-auto sm:px-10">Save Network Rates</button>
+          </form>
+        </div>
 
         <div className="mt-6 rounded-[34px] border border-amber-300/15 bg-[#11100b] p-5 shadow-2xl sm:p-6">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">

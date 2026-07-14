@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { DEFAULT_NETWORK_RATES, type NetworkRate } from "@/lib/networkRates";
 
 type ProductKey = "heloc" | "refinance" | "purchase" | "payment_check";
 type AddressResult = { label: string; street?: string; city?: string; state?: string; zip?: string; place_id?: string };
@@ -96,6 +97,21 @@ export default function LandingPage() {
   const [purchaseDateInput, setPurchaseDateInput] = useState("");
   const [purchasePeriodValueInput, setPurchasePeriodValueInput] = useState("");
   const [purchaseHistoryStatus, setPurchaseHistoryStatus] = useState("Enter the property address and approximate purchase date.");
+  const [networkRates, setNetworkRates] = useState<NetworkRate[]>(DEFAULT_NETWORK_RATES);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/network-rates", { cache: "no-store" })
+      .then((res) => res.ok ? res.json() : null)
+      .then((payload) => { if (active && payload?.rates?.length) setNetworkRates(payload.rates); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  const latestRateUpdate = useMemo(() => {
+    const dates = networkRates.map((r) => r.updated_at ? new Date(r.updated_at).getTime() : 0).filter(Boolean);
+    return dates.length ? new Date(Math.max(...dates)) : new Date();
+  }, [networkRates]);
 
   const selected = products.find((p) => p.key === product)!;
   const homeValue = toNumber(homeValueInput);
@@ -453,6 +469,44 @@ export default function LandingPage() {
           <div className="text-center"><div className="mx-auto w-fit rounded-full border border-amber-300/25 bg-amber-300/8 px-4 py-2 text-[10px] font-black uppercase tracking-[.28em] text-amber-200">Choose Your Path</div><h2 className="mt-3 text-2xl font-black tracking-[-.04em] sm:text-5xl">What brings you in today?</h2><p className="mx-auto mt-2 max-w-xl text-sm font-semibold text-white/60">Tap one option. Step 1 below updates instantly.</p></div>
           <div className="service-grid service-grid-four mt-4">
             {products.map((p) => <button key={p.key} type="button" onClick={() => chooseProduct(p.key)} className={`service-tile service-${p.key} accent-${p.accent} ${product === p.key ? "selected" : ""}`} aria-pressed={product === p.key}><span className="tile-shine" /><span className="tile-pattern" /><div className="tile-top"><div className="icon3d"><span>{p.icon}</span></div>{product === p.key && <div className="selected-pill">✓</div>}</div><div className="tile-copy"><div className="tile-title">{p.shortTitle}</div>{p.eyebrow && <div className="tile-eyebrow">{p.eyebrow}</div>}<div className="gold-rule" /><p>{p.short}</p></div><span className="tile-art" /></button>)}
+          </div>
+        </section>
+
+        <section className="network-rate-section" aria-labelledby="network-rate-title">
+          <div className="rate-orb rate-orb-one" aria-hidden="true" />
+          <div className="rate-orb rate-orb-two" aria-hidden="true" />
+          <div className="rate-heading-row">
+            <div>
+              <div className="rate-live-badge"><span /> Updated Daily</div>
+              <h2 id="network-rate-title">Today’s Network Rate Snapshot</h2>
+              <p>Current rate examples from participating mortgage companies</p>
+            </div>
+            <button type="button" className="rate-cta desktop-rate-cta" onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Find My Best Rate</button>
+          </div>
+
+          <div className="rate-desktop-table">
+            <div className="rate-table-head"><span>Loan Program</span><span>Rate</span><span>APR</span></div>
+            {networkRates.filter((r) => r.active !== false).map((r) => (
+              <div className="rate-table-row" key={r.rate_key}>
+                <span>{r.program}</span><strong>{Number(r.rate).toFixed(3)}%</strong><b>{Number(r.apr).toFixed(3)}%</b>
+              </div>
+            ))}
+          </div>
+
+          <div className="rate-mobile-scroller" aria-label="Swipe through current rate examples">
+            {networkRates.filter((r) => r.active !== false).map((r) => (
+              <article className="rate-mobile-card" key={r.rate_key}>
+                <div className="rate-card-program">{r.program}</div>
+                <div className="rate-card-value">{Number(r.rate).toFixed(3)}%</div>
+                <div className="rate-card-apr"><span>APR</span>{Number(r.apr).toFixed(3)}%</div>
+              </article>
+            ))}
+          </div>
+          <div className="rate-swipe-hint">Swipe to compare <span>→</span></div>
+
+          <div className="rate-footer-row">
+            <p><strong>Last updated {latestRateUpdate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</strong> • Rates may change without notice. Subject to credit, property, loan amount, occupancy, points, fees, and lender approval. HELOC CONNECT is not a lender.</p>
+            <button type="button" className="rate-cta mobile-rate-cta" onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Find My Best Rate</button>
           </div>
         </section>
 
