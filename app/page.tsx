@@ -465,13 +465,6 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="services" className="mt-5 rounded-[26px] border border-amber-300/20 bg-white/[.035] p-4 sm:p-7">
-          <div className="text-center"><div className="mx-auto w-fit rounded-full border border-amber-300/25 bg-amber-300/8 px-4 py-2 text-[10px] font-black uppercase tracking-[.28em] text-amber-200">Choose Your Path</div><h2 className="mt-3 text-2xl font-black tracking-[-.04em] sm:text-5xl">What brings you in today?</h2><p className="mx-auto mt-2 max-w-xl text-sm font-semibold text-white/60">Tap one option. Step 1 below updates instantly.</p></div>
-          <div className="service-grid service-grid-four mt-4">
-            {products.map((p) => <button key={p.key} type="button" onClick={() => chooseProduct(p.key)} className={`service-tile service-${p.key} accent-${p.accent} ${product === p.key ? "selected" : ""}`} aria-pressed={product === p.key}><span className="tile-shine" /><span className="tile-pattern" /><div className="tile-top"><div className="icon3d"><span>{p.icon}</span></div>{product === p.key && <div className="selected-pill">✓</div>}</div><div className="tile-copy"><div className="tile-title">{p.shortTitle}</div>{p.eyebrow && <div className="tile-eyebrow">{p.eyebrow}</div>}<div className="gold-rule" /><p>{p.short}</p></div><span className="tile-art" /></button>)}
-          </div>
-        </section>
-
         <section className="network-rate-section" aria-labelledby="network-rate-title">
           <div className="rate-orb rate-orb-one" aria-hidden="true" />
           <div className="rate-orb rate-orb-two" aria-hidden="true" />
@@ -509,6 +502,15 @@ export default function LandingPage() {
             <button type="button" className="rate-cta mobile-rate-cta" onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Find My Best Rate</button>
           </div>
         </section>
+
+        <section id="services" className="mt-5 rounded-[26px] border border-amber-300/20 bg-white/[.035] p-4 sm:p-7">
+          <div className="text-center"><div className="mx-auto w-fit rounded-full border border-amber-300/25 bg-amber-300/8 px-4 py-2 text-[10px] font-black uppercase tracking-[.28em] text-amber-200">Choose Your Path</div><h2 className="mt-3 text-2xl font-black tracking-[-.04em] sm:text-5xl">What brings you in today?</h2><p className="mx-auto mt-2 max-w-xl text-sm font-semibold text-white/60">Tap one option. Step 1 below updates instantly.</p></div>
+          <div className="service-grid service-grid-four mt-4">
+            {products.map((p) => <button key={p.key} type="button" onClick={() => chooseProduct(p.key)} className={`service-tile service-${p.key} accent-${p.accent} ${product === p.key ? "selected" : ""}`} aria-pressed={product === p.key}><span className="tile-shine" /><span className="tile-pattern" /><div className="tile-top"><div className="icon3d"><span>{p.icon}</span></div>{product === p.key && <div className="selected-pill">✓</div>}</div><div className="tile-copy"><div className="tile-title">{p.shortTitle}</div>{p.eyebrow && <div className="tile-eyebrow">{p.eyebrow}</div>}<div className="gold-rule" /><p>{p.short}</p></div><span className="tile-art" /></button>)}
+          </div>
+        </section>
+
+
 
         {product === "payment_check" ? (
           <section id="step1" className="mt-5 rounded-[28px] border border-amber-300/20 bg-[#11100b]/88 p-4 sm:p-7">
