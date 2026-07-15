@@ -391,3 +391,115 @@ select option { background: #0b0a07; color: #fff; }
   }
   .rate-card-value { font-size: 26px !important; }
 }
+
+/* AUTHORITATIVE compact mobile Network Rate Snapshot — replaces swipe cards */
+.rate-mobile-compact-list{display:none}
+@media (max-width: 760px){
+  .network-rate-section{
+    box-sizing:border-box!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:12px 0 0!important;
+    padding:14px!important;
+    border-radius:20px!important;
+    overflow:hidden!important;
+  }
+  .rate-heading-row{display:block!important}
+  .rate-live-badge{
+    padding:5px 9px!important;
+    font-size:8px!important;
+    letter-spacing:.14em!important;
+  }
+  .rate-heading-row h2{
+    margin:9px 0 0!important;
+    font-size:22px!important;
+    line-height:1.08!important;
+    letter-spacing:-.035em!important;
+  }
+  .rate-heading-row p{
+    margin:5px 0 0!important;
+    max-width:100%!important;
+    font-size:11px!important;
+    line-height:1.38!important;
+  }
+  .rate-mobile-scroller,.rate-swipe-hint{display:none!important}
+  .rate-mobile-compact-list{
+    display:block!important;
+    margin-top:13px!important;
+    overflow:hidden!important;
+    border:1px solid rgba(246,193,90,.22)!important;
+    border-radius:15px!important;
+    background:rgba(0,0,0,.22)!important;
+  }
+  .rate-mobile-list-head,.rate-mobile-list-row{
+    display:grid!important;
+    grid-template-columns:minmax(0,1.35fr) .72fr .72fr!important;
+    align-items:center!important;
+    column-gap:8px!important;
+    padding:9px 11px!important;
+  }
+  .rate-mobile-list-head{
+    background:rgba(246,193,90,.09)!important;
+    color:#f4d785!important;
+    font-size:8px!important;
+    font-weight:950!important;
+    letter-spacing:.14em!important;
+    text-transform:uppercase!important;
+  }
+  .rate-mobile-list-head span:nth-child(n+2){text-align:right!important}
+  .rate-mobile-list-row{
+    min-height:44px!important;
+    border-top:1px solid rgba(255,255,255,.07)!important;
+  }
+  .rate-mobile-list-row strong{
+    min-width:0!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    font-size:11px!important;
+    font-weight:850!important;
+    color:rgba(255,255,255,.9)!important;
+  }
+  .rate-mobile-list-row b{
+    text-align:right!important;
+    white-space:nowrap!important;
+    font-size:15px!important;
+    font-weight:950!important;
+    color:#f6c15a!important;
+  }
+  .rate-mobile-list-row span{
+    text-align:right!important;
+    white-space:nowrap!important;
+    font-size:11px!important;
+    font-weight:850!important;
+    color:rgba(255,255,255,.72)!important;
+  }
+  .rate-footer-row{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:9px!important;
+    margin-top:10px!important;
+  }
+  .rate-footer-row p{
+    margin:0!important;
+    font-size:8.5px!important;
+    line-height:1.42!important;
+  }
+  .mobile-rate-cta{
+    display:block!important;
+    width:100%!important;
+    min-height:42px!important;
+    margin:0!important;
+    padding:10px 12px!important;
+    border-radius:12px!important;
+    font-size:12px!important;
+  }
+}
+@media (max-width:390px){
+  .network-rate-section{padding:12px!important;border-radius:18px!important}
+  .rate-heading-row h2{font-size:20px!important}
+  .rate-mobile-list-head,.rate-mobile-list-row{padding-left:9px!important;padding-right:9px!important}
+  .rate-mobile-list-row strong{font-size:10px!important}
+  .rate-mobile-list-row b{font-size:14px!important}
+  .rate-mobile-list-row span{font-size:10px!important}
+}

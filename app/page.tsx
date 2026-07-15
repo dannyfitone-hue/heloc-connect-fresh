@@ -486,16 +486,16 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <div className="rate-mobile-scroller" aria-label="Swipe through current rate examples">
+          <div className="rate-mobile-compact-list" aria-label="Current mortgage rate examples">
+            <div className="rate-mobile-list-head"><span>Program</span><span>Rate</span><span>APR</span></div>
             {networkRates.filter((r) => r.active !== false).map((r) => (
-              <article className="rate-mobile-card" key={r.rate_key}>
-                <div className="rate-card-program">{r.program}</div>
-                <div className="rate-card-value">{Number(r.rate).toFixed(3)}%</div>
-                <div className="rate-card-apr"><span>APR</span>{Number(r.apr).toFixed(3)}%</div>
-              </article>
+              <div className="rate-mobile-list-row" key={r.rate_key}>
+                <strong>{r.program}</strong>
+                <b>{Number(r.rate).toFixed(3)}%</b>
+                <span>{Number(r.apr).toFixed(3)}%</span>
+              </div>
             ))}
           </div>
-          <div className="rate-swipe-hint">Swipe to compare <span>→</span></div>
 
           <div className="rate-footer-row">
             <p><strong>Last updated {latestRateUpdate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</strong> • Rates may change without notice. Subject to credit, property, loan amount, occupancy, points, fees, and lender approval. HELOC CONNECT is not a lender.</p>
