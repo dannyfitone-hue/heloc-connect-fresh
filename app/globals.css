@@ -289,3 +289,105 @@ select option { background: #0b0a07; color: #fff; }
     font-size: 34px !important;
   }
 }
+
+/* TRUE compact phone layout for Network Rate Snapshot */
+@media (max-width: 640px) {
+  .network-rate-section {
+    box-sizing: border-box !important;
+    width: calc(100% - 12px) !important;
+    max-width: calc(100% - 12px) !important;
+    margin: 10px auto 0 !important;
+    padding: 10px 9px 10px !important;
+    border-radius: 16px !important;
+  }
+  .rate-heading-row {
+    display: block !important;
+  }
+  .rate-live-badge {
+    padding: 4px 7px !important;
+    font-size: 7px !important;
+    letter-spacing: .12em !important;
+  }
+  .rate-live-badge span {
+    width: 4px !important;
+    height: 4px !important;
+  }
+  .rate-heading-row h2 {
+    margin: 7px 0 0 !important;
+    max-width: 100% !important;
+    font-size: 18px !important;
+    line-height: 1.08 !important;
+    letter-spacing: -.035em !important;
+  }
+  .rate-heading-row p {
+    margin: 4px 0 0 !important;
+    max-width: 280px !important;
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+  }
+  .rate-mobile-scroller {
+    gap: 7px !important;
+    margin: 10px -9px 0 !important;
+    padding: 0 9px 4px !important;
+    scroll-padding-inline: 9px !important;
+  }
+  .rate-mobile-card {
+    flex: 0 0 72% !important;
+    min-width: 0 !important;
+    min-height: 96px !important;
+    padding: 10px 11px !important;
+    border-radius: 14px !important;
+  }
+  .rate-card-program {
+    font-size: 8px !important;
+    line-height: 1.2 !important;
+    letter-spacing: .11em !important;
+  }
+  .rate-card-value {
+    margin-top: 7px !important;
+    font-size: 28px !important;
+    line-height: 1 !important;
+  }
+  .rate-card-apr {
+    margin-top: 7px !important;
+    padding-top: 7px !important;
+    font-size: 12px !important;
+  }
+  .rate-card-apr span {
+    font-size: 7px !important;
+  }
+  .rate-swipe-hint {
+    margin-top: 0 !important;
+    font-size: 8px !important;
+  }
+  .rate-footer-row {
+    margin-top: 6px !important;
+  }
+  .rate-footer-row p {
+    margin: 0 !important;
+    font-size: 8px !important;
+    line-height: 1.35 !important;
+  }
+  .mobile-rate-cta {
+    min-height: 40px !important;
+    margin-top: 8px !important;
+    padding: 9px 12px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .network-rate-section {
+    width: calc(100% - 8px) !important;
+    max-width: calc(100% - 8px) !important;
+    padding: 9px 8px !important;
+  }
+  .rate-heading-row h2 { font-size: 17px !important; }
+  .rate-heading-row p { font-size: 9px !important; }
+  .rate-mobile-card {
+    flex-basis: 74% !important;
+    min-height: 92px !important;
+  }
+  .rate-card-value { font-size: 26px !important; }
+}
