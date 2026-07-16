@@ -191,13 +191,17 @@ export default function LandingPage() {
       const res = await fetch("/api/property-value", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: addressData.address || [address1, address2].filter(Boolean).join(", "), address1, street: address1, city: addressData.city || city, state: addressData.state || stateName, zip: addressData.zip || zip, address2 }) });
       const data = await res.json();
       const fromApi = Number(data?.value || data?.avm || data?.estimatedValue || data?.valuation || 0);
-      const v = Math.max(fromApi || 0, fallbackValue(addressData));
-      setHomeValueInput(String(Math.round(v)));
-      setValueStatus(`Property value loaded: ${money(v)}. You can adjust it if needed.`);
+      if (fromApi > 0) {
+        setHomeValueInput(String(Math.round(fromApi)));
+        const sourceLabel = data?.source ? ` (${data.source})` : "";
+        setValueStatus(`Property value loaded: ${money(fromApi)}${sourceLabel}. You can adjust it if needed.`);
+      } else {
+        setHomeValueInput("");
+        setValueStatus(data?.message || "We could not confirm a reliable value. Please enter your estimated property value.");
+      }
     } catch {
-      const v = fallbackValue(addressData);
-      setHomeValueInput(String(v));
-      setValueStatus(`Property value loaded: ${money(v)}. You can adjust it if needed.`);
+      setHomeValueInput("");
+      setValueStatus("We could not confirm a reliable value. Please enter your estimated property value.");
     }
   }
 
